@@ -13,6 +13,7 @@ static bool quitting = false;
 static SDL_Window *window = NULL;
 static SDL_GLContext gl_context;
 
+//Il manque une classe scene
 void updateMVP(){ for( glMesh* mesh : meshes ){ mesh->updateMVP(context->globalUBO.proj, context->globalUBO.view); } }
 void listen_glDebugMessage();
 
@@ -50,8 +51,11 @@ void init(){
 	ASSETS_PATHS.push_back("./assets/wall/");
 	MODELS_NAMES.push_back("Wall.obj");
 	
-	ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
-	MODELS_NAMES.push_back("classic_sonic.dae");
+	//ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
+	//MODELS_NAMES.push_back("classic_sonic.dae");
+
+	ASSETS_PATHS.push_back("./assets/Aku Aku/");
+	MODELS_NAMES.push_back("aku_aku.obj");
 	
 	//ASSETS_PATHS.push_back("./assets/gems/");
 	//MODELS_NAMES.push_back("crystal.obj");
@@ -81,7 +85,7 @@ void init(){
 		}
 	}
 	meshes.at(0)->matrices.model = glm::scale( meshes.at(0)->matrices.model, glm::vec3(1.5f));
-	meshes.at(1)->matrices.model = glm::scale( meshes.at(1)->matrices.model, glm::vec3(1.5f));
+	meshes.at(1)->matrices.model = glm::scale( meshes.at(1)->matrices.model, glm::vec3(0.5f));
 	//meshes.at(2)->matrices.model = glm::scale( meshes.at(2)->matrices.model, glm::vec3(0.3f));
 	//meshes.at(3)->matrices.model = glm::scale( meshes.at(3)->matrices.model, glm::vec3(0.01f));
 	//meshes.at(3)->matrices.model = glm::translate( meshes.at(3)->matrices.model, glm::vec3(0.0f, context->globalUBO.camPos.y / 0.02f, 0.0f));
@@ -90,29 +94,34 @@ void init(){
 	updateMVP();
 	context->updateGlobalUniformBuffer();
 	context->updateLightsUniformBuffer();
+
 	glEnable(GL_DEPTH_TEST);
+	glDepthRange(0,1);
 	
-	//glEnable(GL_CULL_FACE);
-	//glShadeModel(GL_SMOOTH);
+	glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+
+	glEnable(GL_PROGRAM_POINT_SIZE);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable( GL_BLEND );
 }
 
 
 
 
-void render() {
+void render(){
 	SDL_GL_MakeCurrent(window, gl_context);
 
 	glClearColor(0.05,0.05,0.2,0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glPushMatrix();
 
 	phongPipeline.bind();
-	context->bindUBO(phongPipeline);
-	for( glMesh* mesh : meshes ){ mesh->render(phongPipeline); }
-	//for( glMesh* mesh : meshes ){ mesh->testDraw(); }
+	context->bindUBO();
+	for( glMesh* mesh : meshes ){ mesh->render(); }
 	
 	
-	//glPopMatrix();
 	glFlush();
 	SDL_GL_SwapWindow(window);
 }

@@ -21,28 +21,20 @@ enum ShadersIndex{ VERTEX_SI, FRAG_SI, SIZE_SI };
 struct glPipeline {
 	GLuint programID;
 	GLuint shaders[ShadersIndex::SIZE_SI];
-	//GLuint bindingPoints[UniformsBindingPoints::SIZE_UBP];
-	//GLuint attribLocation[VertexAttributes::SIZE_VA];
 	
 	glPipeline();
-	glPipeline(std::string&, std::string&);
 	virtual ~glPipeline();
-	void attachShaders();
 	void bind();
-	void link();
-	std::string loadShaderCode(const std::string&);
-	void checkShaderError(GLuint, GLuint, bool, const std::string&);
-	void createShader(const std::string&, unsigned int);
 
 	std::string readFile(const char*);
-	GLuint loadShader(const char*, const char*);
+	void loadShader(const char*, const char*);
 	void printProgramLog(GLuint);
 	void printShaderLog(GLuint);
 	void generateShaders();
 };
 
 
-
+//A renommer
 struct glContext{
 	UniformBufferObject globalUBO;
 	LightSources lights;
@@ -78,18 +70,11 @@ struct glContext{
 		glUnmapBuffer(GL_UNIFORM_BUFFER);
 	}
 
-	void bindUBO(glPipeline& pipeline){
+	void bindUBO(){
 		glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::GLOBAL_UBP, UBO[UniformsBindingPoints::GLOBAL_UBP]);
 		glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::LIGHTS_UBP, UBO[UniformsBindingPoints::LIGHTS_UBP]);
-
-		//glUniformBlockBinding(pipeline.programID, pipeline.bindingPoints[ UniformsBindingPoints::GLOBAL_UBP], UniformsBindingPoints::GLOBAL_UBP);
-		//glUniformBlockBinding(pipeline.programID, pipeline.bindingPoints[ UniformsBindingPoints::LIGHTS_UBP], UniformsBindingPoints::LIGHTS_UBP);
 	}
 };
-
-
-
-
 
 
 #endif

@@ -52,27 +52,19 @@ struct MaterialGroup{
 	void createTextureImage(const char*, uint32_t);
 	void createUniformBuffers();
 	void updateUniformBuffers();
-	void bindUBO(glPipeline&);
+	void bindUBO();
 	void bindTextures();
 };
 
 
 enum VBO{ VERTEX, INDEX, SIZE_V };
 struct glSubMesh{
-	std::vector<glVertex> vertices; //temporairement mit a l ecart
-	std::vector<glm::vec3> vertPos;
-	std::vector<glm::vec3> vertNrm;
-	std::vector<glm::vec2> vertUV;
-	std::vector<glm::vec3> vertTan;
-	std::vector<glm::vec3> vertBiTan;
-
-	
+	std::vector<glVertex> vertices;
 	std::vector<GLuint> indices;
 
 	MaterialGroup* mat;
 	GLuint VAO;
 	GLuint vbo[VBO::SIZE_V];
-	GLuint secondVBO[VertexAttributes::SIZE_VA];
 	
 	glSubMesh();
 	~glSubMesh();
@@ -81,8 +73,8 @@ struct glSubMesh{
 	void createIndexBuffer();
 	void createVAO();
 	void bindVAO();
-	void render(glPipeline&);
-	void testDraw();
+	void render();
+	void testDraw(); //Use only with a compatibility openGL context
 };
 
 
@@ -111,16 +103,23 @@ public:
 	
 	virtual void loadMesh(const std::string&, const std::string&);
 	virtual void loadScene(const aiScene*, const std::string&);
-	virtual void render(glPipeline&);
+	virtual void render();
 	virtual void testDraw();
 	virtual glm::vec3 getCamPos();
 
 	virtual void createUniformBuffer();
 	virtual void updateUniformBuffer();
-	virtual void bindUBO(glPipeline&);
+	virtual void bindUBO();
 	virtual void updateMVP(glm::mat4, glm::mat4);
 };
 
-
-
+/*
+class glInstancedMesh : public glMesh{
+	
+public:
+	glInstancedMesh();
+	virtual ~glInstancedMesh();
+	
+};
+*/
 #endif

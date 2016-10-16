@@ -62,12 +62,9 @@ void MaterialGroup::updateUniformBuffers(){
 }
 
 
-void MaterialGroup::bindUBO(glPipeline& pipeline){
+void MaterialGroup::bindUBO(){
 	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::MATERIAL_UBP, UBO[MaterialUniforms::MATERIAL]);
 	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::FEATURES_UBP, UBO[MaterialUniforms::FEATURES]);
-	
-	//glUniformBlockBinding(pipeline.programID, pipeline.bindingPoints[ UniformsBindingPoints::MATERIAL_UBP ], UniformsBindingPoints::MATERIAL_UBP);
-	//glUniformBlockBinding(pipeline.programID, pipeline.bindingPoints[ UniformsBindingPoints::FEATURES_UBP ], UniformsBindingPoints::FEATURES_UBP);
 }
 
 void MaterialGroup::bindTextures(){
@@ -87,21 +84,6 @@ void glSubMesh::createVertexBuffer(){
 	glGenBuffers(1, &vbo[VBO::VERTEX]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[VBO::VERTEX]);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glVertex), vertices.data(), GL_STATIC_DRAW);
-
-
-	//VBO temporaires jusqu'au fix de la structure entrelacee
-	glGenBuffers(VertexAttributes::SIZE_VA, secondVBO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::POS]);
-	glBufferData(GL_ARRAY_BUFFER, vertPos.size() * sizeof(glm::vec3), vertPos.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::NRM]);
-	glBufferData(GL_ARRAY_BUFFER, vertNrm.size() * sizeof(glm::vec3), vertNrm.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::TANGENT]);
-	glBufferData(GL_ARRAY_BUFFER, vertTan.size() * sizeof(glm::vec3), vertTan.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::BITANGENT]);
-	glBufferData(GL_ARRAY_BUFFER, vertBiTan.size() * sizeof(glm::vec3), vertBiTan.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::UV]);
-	glBufferData(GL_ARRAY_BUFFER, vertUV.size() * sizeof(glm::vec2), vertUV.data(), GL_STATIC_DRAW);
 	
 	createIndexBuffer();
 }
@@ -150,42 +132,14 @@ void glSubMesh::bindVAO(){
 	//bitangent
 	glVertexAttribPointer(VertexAttributes::BITANGENT, 3, GL_FLOAT, GL_FALSE, sizeof(glVertex), (void*)offsetof(glVertex,bitangent));
 	glEnableVertexAttribArray(VertexAttributes::BITANGENT);
-
-	
-	
-	/*
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::POS]);
-	glEnableVertexAttribArray(VertexAttributes::POS);
-	glVertexAttribPointer(VertexAttributes::POS, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::NRM]);
-	glEnableVertexAttribArray(VertexAttributes::NRM);
-	glVertexAttribPointer(VertexAttributes::NRM, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::UV]);
-	glEnableVertexAttribArray(VertexAttributes::UV);
-	glVertexAttribPointer(VertexAttributes::UV, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::TANGENT]);
-	glEnableVertexAttribArray(VertexAttributes::TANGENT);
-	glVertexAttribPointer(VertexAttributes::TANGENT, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, secondVBO[VertexAttributes::BITANGENT]);
-	glEnableVertexAttribArray(VertexAttributes::BITANGENT);
-	glVertexAttribPointer(VertexAttributes::BITANGENT, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	*/
-
-	
 }
 
-void glSubMesh::render(glPipeline& pipeline){
-	mat->bindUBO(pipeline);
+void glSubMesh::render(){
+	mat->bindUBO();
 	mat->bindTextures();
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	bindVAO();
-	//glBindVertexArray(VAO);
-	//glBindBuffer(GL_ARRAY_BUFFER, vbo[VBO::VERTEX]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[VBO::INDEX]);
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	
@@ -350,12 +304,6 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			                      );
 			
 			subM_temp->vertices.push_back(vertex_temp);
-
-			subM_temp->vertPos.push_back( glm::vec3(pPos->x, pPos->y, pPos->z) );
-			subM_temp->vertNrm.push_back( glm::vec3(pNormal->x, pNormal->y, pNormal->z) );
-			subM_temp->vertTan.push_back( glm::vec3(pTangent->x, pTangent->y, pTangent->z) );
-			subM_temp->vertBiTan.push_back( glm::vec3(pBiTangent->x, pBiTangent->y, pBiTangent->z) );
-			subM_temp->vertUV.push_back( glm::vec2(pTexCoord->x , pTexCoord->y) );
 		}
 
 		//Recovering vertices indices
@@ -377,9 +325,9 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 }
 
 
-void glMesh::render(glPipeline& pipeline){
-	bindUBO(pipeline);
-	for(glSubMesh* subm : subMeshes){ subm->render(pipeline); }
+void glMesh::render(){
+	bindUBO();
+	for(glSubMesh* subm : subMeshes){ subm->render(); }
 }
 
 void glMesh::testDraw(){
@@ -434,9 +382,8 @@ void glMesh::updateUniformBuffer(){
 
 }
 
-void glMesh::bindUBO(glPipeline& pipeline){
+void glMesh::bindUBO(){
 	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::MESH_TRANS_UBP, UBO);
-	//glUniformBlockBinding(pipeline.programID, pipeline.bindingPoints[ UniformsBindingPoints::MESH_TRANS_UBP], UniformsBindingPoints::MESH_TRANS_UBP);
 }
 
 
