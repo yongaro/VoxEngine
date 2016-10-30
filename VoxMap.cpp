@@ -1,28 +1,6 @@
 #include "VoxMap.hpp"
 
 
-
-
-
-
-void VoxMap::diffuseLight( int x, int y, int z, unsigned char light, std::vector<PixelCoord>& stack ){
-	for( int i = -1; i < 2; ++i ){
-		for( int j = -1; j < 2; ++j ){
-			for( int k = -1; k < 2; ++k ){
-				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
-					if( light > 0 && !tempMap(x+i, y+j, z+k) ){
-						map(x+i, y+j, z+k, MapChannels::LIGHT) += light - 1;
-						//map(x+i, y+j, z+k, MapChannels::LIGHT) = std::min(map(x+i, y+j, z+k, MapChannels::LIGHT), maxLightLevel);
-						tempMap(x+i, y+j, z+k) = true;
-						stack.push_back( PixelCoord(x+i,y+j,z+k) );
-					}
-				}
-			}
-		}
-	}
-}
-
-
 VoxMap::VoxMap(){
 	voxelSize[0] = 2.0f;
 	voxelSize[1] = 2.0f;
@@ -55,13 +33,9 @@ void VoxMap::testMap(){
 		for( int y = 0; y < map.height(); ++y ){
 			for( int x = 0; x < map.width(); ++x ){
 				if( (size_t)y < CubeTypes::SIZE_CT ){
-				//if( y == 5 ){
 					map(x,y,z,MapChannels::BLOC) = y;
 					++cubes[y].nbInstances;
-					cubes[y].instanceInfos.push_back( InstanceInfos(glm::vec4(x*voxelSize[0],y*voxelSize[1],z*voxelSize[2],1.0f),
-					                                                cubeColors[y]
-					                                                )
-					                                  );
+					cubes[y].instanceInfos.push_back( InstanceInfos(glm::vec4(x*voxelSize[0],y*voxelSize[1],z*voxelSize[2],1.0f), cubeColors[y]) );
 				}
 				else{ map(x,y,z,MapChannels::BLOC) = 0x0; }
 				map(x,y,z,MapChannels::LIGHT) = 0xFF;	
@@ -88,4 +62,86 @@ void VoxMap::loadVoxel(std::string& path, std::string& name){
 	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
 		cubes[i].loadMesh(path,name);
 	}
+}
+
+
+void VoxMap::diffuseLight( int x, int y, int z, unsigned char light, std::vector<PixelCoord>& stack ){
+	for( int i = -1; i < 2; ++i ){
+		for( int j = -1; j < 2; ++j ){
+			for( int k = -1; k < 2; ++k ){
+				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
+					if( light > 0 && !tempMap(x+i, y+j, z+k) ){
+						map(x+i, y+j, z+k, MapChannels::LIGHT) += light - 1;
+						tempMap(x+i, y+j, z+k) = true;
+						stack.push_back( PixelCoord(x+i,y+j,z+k) );
+					}
+				}
+			}
+		}
+	}
+}
+
+void VoxMap::undiffuseLight( int x, int y, int z, unsigned char light, std::vector<PixelCoord>& stack ){
+	for( int i = -1; i < 2; ++i ){
+		for( int j = -1; j < 2; ++j ){
+			for( int k = -1; k < 2; ++k ){
+				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
+					if( light > 0 && !tempMap(x+i, y+j, z+k) ){
+						map(x+i, y+j, z+k, MapChannels::LIGHT) -= light - 1;
+						tempMap(x+i, y+j, z+k) = true;
+						stack.push_back( PixelCoord(x+i,y+j,z+k) );
+					}
+				}
+			}
+		}
+	}
+}
+
+void VoxMap::addLight(size_t x, size_t y, size_t z, unsigned char light){
+	tempMap = cimg_library::CImg<bool>(map.width(), map.height(), map.depth(), 1, false);
+	std::vector<PixelCoord> stack;
+	std::vector<PixelCoord> stackBuffer;
+
+	//Initialisation
+	map(x,y,z,MapChannels::LIGHT) = light;
+	tempMap(x,y,z) = true;
+	diffuseLight((int)x, (int)y, (int)z, light , stack);
+
+	while( !stack.empty() ){
+		for( PixelCoord& pix : stack ){
+			diffuseLight((int)pix.x, (int)pix.y, (int)pix.z, map(pix.x, pix.y, pix.z, MapChannels::LIGHT), stackBuffer);
+		}
+		stack.clear();
+		stack = stackBuffer;
+		stackBuffer.clear();
+	}
+}
+
+void VoxMap::removeLight(size_t x, size_t y, size_t z, unsigned char light){
+	tempMap = cimg_library::CImg<bool>(map.width(), map.height(), map.depth(), 1, false);
+	std::vector<PixelCoord> stack;
+	std::vector<PixelCoord> stackBuffer;
+
+	//Initialisation
+	map(x,y,z,MapChannels::LIGHT) = light;
+	tempMap(x,y,z) = true;
+	diffuseLight((int)x, (int)y, (int)z, light , stack);
+
+	while( !stack.empty() ){
+		for( PixelCoord& pix : stack ){
+			diffuseLight((int)pix.x, (int)pix.y, (int)pix.z, map(pix.x, pix.y, pix.z, MapChannels::LIGHT), stackBuffer);
+		}
+		stack.clear();
+		stack = stackBuffer;
+		stackBuffer.clear();
+	}
+}
+
+
+void VoxMap::getVisibleNeighbors(size_t x, size_t y, size_t z, std::vector<PixelCoord>& stack){
+
+}
+void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
+
+
 }
