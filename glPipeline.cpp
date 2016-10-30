@@ -108,4 +108,6 @@ void glPipeline::loadShader(const char* vertexShaderFile, const char* fragmentSh
 	glUseProgram(programID);
 }
 
-void glPipeline::generateShaders(){ loadShader("./shaders/phongVert.vert", "./shaders/phongFrag.frag"); }
+void glPipeline::generateShaders(const std::string vertex, const std::string fragment){
+	loadShader( vertex.c_str(), fragment.c_str() );
+}

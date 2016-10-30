@@ -49,14 +49,34 @@ layout(binding = NORMALS) uniform sampler2D normalsTexSampler;
 layout(binding = SPECULAR) uniform sampler2D specularTexSampler;
 
 
+#define SHADOW 6
+layout(binding = SHADOW) uniform sampler2D shadowTexSampler;
+
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec2 fragUV;
-layout(location = 3) in mat3 fragTBN;
+layout(location = 3) in mat3 fragTBN; //takes slots 3,4,5
+layout(location = 6) in vec4 lightSpaceFragPos;
 
 layout(location = 0) out vec4 outColor;
 
+float ShadowCalculation(vec4 fragPosLightSpace, float bias){
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // Transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    if(projCoords.z > 1.0){
+	    return 0.0;
+    }
+    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowTexSampler, projCoords.xy).r; 
+    // Get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // Check whether current frag pos is in shadow
+	 float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0; 
 
+    return shadow;
+}
 
 vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
 float height_scale = 0.01;
@@ -101,7 +121,11 @@ vec3 ApplyLight(int index, vec3 surfaceColor, vec3 N) {
 	//else{ specular *= mat.specular.rgb; }
 
 	//linear color (color before gamma correction)
-	return ambient + attenuation*(diffuse + specular);
+	//return ambient + attenuation*(diffuse + specular);
+	
+	float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
+	float shadow = ShadowCalculation(lightSpaceFragPos,bias);
+	return (ambient + (1.0 - shadow) * (diffuse + specular));
 }
 
 
@@ -145,7 +169,7 @@ vec2 parallaxMapping(){
 
 void main() {
 	//parallax mapping
-	height_scale = 0.08;
+	height_scale = 0.06;
 	if( features.list[0][3] > 0.0 ){ fragTexCoord = parallaxMapping(); }
 	
 	//normal map
@@ -173,5 +197,5 @@ void main() {
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), surfaceColor.a);
-	//outColor = vec4(texture(diffuseTexSampler, vec2(col)) );
+	//outColor = vec4(linearColor,surfaceColor.a);
 }

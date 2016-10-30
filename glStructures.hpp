@@ -90,6 +90,13 @@ struct LightSources{
 };
 
 
+struct ShadowInfos{
+	glm::mat4 lightSpaceMatrix;
+	glm::vec2 nearFarPlane;
+
+	ShadowInfos():lightSpaceMatrix(1.0f),nearFarPlane(1.0f,15.0f){}
+};
+
 //Phong-global structures
 struct Material{
 	glm::vec4 ambient;

@@ -34,6 +34,10 @@ layout(binding = 4) uniform MeshTranforms{
 } meshTransforms;
 
 
+layout(binding = 5) uniform Dummy{
+	mat4 lightSpaceMatrix;
+}dummy;
+
 //I NEED MOAR SYNTAXIK SUGAR
 #define DIFFUSE 0
 #define DISPLACEMENT 1
@@ -48,7 +52,6 @@ layout(binding = HEIGHT) uniform sampler2D heightTexSampler;
 layout(binding = NORMALS) uniform sampler2D normalsTexSampler;
 layout(binding = SPECULAR) uniform sampler2D specularTexSampler;
 
-
 layout(location = 0) in vec3 vertPos;
 layout(location = 1) in vec3 vertNormal;
 layout(location = 2) in vec2 vertUV;
@@ -59,7 +62,8 @@ layout(location = 4) in vec3 vertBiTangent;
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec2 fragUV;
-layout(location = 3) out mat3 fragTBN;
+layout(location = 3) out mat3 fragTBN; //takes slots 3,4,5
+layout(location = 6) out vec4 lightSpaceFragPos;
 
 
 
@@ -89,5 +93,7 @@ void main() {
 	vec3 B = normalize(vec3(meshTransforms.model * vec4(vertBiTangent, 0.0)));
 	vec3 N = normalize(vec3(meshTransforms.model * vec4(vertNormal,    0.0)));
 	fragTBN = mat3(T, B, N);
+
+	lightSpaceFragPos = dummy.lightSpaceMatrix * vec4(fragPos,1.0);
 }
 

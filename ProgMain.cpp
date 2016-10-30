@@ -1,13 +1,77 @@
-#include "glGeometry.hpp"
-
+#include "VoxMap.hpp"
+#include <string>
 using namespace std;
+
+
+std::string windowName = "VoxEngine -- ";
+// How many frames time values to keep
+// The higher the value the smoother the result is...
+// Don't make it 0 or less :)
+#define FRAME_VALUES 10
+// An array to store frame times:
+Uint32 frametimes[FRAME_VALUES];
+// Last calculated SDL_GetTicks
+Uint32 frametimelast;
+// total frames rendered
+Uint32 framecount;
+// the value you want
+float framespersecond;
+// This function gets called once on startup.
+void fpsinit() {
+        // Set all frame times to 0ms.
+        memset(frametimes, 0, sizeof(frametimes));
+        framecount = 0;
+        framespersecond = 0;
+        frametimelast = SDL_GetTicks();
+}
+
+void fpsthink() {
+        Uint32 frametimesindex;
+        Uint32 getticks;
+        Uint32 count;
+        Uint32 i;
+
+        // frametimesindex is the position in the array. It ranges from 0 to FRAME_VALUES.
+        // This value rotates back to 0 after it hits FRAME_VALUES.
+        frametimesindex = framecount % FRAME_VALUES;
+        // store the current time
+        getticks = SDL_GetTicks();
+        // save the frame time value
+        frametimes[frametimesindex] = getticks - frametimelast;
+        // save the last frame time for the next fpsthink
+        frametimelast = getticks;
+        // increment the frame count
+        framecount++;
+
+        // Work out the current framerate
+        // The code below could be moved into another function if you don't need the value every frame.
+        // I've included a test to see if the whole array has been written to or not. This will stop
+        // strange values on the first few (FRAME_VALUES) frames.
+        if( framecount < FRAME_VALUES ){ count = framecount; }
+        else{ count = FRAME_VALUES; }
+
+        // add up all the values and divide to get the average frame time.
+        framespersecond = 0;
+        for( i = 0; i < count; i++ ){ framespersecond += frametimes[i]; }
+        framespersecond /= count;
+        // now to make it an actual frames per second value...
+        framespersecond = 1000.f / framespersecond;
+}
+
 
 vector<string> ASSETS_PATHS;
 vector<string> MODELS_NAMES;
 vector<glMesh*> meshes;
 glPipeline phongPipeline;
+glPipeline simpleShadowPipeline;
+glPipeline instancedPhongPipeline;
 glContext* context;
+VoxMap* testVox;
 
+//shadow map structs
+GLuint depthMapFBO = 0;
+GLuint depthMap = 0;
+GLuint lightMatUBO = 0;
 
 static bool quitting = false;
 static SDL_Window *window = NULL;
@@ -37,46 +101,49 @@ void init(){
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &infoValue);
 	cout << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS -- " << infoValue << endl;
 
+	testVox = new VoxMap();
+	std::string mapFile = "./testMap.hdr";
+	std::string cubePath = "./assets/cubes/";
+	std::string cubeName = "cube.obj";
+	testVox->loadVoxel(cubePath,cubeName);
+	testVox->newMap(128,128,256);
+	testVox->testMap();
+	testVox->save(mapFile);
 	
-	//string vertex = "./shaders/phongVert.vert";
-	//string fragment = "./shaders/phongFrag.frag";
-	//string vertex = "./shaders/basicShader2.vs";
-	//string fragment = "./shaders/basicShader2.fs";
-	//phongPipeline = glPipeline(vertex,fragment);
-	phongPipeline.generateShaders();
-
+	string phong_vertex = "./shaders/phongVert.vert";
+	string phong_fragment = "./shaders/phongFrag.frag";
+	string shadowPT_vertex = "./shaders/shadowTex.vert";
+	string shadowPT_fragment = "./shaders/shadowTex.frag";
+	string instancedPhong_vertex = "./shaders/instancedPhong.vert";
+	string instancedPhong_fragment = "./shaders/instancedPhong.frag";
+	phongPipeline.generateShaders(phong_vertex, phong_fragment);
+	simpleShadowPipeline.generateShaders(shadowPT_vertex,shadowPT_fragment);
+	instancedPhongPipeline.generateShaders(instancedPhong_vertex,instancedPhong_fragment);
 	context = new glContext();
+
 	
 	
 	ASSETS_PATHS.push_back("./assets/wall/");
 	MODELS_NAMES.push_back("Wall.obj");
 	
-	//ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
-	//MODELS_NAMES.push_back("classic_sonic.dae");
-
-	ASSETS_PATHS.push_back("./assets/Aku Aku/");
-	MODELS_NAMES.push_back("aku_aku.obj");
-	
-	//ASSETS_PATHS.push_back("./assets/gems/");
-	//MODELS_NAMES.push_back("crystal.obj");
-	
-	//ASSETS_PATHS.push_back("./assets/Chaos Emeralds/");
-	//MODELS_NAMES.push_back("Green Chaos Emerald.obj");	
+	ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
+	MODELS_NAMES.push_back("classic_sonic.dae");
 
 	for( uint32_t i = 0; i < ASSETS_PATHS.size(); ++i ){
 		meshes.push_back( new glMesh() );
 		meshes.back()->loadMesh( ASSETS_PATHS.at(i), MODELS_NAMES.at(i) );
 	}
 
-	context->camera.pos = meshes[0]->getCamPos();
-	context->camera.pos.z += 3.0f;
-	//context->camera.pos.x -= 4.0f;
-	context->camera.backupPos = context->camera.pos;
-	context->camera.target = glm::vec3(0.0f, context->camera.pos.y - 0.5f, 0.0f);
-	context->globalUBO.update(context->camera);
-	context->lights.pos[0] = glm::vec4(context->camera.pos, 0.0f);
 	
+	context->camera.pos = glm::vec3(-50.0f,10.0f,-50.0f);//meshes[0]->getCamPos();
 
+	context->camera.backupPos = context->camera.pos;
+	context->camera.target = glm::vec3(0.0f,0.0f,0.0f);
+	context->globalUBO.update( context->camera );
+	context->lights.pos[0] = glm::vec4( context->camera.pos, 0.0f );
+	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
+	                                           width / (float)height,
+	                                           0.1f, 500.0f);
 	
 	
 	if( meshes.size() > 1 ){
@@ -85,16 +152,59 @@ void init(){
 		}
 	}
 	meshes.at(0)->matrices.model = glm::scale( meshes.at(0)->matrices.model, glm::vec3(1.5f));
-	meshes.at(1)->matrices.model = glm::scale( meshes.at(1)->matrices.model, glm::vec3(0.5f));
-	//meshes.at(2)->matrices.model = glm::scale( meshes.at(2)->matrices.model, glm::vec3(0.3f));
-	//meshes.at(3)->matrices.model = glm::scale( meshes.at(3)->matrices.model, glm::vec3(0.01f));
-	//meshes.at(3)->matrices.model = glm::translate( meshes.at(3)->matrices.model, glm::vec3(0.0f, context->globalUBO.camPos.y / 0.02f, 0.0f));
+	meshes.at(1)->matrices.model = glm::scale( meshes.at(1)->matrices.model, glm::vec3(1.5f));
+	
 	
 
 	updateMVP();
 	context->updateGlobalUniformBuffer();
 	context->updateLightsUniformBuffer();
 
+
+
+	//shadow map WIP
+	//shadow map framebuffer
+	
+	glGenFramebuffers(1, &depthMapFBO);
+
+	//shadow map texture
+	const GLuint SHADOW_WIDTH = width, SHADOW_HEIGHT = width;
+	
+	glGenTextures(1, &depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+	             SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
+
+	
+	//binding texture to framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//building light space infos
+	GLfloat near_plane = 1.0f, far_plane = 10.0f;
+	glm::mat4 lightProjection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, near_plane, far_plane);
+	glm::mat4 lightView = glm::lookAt(glm::vec3(context->camera.pos), 
+	                                  glm::vec3(context->camera.target), 
+	                                  glm::vec3( 0.0f, 1.0f,  0.0f));  
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+	//copying light space infos to uniform buffer object
+	glGenBuffers(1, &lightMatUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, lightMatUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), &lightSpaceMatrix, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	//
+
+	
 	glEnable(GL_DEPTH_TEST);
 	glDepthRange(0,1);
 	
@@ -114,13 +224,40 @@ void init(){
 void render(){
 	SDL_GL_MakeCurrent(window, gl_context);
 
-	glClearColor(0.05,0.05,0.2,0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//render to depth map
+	//glCullFace(GL_FRONT);
+	/*
+	simpleShadowPipeline.bind();
+	context->bindUBO();
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	for( glMesh* mesh : meshes ){ mesh->render(); }
+	glBindFramebuffer(GL_FRAMEBUFFER,0);
+	//glCullFace(GL_BACK);
+	*/
+	//phong render
+	//glClearColor(0.529f, 0.808f, 0.922f, 0.0);
+	glClearColor(0.200f, 0.200f, 0.200f, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	/*
+	glActiveTexture(GL_TEXTURE0 + 6);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
 	phongPipeline.bind();
 	context->bindUBO();
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	for( glMesh* mesh : meshes ){ mesh->render(); }
+	*/
+	//glActiveTexture(GL_TEXTURE0 + 6);
+	//glBindTexture(GL_TEXTURE_2D, depthMap);
+	instancedPhongPipeline.bind();
+	context->bindUBO();
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
+	testVox->render();
 	
+	//context->bindUBO();
+	//glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	
 	glFlush();
 	SDL_GL_SwapWindow(window);
@@ -142,8 +279,8 @@ int main(int argc, char *argv[]) {
 		SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
 		return 1;
 	}
-
-	window = SDL_CreateWindow("Vulkan to OpenGL Drama", SDL_WINDOWPOS_UNDEFINED,
+	fpsinit();
+	window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_UNDEFINED,
 	                          SDL_WINDOWPOS_UNDEFINED,
 	                          width, height, SDL_WINDOW_OPENGL);
 
@@ -157,39 +294,58 @@ int main(int argc, char *argv[]) {
 			if(event.type == SDL_QUIT) { quitting = true; }
 			if(event.type == SDL_KEYDOWN){
 				if(event.key.keysym.sym == SDLK_w){
-					context->camera.rotatePitch = glm::rotate(glm::mat4(1.0f), 0.25f, context->camera.right );     movedPitch = true;
+					context->camera.pos.y += 1.0f; 
+					//context->camera.rotatePitch = glm::rotate(glm::mat4(1.0f), 0.25f, context->camera.right );     movedPitch = true;
 				}
 				if(event.key.keysym.sym == SDLK_a){
-					context->camera.rotateYaw = glm::rotate(glm::mat4(1.0f), 0.25f, context->camera.up );          movedYaw = true;
+					context->camera.pos.x += -1.0f; 
+					//context->camera.rotateYaw = glm::rotate(glm::mat4(1.0f), 0.25f, context->camera.up );          movedYaw = true;
 				}
 				if(event.key.keysym.sym == SDLK_s){
-					context->camera.rotatePitch = glm::rotate(glm::mat4(1.0f), -0.25f, context->camera.right );    movedPitch = true;
+					context->camera.pos.y += -1.0f; 
+					//context->camera.rotatePitch = glm::rotate(glm::mat4(1.0f), -0.25f, context->camera.right );    movedPitch = true;
 				}
 				if(event.key.keysym.sym == SDLK_d){
-					context->camera.rotateYaw = glm::rotate(glm::mat4(1.0f), -0.25f, context->camera.up );         movedYaw = true;
+					context->camera.pos.x += 1.0f; 
+					//context->camera.rotateYaw = glm::rotate(glm::mat4(1.0f), -0.25f, context->camera.up );         movedYaw = true;
 				}
 				if(event.key.keysym.sym == SDLK_r){
 					context->camera.rotatePitch = glm::mat4(1.0f);
 					context->camera.rotateYaw = glm::mat4(1.0f);
 					context->camera.pos = glm::vec3(context->camera.backupPos);
 					context->globalUBO.camPos = glm::vec3(context->camera.pos);
-					context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
 				}
+
+				//if( movedPitch ){ context->camera.pos = glm::vec3(context->camera.rotatePitch * glm::vec4(context->camera.pos - context->camera.target, 1.0f)) + context->camera.target; }
+				//if( movedYaw ){ context->camera.pos = glm::vec3(context->camera.rotateYaw * glm::vec4(context->camera.pos - context->camera.target, 1.0f)) + context->camera.target; }
+				
+				context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
+				context->updateGlobalUniformBuffer();
 				updateMVP();
 			}
-			if(event.type == SDL_MOUSEWHEEL){
-				if (event.wheel.y < 0){
-					
+			if( event.type == SDL_MOUSEWHEEL ){
+				if( event.wheel.y < 0 ){
+					context->camera.pos.z += -0.5f; 
 				}
 				else{
-				
+					context->camera.pos.z += 0.5f;
 				}
+				context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
+				context->updateGlobalUniformBuffer();
+				updateMVP();
 			}
 		
 		}
 
 		render();
-		SDL_Delay(2);
+		//SDL_Delay(2);
+		fpsthink();
+		windowName = "VoxEngine -- ";
+		windowName += std::to_string((size_t)framespersecond);
+		windowName += " fps";
+		SDL_SetWindowTitle(window, windowName.c_str());
+
+		//printf("%f\n", framespersecond);
 	}
 
 	SDL_DelEventWatch(watch, NULL);
@@ -255,3 +411,6 @@ void openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severi
     }
 	else{ cout << "glDebugMessageCallback not available" << endl; }
 }
+
+
+

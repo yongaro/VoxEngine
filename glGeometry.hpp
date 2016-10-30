@@ -113,13 +113,27 @@ public:
 	virtual void updateMVP(glm::mat4, glm::mat4);
 };
 
-/*
+
+struct InstanceInfos{
+	glm::vec4 translate; //Faster than cpu-calculated model matrix for each instance
+	glm::vec4 color;
+
+	InstanceInfos():translate(),color(){}
+	InstanceInfos(glm::vec4 tr, glm::vec4 col):translate(tr),color(col){}
+};
+
 class glInstancedMesh : public glMesh{
-	
 public:
+	std::vector< InstanceInfos > instanceInfos;
+	GLuint instanceSSBO;
+	GLuint nbInstances;
+	
 	glInstancedMesh();
 	virtual ~glInstancedMesh();
-	
+	virtual void createInstanceSSBO();
+	virtual void updateInstanceSSBO();
+	virtual void bindSSBO();
+	virtual glm::vec3 getCamPos();
+	virtual void render();
 };
-*/
 #endif

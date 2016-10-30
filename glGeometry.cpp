@@ -389,5 +389,52 @@ void glMesh::bindUBO(){
 
 void glMesh::updateMVP(glm::mat4 proj, glm::mat4 view){
 	matrices.updateMVP(proj,view);
-	updateUniformBuffer();		
+	updateUniformBuffer();
+}
+
+
+
+
+
+//#################################### CLASS GLINSTANCEDMESH ####################################
+glInstancedMesh::glInstancedMesh():glMesh(),instanceInfos(),instanceSSBO(),nbInstances(){}
+glInstancedMesh::~glInstancedMesh(){}
+
+void glInstancedMesh::createInstanceSSBO(){
+	glGenBuffers(1, &instanceSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InstanceInfos)*instanceInfos.size(), instanceInfos.data(), GL_DYNAMIC_COPY);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+}
+void glInstancedMesh::updateInstanceSSBO(){
+	void* data;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
+	data = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+	memcpy(data, instanceInfos.data(), sizeof(InstanceInfos)*instanceInfos.size());
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
+void glInstancedMesh::bindSSBO(){
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ShaderStorageBindingPoints::INSTANCE_SSBP, instanceSSBO);
+}
+glm::vec3 glInstancedMesh::getCamPos(){
+	glm::vec3 res = glMesh::getCamPos();
+	res.x *= nbInstances; res.y *= nbInstances; res.z *= nbInstances;
+	
+	return res;
+}
+void glInstancedMesh::render(){
+	bindUBO();
+	bindSSBO();
+	for( glSubMesh* smesh : subMeshes ){
+			smesh->mat->bindUBO();
+			smesh->mat->bindTextures();
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+			smesh->bindVAO();
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, smesh->vbo[VBO::INDEX]);
+			glDrawElementsInstanced(GL_TRIANGLES, smesh->indices.size(), GL_UNSIGNED_INT, 0, nbInstances);
+	
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER,0);
+	}
 }

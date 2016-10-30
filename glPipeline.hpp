@@ -12,7 +12,9 @@
 #define max_lights 10
 
 //##################### GLPIPELINE ##################################
-enum UniformsBindingPoints{ GLOBAL_UBP, LIGHTS_UBP, MATERIAL_UBP, FEATURES_UBP, MESH_TRANS_UBP, SIZE_UBP };
+enum UniformsBindingPoints{ GLOBAL_UBP, LIGHTS_UBP, MATERIAL_UBP, FEATURES_UBP, MESH_TRANS_UBP,
+                            SHADOW_TRANS_UBP, SIZE_UBP };
+enum ShaderStorageBindingPoints{ INSTANCE_SSBP, SIZE_SSBP};
 enum VertexAttributes{ POS, NRM, UV, TANGENT, BITANGENT, SIZE_VA };
 enum GlobalUniforms{ GLOBAL_GU, LIGHTS_GU, SIZE_GU };
 enum ShadersIndex{ VERTEX_SI, FRAG_SI, SIZE_SI };
@@ -30,7 +32,7 @@ struct glPipeline {
 	void loadShader(const char*, const char*);
 	void printProgramLog(GLuint);
 	void printShaderLog(GLuint);
-	void generateShaders();
+	void generateShaders(const std::string, const std::string);
 };
 
 

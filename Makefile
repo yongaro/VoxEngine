@@ -4,7 +4,7 @@ progName = VoxEngine
 
 dialectFlag = -std=c++11
 optionsFlags = -Wall -O3
-linkFlags = -lGLEW -lGL -lSDL2 -lassimp -lm
+linkFlags = -lGLEW -lGL -lSDL2 -lassimp -lm -lpthread
 
 
 OBJDIR = obj
