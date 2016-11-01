@@ -1,4 +1,4 @@
-#version 450
+#version 430
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
@@ -47,7 +47,7 @@ layout(binding = LIGHTSPACE_UBP) uniform Dummy{
 struct Instance{
 	//mat4 instanceModel;
 	vec4 translate;
-	vec4 color;
+	//vec4 color;
 };
 
 layout (binding = INSTANCE_DRAW_UBP) buffer InstanceSSBO{
@@ -80,7 +80,7 @@ layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec2 fragUV;
 layout(location = 3) out mat3 fragTBN; //takes slots 3,4,5
 //layout(location = 6) out vec4 lightSpaceFragPos;
-layout(location = 7) out vec4 fragColor;
+//layout(location = 7) out vec4 fragColor;
 
 
 void main() {
@@ -111,5 +111,5 @@ void main() {
 	//fragTBN = mat3(T, B, N);
 	//lightSpaceFragPos = dummy.lightSpaceMatrix * vec4(fragPos,1.0);
 	
-	fragColor =  instanceSSBO.infos[gl_InstanceID].color;
+	//fragColor =  instanceSSBO.infos[gl_InstanceID].color;
 }

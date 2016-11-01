@@ -7,7 +7,7 @@
 #include "CImg.h"
 
 //Regroupement des cubes par matériaux
-enum CubeTypes{ ADMINIUM, AIR, DIRT, FOLLIAGE, GLOWSTONE, GRASS, SAND, SNOW, STONE, WATER, WOOD, SIZE_CT };
+enum CubeTypes{  AIR, ADMINIUM, DIRT, FOLLIAGE, GLOWSTONE, GRASS, SAND, SNOW, STONE, WATER, WOOD, SIZE_CT };
 enum MapChannels{ BLOC, LIGHT, SIZE_MC };
 
 struct PixelCoord{
@@ -35,6 +35,8 @@ public:
 	virtual void save(std::string&);
 	virtual void load(std::string&);
 	virtual void newMap(int,int,int);
+	virtual cimg_library::CImg<bool> getMapObjects();
+	virtual void getMapOutline(cimg_library::CImg<bool>&,cimg_library::CImg<bool>&);
 	virtual void testMap();
 	virtual void render();
 	virtual glm::vec3 getCamPos();
@@ -43,7 +45,9 @@ public:
 	virtual void undiffuseLight(int, int, int, unsigned char, std::vector<PixelCoord>&);
 	virtual void addLight(size_t, size_t, size_t, unsigned char);
 	virtual void removeLight(size_t, size_t, size_t, unsigned char);
-	virtual void getVisibleNeighbors(size_t, size_t, size_t, std::vector<PixelCoord>&);
+	virtual void resetVisibleCubes();
+	virtual bool seeThroughCubeType(size_t);
+	virtual void getVisibleNeighbors(int, int, int, std::vector<PixelCoord>&);
 	virtual void fillVisibleCubes(size_t, size_t, size_t);
 };
 

@@ -116,24 +116,32 @@ public:
 
 struct InstanceInfos{
 	glm::vec4 translate; //Faster than cpu-calculated model matrix for each instance
-	glm::vec4 color;
+	//glm::vec4 color;
 
-	InstanceInfos():translate(),color(){}
-	InstanceInfos(glm::vec4 tr, glm::vec4 col):translate(tr),color(col){}
+	//InstanceInfos():translate(),color(){}
+	//InstanceInfos(glm::vec4 tr, glm::vec4 col):translate(tr),color(col){}
+	InstanceInfos():translate(){}
+	InstanceInfos(glm::vec4 tr):translate(tr){}
+	
 };
 
 class glInstancedMesh : public glMesh{
 public:
-	std::vector< InstanceInfos > instanceInfos;
+	InstanceInfos* instances;
 	GLuint instanceSSBO;
 	GLuint nbInstances;
+	GLuint maxNbInstances;
 	
 	glInstancedMesh();
 	virtual ~glInstancedMesh();
-	virtual void createInstanceSSBO();
+	virtual void createInstanceSSBO(GLuint);
 	virtual void updateInstanceSSBO();
 	virtual void bindSSBO();
-	virtual glm::vec3 getCamPos();
+	//virtual void addInstance(glm::vec4, glm::vec4);
+	virtual void addInstance(glm::vec4);
 	virtual void render();
 };
+
+//class glInstancedCube
+
 #endif

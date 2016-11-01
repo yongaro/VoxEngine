@@ -397,44 +397,61 @@ void glMesh::updateMVP(glm::mat4 proj, glm::mat4 view){
 
 
 //#################################### CLASS GLINSTANCEDMESH ####################################
-glInstancedMesh::glInstancedMesh():glMesh(),instanceInfos(),instanceSSBO(),nbInstances(){}
-glInstancedMesh::~glInstancedMesh(){}
+glInstancedMesh::glInstancedMesh():glMesh(),instances(),instanceSSBO(),nbInstances(),maxNbInstances(){}
+glInstancedMesh::~glInstancedMesh(){ delete[] instances; }
 
-void glInstancedMesh::createInstanceSSBO(){
+void glInstancedMesh::createInstanceSSBO(GLuint maxNb){
+	maxNbInstances = maxNb;
+	std::cout << "Allocation of \e[1;33m" << (GLfloat)maxNbInstances*sizeof(InstanceInfos)/1000000.0f << "\e[0m MB of vram"<< std::endl;
+	instances = new InstanceInfos[maxNbInstances]();
 	glGenBuffers(1, &instanceSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InstanceInfos)*instanceInfos.size(), instanceInfos.data(), GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InstanceInfos)*maxNbInstances, instances, GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 void glInstancedMesh::updateInstanceSSBO(){
-	void* data;
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
-	data = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
-	memcpy(data, instanceInfos.data(), sizeof(InstanceInfos)*instanceInfos.size());
-	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	if( nbInstances > 0 && nbInstances < maxNbInstances ){
+		void* data;
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
+		data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(InstanceInfos)*nbInstances, GL_MAP_WRITE_BIT);
+		memcpy(data, instances, sizeof(InstanceInfos)*nbInstances);
+		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		
+	}
 }
 void glInstancedMesh::bindSSBO(){
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ShaderStorageBindingPoints::INSTANCE_SSBP, instanceSSBO);
 }
-glm::vec3 glInstancedMesh::getCamPos(){
-	glm::vec3 res = glMesh::getCamPos();
-	res.x *= nbInstances; res.y *= nbInstances; res.z *= nbInstances;
-	
-	return res;
+/*void glInstancedMesh::addInstance(glm::vec4 tr, glm::vec4 color){
+	if( nbInstances < maxNbInstances ){
+		instances[nbInstances].translate = glm::vec4(tr);
+		instances[nbInstances].color = glm::vec4(color);
+		++nbInstances;
+	}
 }
+*/
+void glInstancedMesh::addInstance(glm::vec4 tr){
+	if( nbInstances < maxNbInstances ){
+		instances[nbInstances].translate = glm::vec4(tr);
+		++nbInstances;
+	}
+}
+
 void glInstancedMesh::render(){
-	bindUBO();
-	bindSSBO();
-	for( glSubMesh* smesh : subMeshes ){
+	if( nbInstances > 0 ){
+		bindUBO();
+		bindSSBO();
+		for( glSubMesh* smesh : subMeshes ){
 			smesh->mat->bindUBO();
 			smesh->mat->bindTextures();
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+			
 			smesh->bindVAO();
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, smesh->vbo[VBO::INDEX]);
 			glDrawElementsInstanced(GL_TRIANGLES, smesh->indices.size(), GL_UNSIGNED_INT, 0, nbInstances);
 	
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER,0);
+		}
 	}
 }

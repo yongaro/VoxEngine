@@ -90,6 +90,7 @@ void init(){
 	cout << "GLSL "<<glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 
 	cout << "\e[1;31m---- Limitations ----\e[0m" << endl;
+	cout << "\e[1;33m---- Uniform Buffer Objects ----\e[0m" << endl;
 	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &infoValue);
 	cout << "GL_MAX_UNIFORM_BUFFER_BINDINGS -- " << infoValue << endl;
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &infoValue);
@@ -98,17 +99,39 @@ void init(){
 	cout << "GL_MAX_VERTEX_UNIFORM_BLOCKS -- " << infoValue << endl;
 	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &infoValue);
 	cout << "GL_MAX_FRAGMENT_UNIFORM_BLOCKS -- " << infoValue << endl;
+
+	cout << "\e[1;33m---- Texture Units ----\e[0m" << endl;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &infoValue);
 	cout << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS -- " << infoValue << endl;
-
+	
+	cout << "\e[1;33m---- Shader Storage Buffer Objects ----\e[0m" << endl;
+	glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &infoValue);
+	cout << "GL_MAX_SHADER_STORAGE_BLOCK_SIZE -- " << infoValue << endl;
+	glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, &infoValue);
+	cout << "GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS -- " << infoValue << endl;
+	glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &infoValue);
+	cout << "GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS -- " << infoValue << endl;
+	
 	testVox = new VoxMap();
 	std::string mapFile = "./testMap.hdr";
 	std::string cubePath = "./assets/cubes/";
 	std::string cubeName = "cube.obj";
 	testVox->loadVoxel(cubePath,cubeName);
-	testVox->newMap(128,128,256);
+	testVox->newMap(70,70,256);
 	testVox->testMap();
-	testVox->save(mapFile);
+	//testVox->save(mapFile);
+	std::cout << "test1" << std::endl;
+	testVox->cubes[3].updateInstanceSSBO();
+	testVox->cubes[3].nbInstances /= 2;
+	std::cout << "test2" << std::endl;
+	testVox->cubes[3].updateInstanceSSBO();
+	testVox->cubes[3].nbInstances /= 2;
+	testVox->cubes[3].updateInstanceSSBO();
+	testVox->cubes[3].nbInstances *= 4;
+	testVox->cubes[3].updateInstanceSSBO();
+	//testVox->fillVisibleCubes(5,5,5);
+
+	std::cout << "DONE" << std::endl;
 	
 	string phong_vertex = "./shaders/phongVert.vert";
 	string phong_fragment = "./shaders/phongFrag.frag";
@@ -128,7 +151,7 @@ void init(){
 	
 	ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
 	MODELS_NAMES.push_back("classic_sonic.dae");
-
+	
 	for( uint32_t i = 0; i < ASSETS_PATHS.size(); ++i ){
 		meshes.push_back( new glMesh() );
 		meshes.back()->loadMesh( ASSETS_PATHS.at(i), MODELS_NAMES.at(i) );
@@ -138,7 +161,7 @@ void init(){
 	context->camera.pos = glm::vec3(-50.0f,10.0f,-50.0f);//meshes[0]->getCamPos();
 
 	context->camera.backupPos = context->camera.pos;
-	context->camera.target = glm::vec3(0.0f,0.0f,0.0f);
+	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
 	context->lights.pos[0] = glm::vec4( context->camera.pos, 0.0f );
 	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
@@ -208,9 +231,9 @@ void init(){
 	glEnable(GL_DEPTH_TEST);
 	glDepthRange(0,1);
 	
-	glFrontFace(GL_CCW);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
+	//glFrontFace(GL_CCW);
+	//glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
 
 	glEnable(GL_PROGRAM_POINT_SIZE);
 

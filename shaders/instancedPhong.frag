@@ -1,4 +1,4 @@
-#version 450
+#version 430
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
@@ -57,7 +57,7 @@ layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec2 fragUV;
 layout(location = 3) in mat3 fragTBN; //takes slots 3,4,5
 layout(location = 6) in vec4 lightSpaceFragPos;
-layout(location = 7) in vec4 fragColor;
+//layout(location = 7) in vec4 fragColor;
 
 layout(location = 0) out vec4 outColor;
 
@@ -167,7 +167,7 @@ vec2 parallaxMapping(){
 
 
 
-void main() {/*
+void main() {
 	//parallax mapping
 	height_scale = 0.06;
 	if( features.list[0][3] > 0.0 ){ fragTexCoord = parallaxMapping(); }
@@ -185,7 +185,7 @@ void main() {/*
 	//texture for diffuse lighting
 	if( features.list[0][0] > 0.0 ){ surfaceColor = texture(diffuseTexSampler, fragTexCoord); }
 	//else{ surfaceColor = vec4(1.0, 1.0, 1.0, 1.0); }
-	
+	/*
 	//combine color from all the lights
 	vec3 linearColor = vec3(0.0);
 	if( features.list[0][2] > 0.0 ){ linearColor = texture(emissiveTexSampler, fragTexCoord).rgb; }
@@ -199,5 +199,5 @@ void main() {/*
 	//final color with gamma correction
 	//vec3 gamma = vec3(1.0/2.2);
 	//outColor = vec4(pow(linearColor, gamma), surfaceColor.a);
-	outColor = vec4(fragColor);
+	outColor = vec4(surfaceColor);
 }
