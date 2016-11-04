@@ -117,18 +117,9 @@ void init(){
 	std::string cubePath = "./assets/cubes/";
 	std::string cubeName = "cube.obj";
 	testVox->loadVoxel(cubePath,cubeName);
-	testVox->newMap(70,70,256);
+	testVox->newMap(128,128,256);
 	testVox->testMap();
 	//testVox->save(mapFile);
-	std::cout << "test1" << std::endl;
-	testVox->cubes[3].updateInstanceSSBO();
-	testVox->cubes[3].nbInstances /= 2;
-	std::cout << "test2" << std::endl;
-	testVox->cubes[3].updateInstanceSSBO();
-	testVox->cubes[3].nbInstances /= 2;
-	testVox->cubes[3].updateInstanceSSBO();
-	testVox->cubes[3].nbInstances *= 4;
-	testVox->cubes[3].updateInstanceSSBO();
 	//testVox->fillVisibleCubes(5,5,5);
 
 	std::cout << "DONE" << std::endl;
@@ -158,13 +149,13 @@ void init(){
 	}
 
 	
-	context->camera.pos = glm::vec3(-50.0f,10.0f,-50.0f);//meshes[0]->getCamPos();
+	context->camera.pos = glm::vec3(-20.0f,10.0f,-20.0f);//meshes[0]->getCamPos();
 
 	context->camera.backupPos = context->camera.pos;
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
 	context->lights.pos[0] = glm::vec4( context->camera.pos, 0.0f );
-	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
+	context->globalUBO.proj = glm::perspective(glm::radians(50.0f),
 	                                           width / (float)height,
 	                                           0.1f, 500.0f);
 	
