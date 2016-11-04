@@ -418,10 +418,10 @@ void openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severi
  void listen_glDebugMessage(){
 	if( glDebugMessageCallback ){
         cout << "Register OpenGL debug callback " << endl;
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(openglCallbackFunction, nullptr);
-        GLuint unusedIds = 0;
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, true);
+        //glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        //glDebugMessageCallback(openglCallbackFunction, nullptr);
+        //GLuint unusedIds = 0;
+        //glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, true);
     }
 	else{ cout << "glDebugMessageCallback not available" << endl; }
 }
