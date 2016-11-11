@@ -1,6 +1,9 @@
+#include "Timer.hpp"
 #include "VoxMap.hpp"
 #include <string>
 using namespace std;
+
+
 
 
 std::string windowName = "VoxEngine -- ";
@@ -17,6 +20,10 @@ Uint32 framecount;
 // the value you want
 float framespersecond;
 // This function gets called once on startup.
+
+// On régule le nombre de frame par seconde
+const int FRAMES_PER_SECOND = 60;
+
 void fpsinit() {
         // Set all frame times to 0ms.
         memset(frametimes, 0, sizeof(frametimes));
@@ -65,10 +72,16 @@ vector<glMesh*> meshes;
 glPipeline phongPipeline;
 glPipeline simpleShadowPipeline;
 glPipeline instancedPhongPipeline;
+
+/**
+*	contexte qui contient les constantes globales (caméras, lumières, UBO)
+*/
 glContext* context;
 VoxMap* testVox;
 
-//shadow map structs
+/**
+*	shadow map structs
+*/
 GLuint depthMapFBO = 0;
 GLuint depthMap = 0;
 GLuint lightMatUBO = 0;
@@ -77,7 +90,7 @@ static bool quitting = false;
 static SDL_Window *window = NULL;
 static SDL_GLContext gl_context;
 
-//Il manque une classe scene
+// Il manque une classe scene
 void updateMVP(){ for( glMesh* mesh : meshes ){ mesh->updateMVP(context->globalUBO.proj, context->globalUBO.view); } }
 void listen_glDebugMessage();
 
@@ -112,18 +125,20 @@ void init(){
 	glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &infoValue);
 	cout << "GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS -- " << infoValue << endl;
 	
+	// Map des voxels (wrapper Cimg)
 	testVox = new VoxMap();
 	std::string mapFile = "./testMap.hdr";
 	std::string cubePath = "./assets/cubes/";
 	std::string cubeName = "cube.obj";
-	testVox->loadVoxel(cubePath,cubeName);
+	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
 	testVox->newMap(128,128,256);
-	testVox->testMap();
+	testVox->testMap(); // remplissage test
 	//testVox->save(mapFile);
 	//testVox->fillVisibleCubes(5,5,5);
 
 	std::cout << "DONE" << std::endl;
 	
+	// Remplissage des Pipe-line (ensemble de shaders)
 	string phong_vertex = "./shaders/phongVert.vert";
 	string phong_fragment = "./shaders/phongFrag.frag";
 	string shadowPT_vertex = "./shaders/shadowTex.vert";
@@ -136,12 +151,15 @@ void init(){
 	context = new glContext();
 
 	
+	// Chargement des assets
+	//ASSETS_PATHS.push_back("./assets/wall/");
+	//MODELS_NAMES.push_back("Wall.obj");
 	
-	ASSETS_PATHS.push_back("./assets/wall/");
-	MODELS_NAMES.push_back("Wall.obj");
+	//ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
+	//MODELS_NAMES.push_back("classic_sonic.dae");
 	
-	ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
-	MODELS_NAMES.push_back("classic_sonic.dae");
+	ASSETS_PATHS.push_back("./assets/arbre/");
+	MODELS_NAMES.push_back("wintertree.ply");
 	
 	for( uint32_t i = 0; i < ASSETS_PATHS.size(); ++i ){
 		meshes.push_back( new glMesh() );
@@ -149,7 +167,8 @@ void init(){
 	}
 
 	
-	context->camera.pos = glm::vec3(-20.0f,10.0f,-20.0f);//meshes[0]->getCamPos();
+	// Gestion caméra
+	context->camera.pos = glm::vec3(-20.0f, 30.0f,-20.0f);//meshes[0]->getCamPos();
 
 	context->camera.backupPos = context->camera.pos;
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
@@ -160,13 +179,33 @@ void init(){
 	                                           0.1f, 500.0f);
 	
 	
+	/*
 	if( meshes.size() > 1 ){
 		for(size_t i = 1; i < MODELS_NAMES.size(); ++i){
 			meshes.at(i)->matrices.model = glm::translate(glm::mat4(1.0f),glm::vec3(context->globalUBO.camPos.x * i, 0.0f, 0.0f));
 		}
 	}
-	meshes.at(0)->matrices.model = glm::scale( meshes.at(0)->matrices.model, glm::vec3(1.5f));
-	meshes.at(1)->matrices.model = glm::scale( meshes.at(1)->matrices.model, glm::vec3(1.5f));
+	*/
+
+	// mise à l'échelle
+	meshes.at(0)->matrices.model = glm::scale( meshes.at(0)->matrices.model, glm::vec3(10.0f));
+	meshes.at(0)->matrices.model = glm::rotate(meshes.at(0)->matrices.model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	meshes.at(0)->matrices.model = glm::translate(meshes.at(0)->matrices.model, glm::vec3(3.0f, -4.0f, 2.0f));
+
+	int k = 1;
+	for (int i = 0; i < 5; ++i) {
+		for (int j = 0; j < 5; ++j) {
+			meshes.push_back( new glMesh() );
+			meshes.back()->loadMesh( ASSETS_PATHS.at(0), MODELS_NAMES.at(0) );
+
+			meshes.at(k)->matrices.model = glm::scale( meshes.at(k)->matrices.model, glm::vec3(10.0f));
+			meshes.at(k)->matrices.model = glm::rotate(meshes.at(k)->matrices.model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			meshes.at(k)->matrices.model = glm::translate(meshes.at(k)->matrices.model, glm::vec3(6.0f + i * 2, -4.0f - j * 2, 2.5f));
+			++k;
+		}	
+	}
+
+	//meshes.at(1)->matrices.model = glm::scale( meshes.at(1)->matrices.model, glm::vec3(1.5f));
 	
 	
 
@@ -255,20 +294,22 @@ void render(){
 	//glClearColor(0.529f, 0.808f, 0.922f, 0.0);
 	glClearColor(0.200f, 0.200f, 0.200f, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	/*
-	glActiveTexture(GL_TEXTURE0 + 6);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	phongPipeline.bind();
-	context->bindUBO();
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
-	for( glMesh* mesh : meshes ){ mesh->render(); }
-	*/
+	
 	//glActiveTexture(GL_TEXTURE0 + 6);
 	//glBindTexture(GL_TEXTURE_2D, depthMap);
 	instancedPhongPipeline.bind();
 	context->bindUBO();
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	testVox->render();
+
+	glActiveTexture(GL_TEXTURE0 + 6);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	phongPipeline.bind();
+	context->bindUBO();
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
+	for( glMesh* mesh : meshes ){ mesh->render(); }
+	
+	
 	
 	//context->bindUBO();
 	//glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
@@ -303,10 +344,26 @@ int main(int argc, char *argv[]) {
 	glewInit();
 	listen_glDebugMessage();
 	init();
+
+
+	// Code pour réguler les FPS
+	//Keep track of the current frame
+	int frame = 0;
+	//Whether or not to cap the frame rate
+	bool cap = true; 
+	//The frame rate regulator
+	Timer fps;
+
 	while(!quitting) {
+		fps.start();
 		while( SDL_PollEvent(&event) ) {
 			if(event.type == SDL_QUIT) { quitting = true; }
 			if(event.type == SDL_KEYDOWN){
+				 //If enter was pressed
+				if( event.key.keysym.sym == SDLK_RETURN ) {
+					//Switch cap 
+					cap = ( !cap );
+				}
 				if(event.key.keysym.sym == SDLK_w){
 					context->camera.pos.y += 1.0f; 
 					//context->camera.rotatePitch = glm::rotate(glm::mat4(1.0f), 0.25f, context->camera.right );     movedPitch = true;
@@ -351,13 +408,33 @@ int main(int argc, char *argv[]) {
 		
 		}
 
-		render();
-		//SDL_Delay(2);
-		fpsthink();
-		windowName = "VoxEngine -- ";
-		windowName += std::to_string((size_t)framespersecond);
-		windowName += " fps";
-		SDL_SetWindowTitle(window, windowName.c_str());
+
+		if (frame % FRAMES_PER_SECOND == 0) {
+		
+			render();
+			//SDL_Delay(2);
+			fpsthink();
+			windowName = "VoxEngine -- ";
+			windowName += std::to_string((size_t)framespersecond);
+			windowName += " - ";
+			windowName += std::to_string(fps.get_ticks());
+			windowName += " fps";
+			SDL_SetWindowTitle(window, windowName.c_str());
+		}
+		if( frame % FRAMES_PER_SECOND == 1 )
+		{
+		//blit there
+		}
+
+		//Update the screen
+		//if( SDL_Flip( screen ) == -1 ) { return 1; }
+		//Increment the frame counter
+		//frame++;
+		
+		//If we want to cap the frame rate
+		if( ( cap == true ) && ( fps.get_ticks() < 1000 / FRAMES_PER_SECOND ) ) { 
+		//Sleep the remaining frame time 
+			SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() ); }
 
 		//printf("%f\n", framespersecond);
 	}

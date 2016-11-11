@@ -32,6 +32,9 @@ all: mkOBJDIR $(OBJ)
 run: all
 	./$(progName)
 
+optirun: all
+	optirun ./$(progName)
+
 cleanRun: run clean
 
 
