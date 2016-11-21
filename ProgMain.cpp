@@ -188,8 +188,12 @@ void init(){
 	*/
 
 	// mise à l'échelle
+
+	
 	meshes.at(0)->matrices.model = glm::scale( meshes.at(0)->matrices.model, glm::vec3(10.0f));
+	
 	meshes.at(0)->matrices.model = glm::rotate(meshes.at(0)->matrices.model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	
 	meshes.at(0)->matrices.model = glm::translate(meshes.at(0)->matrices.model, glm::vec3(3.0f, -4.0f, 2.0f));
 
 	int k = 1;
