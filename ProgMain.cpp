@@ -1,5 +1,6 @@
 #include "Timer.hpp"
-#include "VoxMap.hpp"
+#include "camera.h"
+//#include "VoxMap.hpp"
 #include <string>
 using namespace std;
 
@@ -23,7 +24,100 @@ float framespersecond;
 
 // On régule le nombre de frame par seconde
 const int FRAMES_PER_SECOND = 60;
+double step = 1.0;
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Camera cam;
+
+
+void initCamera() {
+    cam = Camera(0.0f, 2.0f, 5.0f);
+    cam.bind(context->globalUBO.view);
+    #pragma omp parallel
+    {
+    cam.see(1.0f, 2.0f, 1.0f);
+    cam.setSpeed(step);
+    cam.setBoost(10.0f);
+    cam.setSensivity(0.3f);
+    }
+}
+
+bool isOverTextureHeight(GLfloat x, GLfloat y, GLfloat z) {
+	/*
+   // On transforme les coordonée 3D en coordonnées images
+    unsigned int xp = (x / m_step);
+    unsigned int yp = (z / m_step);
+
+    // Lecture du pixel
+    if((xp < m_img_w) && (yp < m_img_h)) {
+        //cout << y  << " : " << groundHeight[xp][yp];
+        return (y > groundHeight[xp][yp]);
+    } else {
+        return true;
+    }
+    */
+    return true;
+}
+
+void forwardCam() {
+	std::cout << " forwardCam" << std::endl;
+    if (isOverTextureHeight(cam.getX(), cam.getY(), cam.getZ() + step)) {
+        #pragma omp parallel
+        {
+
+	std::cout << " forwardCam" << std::endl;
+            cam.toForward();
+        }
+    }
+}
+
+void rearwardCam() {
+    if (isOverTextureHeight(cam.getX(), cam.getY(), cam.getZ() - step)) {
+        #pragma omp parallel
+        {
+            cam.toBackward();
+        }
+    }
+}
+
+void towardRightCam() {
+    if (isOverTextureHeight(cam.getX() + step, cam.getY(), cam.getZ())) {
+        #pragma omp parallel
+        {
+            cam.toRight();
+        }
+    }
+}
+
+void towardLeftCam() {
+    if (isOverTextureHeight(cam.getX() - step, cam.getY(), cam.getZ())) {
+        #pragma omp parallel
+        {
+            cam.toLeft();
+        }
+    }
+}
+
+void upCam() {
+    if (isOverTextureHeight(cam.getX(), cam.getY() + step, cam.getZ())) {
+        #pragma omp parallel
+        {
+            cam.toUp();
+        }
+    }
+}
+
+void downCam() {
+    if (isOverTextureHeight(cam.getX(), cam.getY() - step, cam.getZ())) {
+        #pragma omp parallel
+        {
+            cam.toDown();
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void fpsinit() {
         // Set all frame times to 0ms.
         memset(frametimes, 0, sizeof(frametimes));
@@ -273,6 +367,8 @@ void init(){
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable( GL_BLEND );
+
+	initCamera();
 }
 
 
@@ -323,6 +419,8 @@ void render(){
 }
 
 
+bool deplacementOk = false;
+
 int SDLCALL watch(void *userdata, SDL_Event* event) {
 	if( event->type == SDL_APP_WILLENTERBACKGROUND ){ quitting = true; }
 	return 1;
@@ -361,7 +459,47 @@ int main(int argc, char *argv[]) {
 	while(!quitting) {
 		fps.start();
 		while( SDL_PollEvent(&event) ) {
+			cam.update(event);
+	
+
+
+		if(event.type == SDL_KEYDOWN){
+			switch (event.key.keysym.sym) {
+		    case SDLK_z :
+	            forwardCam();
+	            break;
+
+	        case SDLK_s :
+	            rearwardCam();
+	            break;
+
+	        case SDLK_d :
+	            towardLeftCam();
+	            break;
+
+	        case SDLK_q :
+	            towardRightCam();
+	            break;
+
+	        case SDLK_UP :
+	            upCam();
+	            break;
+
+	        case SDLK_DOWN :
+	            downCam();
+	            break;
+		}
+	}
+			
+
+
+
+
+
+
+
 			if(event.type == SDL_QUIT) { quitting = true; }
+			/*
 			if(event.type == SDL_KEYDOWN){
 				 //If enter was pressed
 				if( event.key.keysym.sym == SDLK_RETURN ) {
@@ -398,6 +536,8 @@ int main(int argc, char *argv[]) {
 				context->updateGlobalUniformBuffer();
 				updateMVP();
 			}
+			*/
+
 			if( event.type == SDL_MOUSEWHEEL ){
 				if( event.wheel.y < 0 ){
 					context->camera.pos.z += -0.5f; 
@@ -405,10 +545,17 @@ int main(int argc, char *argv[]) {
 				else{
 					context->camera.pos.z += 0.5f;
 				}
-				context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
+
+				
+				//context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
+				cam.use();
 				context->updateGlobalUniformBuffer();
 				updateMVP();
 			}
+
+			cam.use(context->globalUBO.view);
+				context->updateGlobalUniformBuffer();
+				updateMVP();
 		
 		}
 
