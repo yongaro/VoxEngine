@@ -31,16 +31,15 @@ double step = 1.0;
 Camera cam;
 
 
-void initCamera() {
-    cam = Camera(0.0f, 2.0f, 5.0f);
-    cam.bind(context->globalUBO.view);
-    #pragma omp parallel
-    {
+void initCamera(glContext* context) {
+	cam = Camera(0.0f, 2.0f, 5.0f);
+    cam.bind(&context->globalUBO.view);
+
+
     cam.see(1.0f, 2.0f, 1.0f);
     cam.setSpeed(step);
     cam.setBoost(10.0f);
     cam.setSensivity(0.3f);
-    }
 }
 
 bool isOverTextureHeight(GLfloat x, GLfloat y, GLfloat z) {
@@ -61,59 +60,38 @@ bool isOverTextureHeight(GLfloat x, GLfloat y, GLfloat z) {
 }
 
 void forwardCam() {
-	std::cout << " forwardCam" << std::endl;
-    if (isOverTextureHeight(cam.getX(), cam.getY(), cam.getZ() + step)) {
-        #pragma omp parallel
-        {
-
-	std::cout << " forwardCam" << std::endl;
-            cam.toForward();
-        }
+    if (isOverTextureHeight(cam.getX(), cam.getY(), cam.getZ() + step)) {        
+        cam.toForward();
     }
 }
 
 void rearwardCam() {
     if (isOverTextureHeight(cam.getX(), cam.getY(), cam.getZ() - step)) {
-        #pragma omp parallel
-        {
-            cam.toBackward();
-        }
+        cam.toBackward();
     }
 }
 
 void towardRightCam() {
     if (isOverTextureHeight(cam.getX() + step, cam.getY(), cam.getZ())) {
-        #pragma omp parallel
-        {
-            cam.toRight();
-        }
+        cam.toRight();
     }
 }
 
 void towardLeftCam() {
     if (isOverTextureHeight(cam.getX() - step, cam.getY(), cam.getZ())) {
-        #pragma omp parallel
-        {
-            cam.toLeft();
-        }
+        cam.toLeft();
     }
 }
 
 void upCam() {
     if (isOverTextureHeight(cam.getX(), cam.getY() + step, cam.getZ())) {
-        #pragma omp parallel
-        {
-            cam.toUp();
-        }
+        cam.toUp();
     }
 }
 
 void downCam() {
     if (isOverTextureHeight(cam.getX(), cam.getY() - step, cam.getZ())) {
-        #pragma omp parallel
-        {
-            cam.toDown();
-        }
+        cam.toDown();
     }
 }
 
@@ -368,7 +346,7 @@ void init(){
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable( GL_BLEND );
 
-	initCamera();
+	initCamera(context);
 }
 
 
@@ -546,14 +524,14 @@ int main(int argc, char *argv[]) {
 					context->camera.pos.z += 0.5f;
 				}
 
-				
+
 				//context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
 				cam.use();
 				context->updateGlobalUniformBuffer();
 				updateMVP();
 			}
 
-			cam.use(context->globalUBO.view);
+				cam.use();
 				context->updateGlobalUniformBuffer();
 				updateMVP();
 		

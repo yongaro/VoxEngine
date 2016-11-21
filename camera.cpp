@@ -50,13 +50,9 @@ void Camera::vectorsFromAngles() {
 }
 
 void Camera::toForward() {
-	cout << position.x << endl;
     double v = getRealSpeed();
-    cout << forward.x << endl;
     position.x += forward.x * v;
     position.z += forward.z * v;
-
-	cout << position.x << endl;
 }
 
 void Camera::toBackward() {
@@ -74,6 +70,7 @@ void Camera::toLeft() {
 GLfloat Camera::getRealSpeed() const {
     return(booster ? boost * speed : speed);
 }
+
 void Camera::toRight() {
     double v = getRealSpeed();
     position.x += left.x * v;
@@ -164,8 +161,6 @@ void Camera::use() {
     // Recalcul des coordonées position - vue
     vectorsFromAngles();
     target = position + forward;
-    cout << position.x << "  " << position.y << "  " << position.z << endl
-         << target.x   << "  " << target.y   << "  " << target.z << endl;
     *context = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
         glm::vec3(target.x, target.y, target.z),
