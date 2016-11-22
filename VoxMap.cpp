@@ -6,17 +6,6 @@ VoxMap::VoxMap(){
 	voxelSize[1] = 2.0f;
 	voxelSize[2] = 2.0f;
 	maxLightLevel = 15;
-	cubeColors[CubeTypes::ADMINIUM] = glm::vec4(0.0f,0.0f,0.0f,1.0f);
-	cubeColors[CubeTypes::AIR] = glm::vec4(0.0f,0.0f,0.0f,0.1f);
-	cubeColors[CubeTypes::DIRT] = glm::vec4(0.6078f,0.4627f,0.3254f,1.0f);
-	cubeColors[CubeTypes::FOLLIAGE] = glm::vec4(0.133f,0.545f,0.133f,0.9f);
-	cubeColors[CubeTypes::GLOWSTONE] = glm::vec4(0.420f,0.557f,0.137f,1.0f);
-	cubeColors[CubeTypes::GRASS] = glm::vec4(0.420f,0.557f,0.137f,1.0f);
-	cubeColors[CubeTypes::SAND] = glm::vec4(0.961f,0.871f,0.702f,1.0f);
-	cubeColors[CubeTypes::SNOW] = glm::vec4(1.0f,1.0f,1.0f,1.0f);
-	cubeColors[CubeTypes::STONE] = glm::vec4(0.663f,0.663f,0.663f,1.0f);
-	cubeColors[CubeTypes::WATER] = glm::vec4(0.678f,0.847f,0.902f,0.8f);
-	cubeColors[CubeTypes::WOOD] = glm::vec4(0.545f,0.271f,0.075f,1.0f);
 }
 VoxMap::~VoxMap(){}
 
@@ -49,28 +38,35 @@ void VoxMap::getMapOutline(cimg_library::CImg<bool>& dil, cimg_library::CImg<boo
 		for( int y = 0; y < map.height(); ++y ){
 			for( int x = 0; x < map.width(); ++x ){
 				if( dil(x,y,z) && !ero(x,y,z) ){
-					//cubes[ map(x,y,z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2], 1.0f), cubeColors[map(x,y,z, MapChannels::BLOC)] );
-					cubes[ map(x,y,z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2], 1.0f) );
+					if( map(x,y,z, MapChannels::BLOC) != CubeTypes::AIR ){
+						cubes[ map(x,y,z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2], 1.0f) );
+					}
 				}
 			}
 		}
 	}
+	/*
+	fillOffsets();
 	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
 		cubes[i].updateInstanceSSBO();
 	}
+	*/
+	fillSSBO();
 }
 
 
 void VoxMap::testMap(){
+	createInstanceSSBO();
 	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
-		cubes[i].createInstanceSSBO(map.width()*map.height()*map.depth());
+		cubes[i].maxNbInstances = map.width()*map.height()*map.depth();
+		cubes[i].instanceSSBO = mapSSBO;
+		cubes[i].createOffsetUBO();
 	}
 	for( int z = 1; z < map.depth()-1; ++z ){
 		for( int y = 1; y < map.height()-1; ++y ){
 			for( int x = 1; x < map.width()-1; ++x ){
 				if( (size_t)y < CubeTypes::SIZE_CT ){
 					map(x,y,z,MapChannels::BLOC) = y;
-					//cubes[y].addInstance( glm::vec4(x*voxelSize[0],y*voxelSize[1], z*voxelSize[2],1.0f), cubeColors[y] );
 				}
 				else{ map(x,y,z,MapChannels::BLOC) = CubeTypes::AIR; }
 				map(x,y,z,MapChannels::LIGHT) = 0xFF;	
@@ -78,20 +74,15 @@ void VoxMap::testMap(){
 		}
 	}
 
-	//for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
-	//	cubes[i].updateInstanceSSBO();
-	//}
 	cimg_library::CImg<bool> mapObjects = getMapObjects();
 	cimg_library::CImg<bool> dilate = mapObjects.get_dilate(3);
 	cimg_library::CImg<bool> erode = mapObjects.get_erode(3);
 	getMapOutline(dilate,erode);
-	//std::string path = "./fubar.hdr";
-	//gradLength.save_analyze(path.c_str(),voxelSize);
 }
 
 void VoxMap::render(){
-	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
-		if( i != CubeTypes::AIR ){ cubes[i].render(); }
+	for( size_t i = 1; i < CubeTypes::SIZE_CT; ++i ){
+		cubes[i].render();
 	}
 }
 
@@ -195,13 +186,12 @@ void VoxMap::removeLight(size_t x, size_t y, size_t z, unsigned char light){
 
 void VoxMap::resetVisibleCubes(){
 	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
-		cubes[i].nbInstances = 0;
+		cubes[i].instances.clear();
 	}
 }
 
 
 bool VoxMap::seeThroughCubeType(size_t cubeType){
-	//return cubeColors[cubeType].w < 1.0f; 
 	return cubeType == CubeTypes::AIR || cubeType == CubeTypes::FOLLIAGE || cubeType == CubeTypes::WATER; 
 }
 
@@ -230,7 +220,6 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 	getVisibleNeighbors((int)x, (int)y, (int)z, stack);
 	
 	if( map(x, y, z, MapChannels::BLOC) < CubeTypes::SIZE_CT && map(x, y, z, MapChannels::BLOC) != CubeTypes::AIR ){
-		//cubes[ map(x, y, z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2],1.0f), cubeColors[map(x, y, z, MapChannels::BLOC)] );
 		cubes[ map(x, y, z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2],1.0f) );
 	}
 	
@@ -239,7 +228,6 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 		for( PixelCoord& pix : stack ){
 			getVisibleNeighbors((int)pix.x, (int)pix.y, (int)pix.z, stackBuffer);
 			if( map(x, y, z, MapChannels::BLOC) < CubeTypes::SIZE_CT && map(x, y, z, MapChannels::BLOC) != CubeTypes::AIR ){
-				//cubes[ map(pix.x, pix.y, pix.z, MapChannels::BLOC) ].addInstance( glm::vec4(pix.x*voxelSize[0], pix.y*voxelSize[1], pix.z*voxelSize[2],1.0f), cubeColors[map(pix.x, pix.y, pix.z, MapChannels::BLOC)] );
 				cubes[ map(pix.x, pix.y, pix.z, MapChannels::BLOC) ].addInstance( glm::vec4(pix.x*voxelSize[0], pix.y*voxelSize[1], pix.z*voxelSize[2],1.0f) );
 			}
 		}
@@ -249,4 +237,38 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 	}
 
 	//for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){ cubes[i].updateInstanceSSBO(); }
+}
+
+void VoxMap::fillSSBO(){
+	instances.clear();
+	GLuint offset = 0;
+	for( size_t i = 1; i < CubeTypes::SIZE_CT; ++i ){
+		cubes[i].ssboOffset = offset;
+		for( InstanceInfos& ref : cubes[i].instances ){
+			instances.push_back( ref );
+			++offset;
+		}
+		cubes[i].updateOffsetUBO();
+	}
+	updateInstanceSSBO();
+}
+
+void VoxMap::createInstanceSSBO(){
+	GLuint size = map.width()*map.height()*map.depth();
+	std::cout << "Allocation of \e[1;33m" << (GLfloat)size*sizeof(InstanceInfos)/1000000.0f << "\e[0m MB of vram"<< std::endl;
+	
+	instances.resize(size);
+	glGenBuffers(1, &mapSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mapSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InstanceInfos)*size, instances.data(), GL_DYNAMIC_COPY);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	instances.clear();
+}
+
+void VoxMap::updateInstanceSSBO(){
+	void* data;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mapSSBO);
+	data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(InstanceInfos)*instances.size(), GL_MAP_WRITE_BIT);
+	memcpy(data, instances.data(), sizeof(InstanceInfos)*instances.size());
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }

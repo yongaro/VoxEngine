@@ -26,9 +26,9 @@ public:
 	cimg_library::CImg<bool> tempMap;
 	float voxelSize[3];
 	unsigned char maxLightLevel;
-	glm::vec4 cubeColors[CubeTypes::SIZE_CT];
 	glInstancedMesh cubes[CubeTypes::SIZE_CT];
-	
+	std::vector< InstanceInfos > instances;
+	GLuint mapSSBO;
 	
 	VoxMap();
 	virtual ~VoxMap();
@@ -49,6 +49,11 @@ public:
 	virtual bool seeThroughCubeType(size_t);
 	virtual void getVisibleNeighbors(int, int, int, std::vector<PixelCoord>&);
 	virtual void fillVisibleCubes(size_t, size_t, size_t);
+
+	virtual void fillSSBO();
+	virtual void createInstanceSSBO();
+	virtual void updateInstanceSSBO();
+
 };
 
 #endif

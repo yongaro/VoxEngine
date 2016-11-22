@@ -406,9 +406,6 @@ int SDLCALL watch(void *userdata, SDL_Event* event) {
 
 int main(int argc, char *argv[]) {
 	SDL_Event event;
-	bool movedPitch = false;
-	bool movedYaw = false;
-
 	
 	if( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) != 0 ){
 		SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
@@ -438,84 +435,37 @@ int main(int argc, char *argv[]) {
 		fps.start();
 		while( SDL_PollEvent(&event) ) {
 			cam.update(event);
-	
-
-
-		if(event.type == SDL_KEYDOWN){
-			switch (event.key.keysym.sym) {
-		    case SDLK_z :
-	            forwardCam();
-	            break;
-
-	        case SDLK_s :
-	            rearwardCam();
-	            break;
-
-	        case SDLK_d :
-	            towardLeftCam();
-	            break;
-
-	        case SDLK_q :
-	            towardRightCam();
-	            break;
-
-	        case SDLK_UP :
-	            upCam();
-	            break;
-
-	        case SDLK_DOWN :
-	            downCam();
-	            break;
-		}
-	}
 			
-
-
-
-
-
-
-
-			if(event.type == SDL_QUIT) { quitting = true; }
-			/*
 			if(event.type == SDL_KEYDOWN){
-				 //If enter was pressed
-				if( event.key.keysym.sym == SDLK_RETURN ) {
-					//Switch cap 
-					cap = ( !cap );
+				switch (event.key.keysym.sym) {
+				case SDLK_z :
+					forwardCam();
+					break;
+					
+				case SDLK_s :
+					rearwardCam();
+					break;
+					
+				case SDLK_d :
+					towardLeftCam();
+					break;
+					
+				case SDLK_q :
+					towardRightCam();
+	            break;
+	            
+				case SDLK_UP :
+					upCam();
+					break;
+					
+				case SDLK_DOWN :
+					downCam();
+	            break;
 				}
-				if(event.key.keysym.sym == SDLK_w){
-					context->camera.pos.y += 1.0f; 
-					//context->camera.rotatePitch = glm::rotate(glm::mat4(1.0f), 0.25f, context->camera.right );     movedPitch = true;
-				}
-				if(event.key.keysym.sym == SDLK_a){
-					context->camera.pos.x += -1.0f; 
-					//context->camera.rotateYaw = glm::rotate(glm::mat4(1.0f), 0.25f, context->camera.up );          movedYaw = true;
-				}
-				if(event.key.keysym.sym == SDLK_s){
-					context->camera.pos.y += -1.0f; 
-					//context->camera.rotatePitch = glm::rotate(glm::mat4(1.0f), -0.25f, context->camera.right );    movedPitch = true;
-				}
-				if(event.key.keysym.sym == SDLK_d){
-					context->camera.pos.x += 1.0f; 
-					//context->camera.rotateYaw = glm::rotate(glm::mat4(1.0f), -0.25f, context->camera.up );         movedYaw = true;
-				}
-				if(event.key.keysym.sym == SDLK_r){
-					context->camera.rotatePitch = glm::mat4(1.0f);
-					context->camera.rotateYaw = glm::mat4(1.0f);
-					context->camera.pos = glm::vec3(context->camera.backupPos);
-					context->globalUBO.camPos = glm::vec3(context->camera.pos);
-				}
-
-				//if( movedPitch ){ context->camera.pos = glm::vec3(context->camera.rotatePitch * glm::vec4(context->camera.pos - context->camera.target, 1.0f)) + context->camera.target; }
-				//if( movedYaw ){ context->camera.pos = glm::vec3(context->camera.rotateYaw * glm::vec4(context->camera.pos - context->camera.target, 1.0f)) + context->camera.target; }
-				
-				context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
-				context->updateGlobalUniformBuffer();
-				updateMVP();
 			}
-			*/
-
+			
+			if(event.type == SDL_QUIT) { quitting = true; }
+			
 			if( event.type == SDL_MOUSEWHEEL ){
 				if( event.wheel.y < 0 ){
 					context->camera.pos.z += -0.5f; 
@@ -524,29 +474,27 @@ int main(int argc, char *argv[]) {
 					context->camera.pos.z += 0.5f;
 				}
 
-
 				//context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
 				cam.use();
 				context->updateGlobalUniformBuffer();
 				updateMVP();
 			}
 
-				cam.use();
-				context->updateGlobalUniformBuffer();
-				updateMVP();
-		
+			cam.use();
+			context->updateGlobalUniformBuffer();
+			updateMVP();
 		}
 
 
 		if (frame % FRAMES_PER_SECOND == 0) {
 		
 			render();
-			//SDL_Delay(2);
+
 			fpsthink();
 			windowName = "VoxEngine -- ";
 			windowName += std::to_string((size_t)framespersecond);
-			windowName += " - ";
-			windowName += std::to_string(fps.get_ticks());
+			//windowName += " - ";
+			//windowName += std::to_string(fps.get_ticks());
 			windowName += " fps";
 			SDL_SetWindowTitle(window, windowName.c_str());
 		}
@@ -563,7 +511,8 @@ int main(int argc, char *argv[]) {
 		//If we want to cap the frame rate
 		if( ( cap == true ) && ( fps.get_ticks() < 1000 / FRAMES_PER_SECOND ) ) { 
 		//Sleep the remaining frame time 
-			SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() ); }
+			SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() );
+		}
 
 		//printf("%f\n", framespersecond);
 	}

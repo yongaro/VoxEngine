@@ -8,6 +8,7 @@
 #define FEATURES_UBP 3
 #define MESH_TRANSFORMS_UBP 4
 #define LIGHTSPACE_UBP 5
+#define OFFSET_UBP 6
 
 layout(binding = GLOBAL_MATRIX_UBP) uniform globalMatrices {
     mat4 view;
@@ -43,9 +44,12 @@ layout(binding = LIGHTSPACE_UBP) uniform Dummy{
 	mat4 lightSpaceMatrix;
 }dummy;
 
+layout(binding = OFFSET_UBP) uniform InstanceOffset{
+	uint value;
+} offset;
+
 #define INSTANCE_DRAW_UBP 0
 struct Instance{
-	//mat4 instanceModel;
 	vec4 translate;
 	//vec4 color;
 };
@@ -86,9 +90,9 @@ layout(location = 3) out mat3 fragTBN; //takes slots 3,4,5
 void main() {
 	//creating new model and mvp matrix based on instance offset
 	mat4 instanceModel = meshTransforms.model;
-	instanceModel[3][0] += instanceSSBO.infos[gl_InstanceID].translate.x;
-	instanceModel[3][1] += instanceSSBO.infos[gl_InstanceID].translate.y;
-	instanceModel[3][2] += instanceSSBO.infos[gl_InstanceID].translate.z;
+	instanceModel[3][0] += instanceSSBO.infos[gl_InstanceID+offset.value].translate.x;
+	instanceModel[3][1] += instanceSSBO.infos[gl_InstanceID+offset.value].translate.y;
+	instanceModel[3][2] += instanceSSBO.infos[gl_InstanceID+offset.value].translate.z;
 	mat4 instanceMVP = globalMat.proj * globalMat.view * instanceModel;
 	
 	gl_Position = instanceMVP * vec4(vertPos, 1.0);

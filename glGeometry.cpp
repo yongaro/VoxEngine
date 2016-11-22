@@ -13,10 +13,7 @@ glVertex::~glVertex(){}
 
 
 //############################# STRUCT MATERIALGROUP  #####################################################################
-MaterialGroup::MaterialGroup():mat(){
-
-}
-
+MaterialGroup::MaterialGroup():mat(){}
 MaterialGroup::~MaterialGroup(){}
 
 void MaterialGroup::createTextureImage(const char* texturePath, uint32_t index){
@@ -397,24 +394,25 @@ void glMesh::updateMVP(glm::mat4 proj, glm::mat4 view){
 
 
 //#################################### CLASS GLINSTANCEDMESH ####################################
-glInstancedMesh::glInstancedMesh():glMesh(),instances(),instanceSSBO(),nbInstances(),maxNbInstances(){}
-glInstancedMesh::~glInstancedMesh(){ }
+glInstancedMesh::glInstancedMesh():glMesh(),instances(),instanceSSBO(),maxNbInstances(),ssboOffset(),offsetUBO(),commonSSBO(false){}
+glInstancedMesh::~glInstancedMesh(){}
 
 void glInstancedMesh::createInstanceSSBO(GLuint maxNb){
 	maxNbInstances = maxNb;
 	std::cout << "Allocation of \e[1;33m" << (GLfloat)maxNbInstances*sizeof(InstanceInfos)/1000000.0f << "\e[0m MB of vram"<< std::endl;
-	instances.resize(maxNbInstances); // = new InstanceInfos[maxNbInstances]();
+	instances.resize(maxNbInstances);
 	glGenBuffers(1, &instanceSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InstanceInfos)*maxNbInstances, instances.data(), GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	instances.clear();
 }
 void glInstancedMesh::updateInstanceSSBO(){
-	if( nbInstances > 0 && nbInstances < maxNbInstances ){
+	if( instances.size() > 0 && instances.size() < maxNbInstances ){
 		void* data;
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
-		data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(InstanceInfos)*nbInstances, GL_MAP_WRITE_BIT);
-		memcpy(data, instances.data(), sizeof(InstanceInfos)*nbInstances);
+		data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, ssboOffset, sizeof(InstanceInfos)*instances.size(), GL_MAP_WRITE_BIT);
+		memcpy(data, instances.data(), sizeof(InstanceInfos)*instances.size());
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		
 	}
@@ -423,17 +421,41 @@ void glInstancedMesh::bindSSBO(){
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ShaderStorageBindingPoints::INSTANCE_SSBP, instanceSSBO);
 }
 
+
+void glInstancedMesh::createOffsetUBO(){
+	//std::cout << sizeof(GLuint) << " " << sizeof(glm::vec2) << " " << sizeof(glm::vec4) << std::endl;
+	glGenBuffers(1, &offsetUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, offsetUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(GLuint), &ssboOffset, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+void glInstancedMesh::updateOffsetUBO(){
+	void* data;
+	glBindBuffer(GL_UNIFORM_BUFFER, offsetUBO);
+	data = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+	memcpy(data, &ssboOffset, sizeof(GLuint));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
+void glInstancedMesh::bindOffsetUBO(){
+	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::OFFSET_UBP, offsetUBO);
+}
+
+
 void glInstancedMesh::addInstance(glm::vec4 tr){
-	if( nbInstances < maxNbInstances ){
-		instances[nbInstances].translate = glm::vec4(tr);
-		++nbInstances;
+	if( instances.size() < maxNbInstances ){
+		//InstanceInfos temp;
+		//temp.translate = glm::vec4(tr);
+		instances.push_back( InstanceInfos(tr) );
+		//++nbInstances;
 	}
 }
 
 void glInstancedMesh::render(){
-	if( nbInstances > 0 ){
+	if( instances.size() > 0 ){
 		bindUBO();
 		bindSSBO();
+		bindOffsetUBO();
 		for( glSubMesh* smesh : subMeshes ){
 			smesh->mat->bindUBO();
 			smesh->mat->bindTextures();
@@ -441,7 +463,7 @@ void glInstancedMesh::render(){
 			
 			smesh->bindVAO();
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, smesh->vbo[VBO::INDEX]);
-			glDrawElementsInstanced(GL_TRIANGLES, smesh->indices.size(), GL_UNSIGNED_INT, 0, nbInstances);
+			glDrawElementsInstanced(GL_TRIANGLES, smesh->indices.size(), GL_UNSIGNED_INT, 0, instances.size());
 	
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER,0);
