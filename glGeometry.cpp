@@ -398,15 +398,15 @@ void glMesh::updateMVP(glm::mat4 proj, glm::mat4 view){
 
 //#################################### CLASS GLINSTANCEDMESH ####################################
 glInstancedMesh::glInstancedMesh():glMesh(),instances(),instanceSSBO(),nbInstances(),maxNbInstances(){}
-glInstancedMesh::~glInstancedMesh(){ delete[] instances; }
+glInstancedMesh::~glInstancedMesh(){ }
 
 void glInstancedMesh::createInstanceSSBO(GLuint maxNb){
 	maxNbInstances = maxNb;
 	std::cout << "Allocation of \e[1;33m" << (GLfloat)maxNbInstances*sizeof(InstanceInfos)/1000000.0f << "\e[0m MB of vram"<< std::endl;
-	instances = new InstanceInfos[maxNbInstances]();
+	instances.resize(maxNbInstances); // = new InstanceInfos[maxNbInstances]();
 	glGenBuffers(1, &instanceSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InstanceInfos)*maxNbInstances, instances, GL_DYNAMIC_COPY);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(InstanceInfos)*maxNbInstances, instances.data(), GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 void glInstancedMesh::updateInstanceSSBO(){
@@ -414,7 +414,7 @@ void glInstancedMesh::updateInstanceSSBO(){
 		void* data;
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
 		data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(InstanceInfos)*nbInstances, GL_MAP_WRITE_BIT);
-		memcpy(data, instances, sizeof(InstanceInfos)*nbInstances);
+		memcpy(data, instances.data(), sizeof(InstanceInfos)*nbInstances);
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 		
 	}
@@ -422,14 +422,7 @@ void glInstancedMesh::updateInstanceSSBO(){
 void glInstancedMesh::bindSSBO(){
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ShaderStorageBindingPoints::INSTANCE_SSBP, instanceSSBO);
 }
-/*void glInstancedMesh::addInstance(glm::vec4 tr, glm::vec4 color){
-	if( nbInstances < maxNbInstances ){
-		instances[nbInstances].translate = glm::vec4(tr);
-		instances[nbInstances].color = glm::vec4(color);
-		++nbInstances;
-	}
-}
-*/
+
 void glInstancedMesh::addInstance(glm::vec4 tr){
 	if( nbInstances < maxNbInstances ){
 		instances[nbInstances].translate = glm::vec4(tr);

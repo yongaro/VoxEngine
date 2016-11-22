@@ -127,7 +127,7 @@ struct InstanceInfos{
 
 class glInstancedMesh : public glMesh{
 public:
-	InstanceInfos* instances;
+	std::vector< InstanceInfos > instances;
 	GLuint instanceSSBO;
 	GLuint nbInstances;
 	GLuint maxNbInstances;
