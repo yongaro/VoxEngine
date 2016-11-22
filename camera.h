@@ -22,7 +22,7 @@ class Camera {
         bool booster;
         bool enabledMoves;
         float boost;
-        int energy; 
+        int endurance; 
 
 
         void vectorsFromAngles();
