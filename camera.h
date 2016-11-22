@@ -22,6 +22,8 @@ class Camera {
         bool booster;
         bool enabledMoves;
         float boost;
+        int energy; 
+
 
         void vectorsFromAngles();
         void setTheta(GLfloat);

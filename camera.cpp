@@ -9,7 +9,8 @@ Camera::Camera() :
     speed(.05f),
     theta(.0f),
     phi(.0f)
-{}
+{
+    energy = 300;}
 
 Camera::Camera(GLfloat x, GLfloat y, GLfloat z) {
     position = glm::vec3(x, y, z);
@@ -17,6 +18,9 @@ Camera::Camera(GLfloat x, GLfloat y, GLfloat z) {
     phi = 0.0f;
     booster = false;
     enabledMoves = false;
+    this->energy = 300;
+
+    cout << "energy :" << this->energy << endl;
 }
 
 
@@ -135,8 +139,10 @@ void Camera::mouseMove(int x, int y) {
 void Camera::update(SDL_Event& event) {
 	if (event.type == SDL_KEYDOWN) {
 		switch (event.key.keysym.sym) {
-		    case SDLK_LSHIFT :
-		    	setBooster(true);
+		    case SDLK_LSHIFT:
+		        if (energy >= 100) {
+		    		setBooster(true);	
+		        }
 		    break;
 		}
 	} else if (event.type == SDL_KEYUP) {
@@ -158,6 +164,20 @@ void Camera::update(SDL_Event& event) {
 
 
 void Camera::use() {
+	if (booster) {
+		if (this->energy <= 5) {
+			setBooster(false);
+		} else {
+			this->energy -= 50;	
+		} 
+	} else {
+		if (this->energy < 300) {
+			//this->energy += 1;	
+	    }
+	}
+
+	if (this->energy > 300) { this->energy = 300; }
+	cout << "use-energy  " << this->energy << endl;
     // Recalcul des coordonées position - vue
     vectorsFromAngles();
     target = position + forward;
