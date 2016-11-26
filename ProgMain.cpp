@@ -23,7 +23,7 @@ float framespersecond;
 // This function gets called once on startup.
 
 // On régule le nombre de frame par seconde
-const int FRAMES_PER_SECOND = 60;
+const int FRAMES_PER_SECOND = 6000;
 double step = 1.0;
 
 
@@ -32,7 +32,7 @@ Camera cam;
 
 
 void initCamera(glContext* context) {
-	cam = Camera(0.0f, 2.0f, 5.0f);
+	cam = Camera(0.0f, 50.0f, 10.0f);
     cam.bind(&context->globalUBO.view);
 
 
@@ -338,8 +338,8 @@ void init(){
 	glDepthRange(0,1);
 	
 	//glFrontFace(GL_CCW);
-	//glCullFace(GL_BACK);
-	//glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 
 	glEnable(GL_PROGRAM_POINT_SIZE);
 
@@ -380,13 +380,14 @@ void render(){
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	testVox->render();
 
+	/*
 	glActiveTexture(GL_TEXTURE0 + 6);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	phongPipeline.bind();
 	context->bindUBO();
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	for( glMesh* mesh : meshes ){ mesh->render(); }
-	
+	*/
 	
 	
 	//context->bindUBO();

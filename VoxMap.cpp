@@ -45,12 +45,6 @@ void VoxMap::getMapOutline(cimg_library::CImg<bool>& dil, cimg_library::CImg<boo
 			}
 		}
 	}
-	/*
-	fillOffsets();
-	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
-		cubes[i].updateInstanceSSBO();
-	}
-	*/
 	fillSSBO();
 }
 
@@ -62,9 +56,9 @@ void VoxMap::testMap(){
 		cubes[i].instanceSSBO = mapSSBO;
 		cubes[i].createOffsetUBO();
 	}
-	for( int z = 1; z < map.depth()-1; ++z ){
-		for( int y = 1; y < map.height()-1; ++y ){
-			for( int x = 1; x < map.width()-1; ++x ){
+	for( int z = 0; z < map.depth(); ++z ){
+		for( int y = 0; y < map.height(); ++y ){
+			for( int x = 0; x < map.width(); ++x ){
 				if( (size_t)y < CubeTypes::SIZE_CT ){
 					map(x,y,z,MapChannels::BLOC) = y;
 				}
@@ -74,11 +68,12 @@ void VoxMap::testMap(){
 		}
 	}
 
-	cimg_library::CImg<bool> mapObjects = getMapObjects();
-	cimg_library::CImg<bool> dilate = mapObjects.get_dilate(3);
-	cimg_library::CImg<bool> erode = mapObjects.get_erode(3);
-	getMapOutline(dilate,erode);
-}
+	//cimg_library::CImg<bool> mapObjects = getMapObjects();
+	//cimg_library::CImg<bool> dilate = mapObjects.get_dilate(3);
+	//cimg_library::CImg<bool> erode = mapObjects.get_erode(3);
+	//getMapOutline(dilate,erode);
+	fillVisibleCubes( 20, 20, 20 );
+} 
 
 void VoxMap::render(){
 	for( size_t i = 1; i < CubeTypes::SIZE_CT; ++i ){
@@ -201,9 +196,14 @@ void VoxMap::getVisibleNeighbors(int x, int y, int z, std::vector<PixelCoord>& s
 			for( int k = -1; k < 2; ++k ){
 				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
 					if( seeThroughCubeType( map(x+i, y+j, z+k, MapChannels::BLOC) ) && tempMap(x+i, y+j, z+k) == false ){
-						tempMap(x+i, y+j, z+k) = true;
+						//tempMap(x+i, y+j, z+k) = true;
 						stack.push_back( PixelCoord(x+i,y+j,z+k) );
 					}
+					if( map(x+i, y+j, z+k, MapChannels::BLOC) != CubeTypes::AIR && tempMap(x+i, y+j, z+k) == false ){
+						//tempMap(x+i, y+j, z+k) = true;
+						cubes[ map(x+i, y+j, z+k, MapChannels::BLOC) ].addInstance( glm::vec4((x+i)*voxelSize[0], (y+j)*voxelSize[1], (z+k)*voxelSize[2],1.0f) );
+					}
+					tempMap(x+i, y+j, z+k) = true;
 				}
 			}
 		}
@@ -218,6 +218,7 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 	resetVisibleCubes();
 	tempMap(x,y,z) = true;
 	getVisibleNeighbors((int)x, (int)y, (int)z, stack);
+	std::cout << stack.size() << std::endl;
 	
 	if( map(x, y, z, MapChannels::BLOC) < CubeTypes::SIZE_CT && map(x, y, z, MapChannels::BLOC) != CubeTypes::AIR ){
 		cubes[ map(x, y, z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2],1.0f) );
@@ -227,16 +228,12 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 	while( !stack.empty() ){
 		for( PixelCoord& pix : stack ){
 			getVisibleNeighbors((int)pix.x, (int)pix.y, (int)pix.z, stackBuffer);
-			if( map(x, y, z, MapChannels::BLOC) < CubeTypes::SIZE_CT && map(x, y, z, MapChannels::BLOC) != CubeTypes::AIR ){
-				cubes[ map(pix.x, pix.y, pix.z, MapChannels::BLOC) ].addInstance( glm::vec4(pix.x*voxelSize[0], pix.y*voxelSize[1], pix.z*voxelSize[2],1.0f) );
-			}
 		}
 		stack.clear();
 		stack = stackBuffer;
 		stackBuffer.clear();
 	}
-
-	//for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){ cubes[i].updateInstanceSSBO(); }
+	fillSSBO();
 }
 
 void VoxMap::fillSSBO(){
