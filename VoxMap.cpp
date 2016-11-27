@@ -255,12 +255,18 @@ void VoxMap::loadVoxel(std::string& path, std::string& name){
 	std::string cubeName = "cube.obj";
 	cubesPath.push_back("./assets/cubes/");
 	cubesPath.push_back("./assets/cubes/adminium/");
+	cubesPath.push_back("./assets/cubes/cactus/");
+	cubesPath.push_back("./assets/cubes/coal/");
+	cubesPath.push_back("./assets/cubes/diamond/");
 	cubesPath.push_back("./assets/cubes/dirt/");
 	cubesPath.push_back("./assets/cubes/folliage/");
 	cubesPath.push_back("./assets/cubes/glowstone/");
+	cubesPath.push_back("./assets/cubes/gold/");
 	cubesPath.push_back("./assets/cubes/grass/");
+	cubesPath.push_back("./assets/cubes/iron/");
 	cubesPath.push_back("./assets/cubes/sand/");
 	cubesPath.push_back("./assets/cubes/snow/");
+	cubesPath.push_back("./assets/cubes/snow_block/");
 	cubesPath.push_back("./assets/cubes/stone/");
 	cubesPath.push_back("./assets/cubes/water/");
 	cubesPath.push_back("./assets/cubes/wood/");

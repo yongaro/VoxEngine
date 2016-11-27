@@ -7,7 +7,8 @@
 #include "CImg.h"
 
 //Regroupement des cubes par matériaux
-enum CubeTypes{  AIR, ADMINIUM, DIRT, FOLLIAGE, GLOWSTONE, GRASS, SAND, SNOW, STONE, WATER, WOOD, SIZE_CT };
+enum CubeTypes{  AIR, ADMINIUM, CACTUS, COAL, DIAMOND, DIRT, FOLLIAGE, GLOWSTONE, GOLD,
+                 GRASS, IRON, SAND, SNOW, SNOW_BLOCK, STONE, WATER, WOOD, SIZE_CT };
 enum MapChannels{ BLOC, LIGHT, SIZE_MC };
 
 struct PixelCoord{
