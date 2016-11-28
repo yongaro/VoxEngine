@@ -23,7 +23,7 @@ float framespersecond;
 // This function gets called once on startup.
 
 // On régule le nombre de frame par seconde
-const int FRAMES_PER_SECOND = 6000;
+const int FRAMES_PER_SECOND = 1000000;
 double step = 1.0;
 
 
@@ -229,24 +229,8 @@ void init(){
 	context = new glContext();
 
 	
-	// Chargement des assets
-	//ASSETS_PATHS.push_back("./assets/wall/");
-	//MODELS_NAMES.push_back("Wall.obj");
-	
-	//ASSETS_PATHS.push_back("./assets/WII_U/classic_sonic/");
-	//MODELS_NAMES.push_back("classic_sonic.dae");
-	
-	ASSETS_PATHS.push_back("./assets/arbre/");
-	MODELS_NAMES.push_back("wintertree.ply");
-	
-	for( uint32_t i = 0; i < ASSETS_PATHS.size(); ++i ){
-		meshes.push_back( new glMesh() );
-		meshes.back()->loadMesh( ASSETS_PATHS.at(i), MODELS_NAMES.at(i) );
-	}
-
-	
 	// Gestion caméra
-	context->camera.pos = glm::vec3(-20.0f, 30.0f,-20.0f);//meshes[0]->getCamPos();
+	context->camera.pos = glm::vec3(-20.0f, 30.0f,-20.0f);
 
 	context->camera.backupPos = context->camera.pos;
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
@@ -255,40 +239,6 @@ void init(){
 	context->globalUBO.proj = glm::perspective(glm::radians(50.0f),
 	                                           width / (float)height,
 	                                           0.1f, 500.0f);
-	
-	
-	/*
-	if( meshes.size() > 1 ){
-		for(size_t i = 1; i < MODELS_NAMES.size(); ++i){
-			meshes.at(i)->matrices.model = glm::translate(glm::mat4(1.0f),glm::vec3(context->globalUBO.camPos.x * i, 0.0f, 0.0f));
-		}
-	}
-	*/
-
-	// mise à l'échelle
-
-	
-	meshes.at(0)->matrices.model = glm::scale( meshes.at(0)->matrices.model, glm::vec3(10.0f));
-	
-	meshes.at(0)->matrices.model = glm::rotate(meshes.at(0)->matrices.model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	
-	meshes.at(0)->matrices.model = glm::translate(meshes.at(0)->matrices.model, glm::vec3(3.0f, -4.0f, 2.0f));
-
-	int k = 1;
-	for (int i = 0; i < 5; ++i) {
-		for (int j = 0; j < 5; ++j) {
-			meshes.push_back( new glMesh() );
-			meshes.back()->loadMesh( ASSETS_PATHS.at(0), MODELS_NAMES.at(0) );
-
-			meshes.at(k)->matrices.model = glm::scale( meshes.at(k)->matrices.model, glm::vec3(10.0f));
-			meshes.at(k)->matrices.model = glm::rotate(meshes.at(k)->matrices.model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			meshes.at(k)->matrices.model = glm::translate(meshes.at(k)->matrices.model, glm::vec3(6.0f + i * 2, -4.0f - j * 2, 2.5f));
-			++k;
-		}	
-	}
-
-	//meshes.at(1)->matrices.model = glm::scale( meshes.at(1)->matrices.model, glm::vec3(1.5f));
-	
 	
 
 	updateMVP();
