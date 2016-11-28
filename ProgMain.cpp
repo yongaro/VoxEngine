@@ -41,7 +41,7 @@ void initCamera(glContext* context) {
     cam.bind(&context->globalUBO.view);
 
 
-    cam.see(1.0f, 2.0f, 1.0f);
+    cam.see(1.0f, 200.0f, 1.0f);
     cam.setSpeed(step);
     cam.setBoost(10.0f);
     cam.setSensivity(0.3f);
@@ -73,40 +73,23 @@ bool isOverTextureHeight(GLfloat x, GLfloat y, GLfloat z) {
 }
 */
 bool isOverTextureHeight(glm::vec3 position) {
-	unsigned int hSize = testVox->map.height();
-	unsigned int wSize = testVox->map.width();
-	unsigned int dSize = testVox->map.depth();
-    // On transforme les coordonée 3D en coordonnées images
-    //return true;
-    
-    //std::cout << "position actuelle : "<< cam.getX() << " " << cam.getY() << " " << cam.getZ() << std::endl;
-    //std::cout << "case actuelle : "<< int(cam.getX() / testVox->voxelSize[0]) << " " << int(cam.getY() / testVox->voxelSize[1]) << " " << int(cam.getZ() / testVox->voxelSize[2]) << std::endl;
-    
-   // std::cout << "position suivante : "<< position.x << " " << position.y << " " << position.z << std::endl;
-    unsigned int xp = position.x / testVox->voxelSize[0]; //x * wSize;
-    unsigned int yp = position.y / testVox->voxelSize[1];// * hSize;
-	unsigned int zp = position.z / testVox->voxelSize[2];// * dSize;
+	// On transforme les coordonée 3D en coordonnées images	
+	GLfloat xp = ceil(position.x / testVox->voxelSize[0]);
+	GLfloat yp = ceil(position.y / testVox->voxelSize[1]);
+	GLfloat zp = ceil(position.z / testVox->voxelSize[2]);
+	
+	bool insideMap = (xp < testVox->map.width()) && (yp < testVox->map.height()) && (zp < testVox->map.depth());
+	if( !insideMap ){ return false; }
 
-   // std::cout <<"case suivante : " << xp << " " << yp << " " << zp << std::endl;
-    // Lecture du pixel
-    if((xp < wSize) && (yp < hSize) && (zp < dSize)) {
-    	bool passage = true;
-    	double epaisseur = 0.0;
-    	for (int w = 0; (w < 27) && passage; ++w) {
-    		if (testVox->map(xp + ((w / 9) - 1) * epaisseur, yp + ((w / 3) - 1) * epaisseur, zp + ((w % 6) - 1) * epaisseur, MapChannels::BLOC)) {
-    			passage = false;
-    		}
-    	}
-    
-    	return passage;//(testVox->map(xp, yp, zp, MapChannels::BLOC) == CubeTypes::AIR);
-        //cout << y  << " : " << groundHeight[xp][yp];
-        //return (y > groundHeight[xp][yp]);
-    } else {
-    	//std::cout <<"on est dehors :" << position.x << " " << position.y << " " << position.z << std::endl;
-        return true;
-    }
-    
-    return true;
+	insideMap = (xp >= 0) && (yp >= 0) && (zp >= 0);
+	if( !insideMap ){ return false; }
+	
+	size_t x = (size_t)xp;
+	size_t y = (size_t)yp;
+	size_t z = (size_t)zp;
+	if( testVox->map(x,y,z) != CubeTypes::AIR ){ return false; }
+	
+	return true;
 }
 
 void forwardCam() {
@@ -282,9 +265,9 @@ void init(){
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
 	context->lights.pos[0] = glm::vec4( context->camera.pos, 0.0f );
-	context->globalUBO.proj = glm::perspective(glm::radians(50.0f),
+	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
 	                                           width / (float)height,
-	                                           0.1f, 500.0f);
+	                                           0.001f, 500.0f);
 	
 
 	updateMVP();
