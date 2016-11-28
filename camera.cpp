@@ -56,16 +56,32 @@ void Camera::toForward() {
     position.z += forward.z * v;
 }
 
+glm::vec3 Camera::forwardPosition() const {
+    double v = getRealSpeed();
+    return glm::vec3(position.x +  forward.x * v, position.y, position.z +  forward.z * v);
+}
+
 void Camera::toBackward() {
-    double v = getRealSpeed();;
+    double v = getRealSpeed();
     position.x -= forward.x * v;
     position.z -= forward.z * v;
+}
+
+glm::vec3 Camera::backwardPosition() const {
+    double v = getRealSpeed();
+    return glm::vec3(position.x - forward.x * v, position.y, position.z - forward.z * v);
 }
 
 void Camera::toLeft() {
     double v = getRealSpeed();
     position.x -= left.x * v;
     position.z -= left.z * v;
+}
+
+
+glm::vec3 Camera::leftPosition() const {
+    double v = getRealSpeed();
+    return glm::vec3(position.x - left.x * v, position.y, position.z - left.z * v);
 }
 
 GLfloat Camera::getRealSpeed() const {
@@ -78,12 +94,28 @@ void Camera::toRight() {
     position.z += left.z * v;
 }
 
+glm::vec3 Camera::rightPosition() const {
+    double v = getRealSpeed();
+    return glm::vec3(position.x + left.x * v, position.y, position.z + left.z * v);
+}
+
 void Camera::toUp() {
     position.y += getRealSpeed();
 }
 
+
+glm::vec3 Camera::upPosition() const {
+    double v = getRealSpeed();
+    return glm::vec3(position.x, position.y + v, position.z);
+}
+
 void Camera::toDown() {
     position.y -= getRealSpeed();
+}
+
+glm::vec3 Camera::downPosition() const {
+    double v = getRealSpeed();
+    return glm::vec3(position.x, position.y - v, position.z);
 }
 
 // FIXIT : transformer en coordonée sphérique et stocker dans phi et theta

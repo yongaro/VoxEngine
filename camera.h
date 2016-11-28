@@ -42,6 +42,14 @@ class Camera {
         void toRight();
         void toUp();
         void toDown();
+
+        glm::vec3 forwardPosition () const;
+        glm::vec3 backwardPosition () const;
+        glm::vec3 leftPosition () const;
+        glm::vec3 rightPosition () const;
+        glm::vec3 upPosition () const;
+        glm::vec3 downPosition () const;
+
         void bind(glm::mat4*);
 
         GLfloat getRealSpeed() const;

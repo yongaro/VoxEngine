@@ -24,15 +24,20 @@ float framespersecond;
 
 // On régule le nombre de frame par seconde
 const int FRAMES_PER_SECOND = 1000000;
-double step = 1.0;
+double step = 2.0;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Camera cam;
 
+/**
+*	contexte qui contient les constantes globales (caméras, lumières, UBO)
+*/
+glContext* context;
+VoxMap* testVox;
 
 void initCamera(glContext* context) {
-	cam = Camera(-10.0f, 150.0f, 40.0f);
+	cam = Camera(15.0f, 132.0f, 15.0f);
     cam.bind(&context->globalUBO.view);
 
 
@@ -41,56 +46,102 @@ void initCamera(glContext* context) {
     cam.setBoost(10.0f);
     cam.setSensivity(0.3f);
 }
-
+/*
 bool isOverTextureHeight(GLfloat x, GLfloat y, GLfloat z) {
-	/*
-   // On transforme les coordonée 3D en coordonnées images
-    unsigned int xp = (x / m_step);
-    unsigned int yp = (z / m_step);
+	unsigned int hSize = testVox->map.height();
+	unsigned int wSize = testVox->map.width();
+	unsigned int dSize = testVox->map.depth();
+    // On transforme les coordonée 3D en coordonnées images
+    //return true;
+    
+    unsigned int xp = x / testVox->voxelSize[0]; //x * wSize;
+    unsigned int yp = y / testVox->voxelSize[1];// * hSize;
+	unsigned int zp = z / testVox->voxelSize[2];// * dSize;
 
     // Lecture du pixel
-    if((xp < m_img_w) && (yp < m_img_h)) {
+    if((xp < wSize) && (yp < hSize) && (zp < dSize)) {
+    	std::cout<< (testVox->map(xp, yp, zp, MapChannels::BLOC))<< std::endl;
+    	return (testVox->map(xp, yp, zp, MapChannels::BLOC) == CubeTypes::AIR);
         //cout << y  << " : " << groundHeight[xp][yp];
-        return (y > groundHeight[xp][yp]);
+        //return (y > groundHeight[xp][yp]);
     } else {
+    	std::cout <<"on est dehors :" << x << " " << y << " " << z << std::endl;
         return true;
     }
-    */
+    
+    return true;
+}
+*/
+bool isOverTextureHeight(glm::vec3 position) {
+	unsigned int hSize = testVox->map.height();
+	unsigned int wSize = testVox->map.width();
+	unsigned int dSize = testVox->map.depth();
+    // On transforme les coordonée 3D en coordonnées images
+    //return true;
+    
+    //std::cout << "position actuelle : "<< cam.getX() << " " << cam.getY() << " " << cam.getZ() << std::endl;
+    //std::cout << "case actuelle : "<< int(cam.getX() / testVox->voxelSize[0]) << " " << int(cam.getY() / testVox->voxelSize[1]) << " " << int(cam.getZ() / testVox->voxelSize[2]) << std::endl;
+    
+   // std::cout << "position suivante : "<< position.x << " " << position.y << " " << position.z << std::endl;
+    unsigned int xp = position.x / testVox->voxelSize[0]; //x * wSize;
+    unsigned int yp = position.y / testVox->voxelSize[1];// * hSize;
+	unsigned int zp = position.z / testVox->voxelSize[2];// * dSize;
+
+   // std::cout <<"case suivante : " << xp << " " << yp << " " << zp << std::endl;
+    // Lecture du pixel
+    if((xp < wSize) && (yp < hSize) && (zp < dSize)) {
+    	bool passage = true;
+    	double epaisseur = 0.0;
+    	for (int w = 0; (w < 27) && passage; ++w) {
+    		if (testVox->map(xp + ((w / 9) - 1) * epaisseur, yp + ((w / 3) - 1) * epaisseur, zp + ((w % 6) - 1) * epaisseur, MapChannels::BLOC)) {
+    			passage = false;
+    		}
+    	}
+    
+    	return passage;//(testVox->map(xp, yp, zp, MapChannels::BLOC) == CubeTypes::AIR);
+        //cout << y  << " : " << groundHeight[xp][yp];
+        //return (y > groundHeight[xp][yp]);
+    } else {
+    	//std::cout <<"on est dehors :" << position.x << " " << position.y << " " << position.z << std::endl;
+        return true;
+    }
+    
     return true;
 }
 
 void forwardCam() {
-    if (isOverTextureHeight(cam.getX(), cam.getY(), cam.getZ() + step)) {        
+    if (isOverTextureHeight(cam.forwardPosition())) {
+    	//std::cout << "z+1" << std::endl;        
         cam.toForward();
     }
 }
 
 void rearwardCam() {
-    if (isOverTextureHeight(cam.getX(), cam.getY(), cam.getZ() - step)) {
+    if (isOverTextureHeight(cam.backwardPosition())) {
         cam.toBackward();
     }
 }
 
 void towardRightCam() {
-    if (isOverTextureHeight(cam.getX() + step, cam.getY(), cam.getZ())) {
+    if (isOverTextureHeight(cam.rightPosition())) {
         cam.toRight();
     }
 }
 
 void towardLeftCam() {
-    if (isOverTextureHeight(cam.getX() - step, cam.getY(), cam.getZ())) {
+    if (isOverTextureHeight(cam.leftPosition())) {
         cam.toLeft();
     }
 }
 
 void upCam() {
-    if (isOverTextureHeight(cam.getX(), cam.getY() + step, cam.getZ())) {
+    if (isOverTextureHeight(cam.upPosition())) {
         cam.toUp();
     }
 }
 
 void downCam() {
-    if (isOverTextureHeight(cam.getX(), cam.getY() - step, cam.getZ())) {
+    if (isOverTextureHeight(cam.downPosition())) {
         cam.toDown();
     }
 }
@@ -145,11 +196,6 @@ glPipeline phongPipeline;
 glPipeline simpleShadowPipeline;
 glPipeline instancedPhongPipeline;
 
-/**
-*	contexte qui contient les constantes globales (caméras, lumières, UBO)
-*/
-glContext* context;
-VoxMap* testVox;
 
 /**
 *	shadow map structs
@@ -230,7 +276,8 @@ void init(){
 
 	
 	// Gestion caméra
-	context->camera.pos = glm::vec3(40.0f, 200.0f, 40.0f);
+	context->camera.pos = glm::vec3(-20.0f, 30.0f,-20.0f);
+
 	context->camera.backupPos = context->camera.pos;
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
