@@ -32,7 +32,7 @@ Camera cam;
 
 
 void initCamera(glContext* context) {
-	cam = Camera(0.0f, 50.0f, 10.0f);
+	cam = Camera(-10.0f, 150.0f, 40.0f);
     cam.bind(&context->globalUBO.view);
 
 
@@ -230,8 +230,7 @@ void init(){
 
 	
 	// Gestion caméra
-	context->camera.pos = glm::vec3(-20.0f, 30.0f,-20.0f);
-
+	context->camera.pos = glm::vec3(40.0f, 200.0f, 40.0f);
 	context->camera.backupPos = context->camera.pos;
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );

@@ -78,4 +78,32 @@ struct glContext{
 };
 
 
+enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_NRM, SIZE_GBT };
+struct GBuffer{
+public:
+	GLuint fboID;
+	GLuint textures[GBuffer_Textures::SIZE_GBT];
+	GLuint depthTexture;
+
+	GBuffer(){}
+	~GBuffer(){}
+
+	void init(GLuint windowWidth, GLuint windowHeight){
+		//FBO creation
+		glGenFramebuffers(1, &fboID);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID);
+
+		//GBuffer textures creation
+		glGenTextures(GBuffer_Textures::SIZE_GBT, textures);
+		glGenTextures(1, &depthTexture);
+
+		for( GLuint i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
+			
+		}
+	}
+	
+};
+
+
+
 #endif
