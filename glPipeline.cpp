@@ -66,9 +66,12 @@ void glPipeline::printShaderLog(GLuint shader){
 	}
 }
 
-void glPipeline::loadShader(const char* vertexShaderFile, const char* fragmentShaderFile){
+void glPipeline::generateShaders(const char* vertexShaderFile, const char* fragmentShaderFile, const char* geometryShaderFile){
 	GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint geoShader = 0;
+	if( geometryShaderFile != NULL ){ geoShader = glCreateShader(GL_GEOMETRY_SHADER); }
+	
 	// Read shaders
 	std::string vertShaderStr = readFile(vertexShaderFile);
 	std::string fragShaderStr = readFile(fragmentShaderFile);
@@ -86,10 +89,19 @@ void glPipeline::loadShader(const char* vertexShaderFile, const char* fragmentSh
 	glCompileShader(fragShader);
 	printShaderLog(fragShader);
 
+	if( geometryShaderFile != NULL ){
+		std::string geoShaderStr = readFile(geometryShaderFile);
+		const char* geoShaderSrc = geoShaderStr.c_str();
+		glShaderSource(geoShader, 1, &geoShaderSrc, NULL);
+		glCompileShader(geoShader);
+		printShaderLog(geoShader);
+	}
+
 	std::cout << "Linking program" << std::endl;
 	programID = glCreateProgram();
 	glAttachShader(programID, vertShader);
 	glAttachShader(programID, fragShader);
+	if( geometryShaderFile != NULL ){ glAttachShader(programID, geoShader); }
 
 	// Bind vertex attributes to VBO indices
 	glBindAttribLocation(programID, VertexAttributes::POS, "vertPos");
@@ -106,8 +118,4 @@ void glPipeline::loadShader(const char* vertexShaderFile, const char* fragmentSh
 	glDeleteShader(fragShader);
 
 	glUseProgram(programID);
-}
-
-void glPipeline::generateShaders(const std::string vertex, const std::string fragment){
-	loadShader( vertex.c_str(), fragment.c_str() );
 }

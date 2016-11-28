@@ -197,6 +197,12 @@ void init(){
 	glGetIntegerv(GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, &infoValue);
 	cout << "GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS -- " << infoValue << endl;
 	
+	cout << "\e[1;33m---- Frame Buffer Objects ----\e[0m" << endl;
+	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &infoValue);
+	cout << "GL_MAX_COLOR_ATTACHMENTS -- " << infoValue << endl;
+	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &infoValue);
+	cout << "GL_MAX_DRAW_BUFFERS -- " << infoValue << endl;
+	
 	// Map des voxels (wrapper Cimg)
 	testVox = new VoxMap();
 	std::string mapFile = "./testMap.hdr";
@@ -217,9 +223,9 @@ void init(){
 	string shadowPT_fragment = "./shaders/shadowTex.frag";
 	string instancedPhong_vertex = "./shaders/instancedPhong.vert";
 	string instancedPhong_fragment = "./shaders/instancedPhong.frag";
-	phongPipeline.generateShaders(phong_vertex, phong_fragment);
-	simpleShadowPipeline.generateShaders(shadowPT_vertex,shadowPT_fragment);
-	instancedPhongPipeline.generateShaders(instancedPhong_vertex,instancedPhong_fragment);
+	phongPipeline.generateShaders(phong_vertex.c_str(), phong_fragment.c_str(), NULL);
+	simpleShadowPipeline.generateShaders(shadowPT_vertex.c_str(),shadowPT_fragment.c_str(), NULL);
+	instancedPhongPipeline.generateShaders(instancedPhong_vertex.c_str(),instancedPhong_fragment.c_str(), NULL);
 	context = new glContext();
 
 	

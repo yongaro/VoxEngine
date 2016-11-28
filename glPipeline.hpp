@@ -29,10 +29,9 @@ struct glPipeline {
 	void bind();
 
 	std::string readFile(const char*);
-	void loadShader(const char*, const char*);
 	void printProgramLog(GLuint);
 	void printShaderLog(GLuint);
-	void generateShaders(const std::string, const std::string);
+	void generateShaders(const char*, const char*, const char*);
 };
 
 
