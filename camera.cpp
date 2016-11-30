@@ -29,6 +29,14 @@ void Camera::bind(glm::mat4* context) {
 	this->context = context;
 }
 
+glm::vec3 Camera::getPosition() const {
+    return position;
+}
+
+glm::vec3 Camera::getForward() const {
+    return forward;
+}
+
 void Camera::vectorsFromAngles() {
     static const glm::vec3 up(0,1,0);
 
@@ -100,21 +108,32 @@ glm::vec3 Camera::rightPosition() const {
 }
 
 void Camera::toUp() {
-    position.y += getRealSpeed();
+    //position.y += getRealSpeed();
+    position.y += 3.0f;
 }
 
 
 glm::vec3 Camera::upPosition() const {
-    double v = getRealSpeed();
+    //double v = getRealSpeed();
+    double v = 2.0f;
     return glm::vec3(position.x, position.y + v, position.z);
 }
 
 void Camera::toDown() {
-    position.y -= getRealSpeed();
+    //position.y -= getRealSpeed();
+
+    position.y -= 2.0f;
+}
+
+void Camera::toDown(double offset) {
+    //position.y -= getRealSpeed();
+
+    position.y -= offset;
 }
 
 glm::vec3 Camera::downPosition() const {
-    double v = getRealSpeed();
+    //double v = getRealSpeed();
+    double v = 2.0f;
     return glm::vec3(position.x, position.y - v, position.z);
 }
 
@@ -207,6 +226,7 @@ void Camera::use() {
     // Recalcul des coordonées position - vue
     vectorsFromAngles();
     target = position + forward;
+
     *context = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
         glm::vec3(target.x, target.y, target.z),

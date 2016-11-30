@@ -24,9 +24,43 @@ float framespersecond;
 
 // On régule le nombre de frame par seconde
 const int FRAMES_PER_SECOND = 1000000;
-double step = 2.0;
+double step = 0.2f;
 
+bool intersection2DEdge (glm::vec3 A, glm::vec3 B, glm::vec3 I, glm::vec3 P) {
 
+	
+	glm::vec3 D,E;
+
+   D.x = B.x - A.x;
+
+   D.y = B.y - A.y;
+
+   E.x = P.x - I.x;
+
+   E.y = P.y - I.y;
+   double t, u;
+
+   double denom = D.x*E.y - D.y*E.x;
+
+   if (denom==0)
+
+       return -1;   // erreur, cas limite
+
+   t = - (A.x*E.y-I.x*E.y-E.x*A.y+E.x*I.y) / denom;
+
+   if (t<0 || t>=1)
+
+      return 0;
+
+   u = - (-D.x*A.y+D.x*I.y+D.y*A.x-D.y*I.x) / denom;
+
+   if (u<0 || u>=1)
+
+      return 0;
+
+   return 1;
+  
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Camera cam;
 
@@ -37,64 +71,242 @@ glContext* context;
 VoxMap* testVox;
 
 void initCamera(glContext* context) {
-	cam = Camera(15.0f, 132.0f, 15.0f);
+	cam = Camera(0.0f, 133.0f, 0.0f);
     cam.bind(&context->globalUBO.view);
 
 
-    cam.see(1.0f, 200.0f, 1.0f);
+    cam.see(2.0f, 0.0f, 0.0f);
     cam.setSpeed(step);
     cam.setBoost(10.0f);
     cam.setSensivity(0.3f);
 }
-/*
-bool isOverTextureHeight(GLfloat x, GLfloat y, GLfloat z) {
-	unsigned int hSize = testVox->map.height();
-	unsigned int wSize = testVox->map.width();
-	unsigned int dSize = testVox->map.depth();
-    // On transforme les coordonée 3D en coordonnées images
-    //return true;
-    
-    unsigned int xp = x / testVox->voxelSize[0]; //x * wSize;
-    unsigned int yp = y / testVox->voxelSize[1];// * hSize;
-	unsigned int zp = z / testVox->voxelSize[2];// * dSize;
 
-    // Lecture du pixel
-    if((xp < wSize) && (yp < hSize) && (zp < dSize)) {
-    	std::cout<< (testVox->map(xp, yp, zp, MapChannels::BLOC))<< std::endl;
-    	return (testVox->map(xp, yp, zp, MapChannels::BLOC) == CubeTypes::AIR);
-        //cout << y  << " : " << groundHeight[xp][yp];
-        //return (y > groundHeight[xp][yp]);
-    } else {
-    	std::cout <<"on est dehors :" << x << " " << y << " " << z << std::endl;
-        return true;
-    }
-    
-    return true;
+glm::vec3 getVoxMapIndicesByOpenGlPosition(glm::vec3& position) {
+	return glm::vec3(
+		ceil((position.x) / testVox->voxelSize[0]),
+		position.y / testVox->voxelSize[1],
+		ceil((position.z) / testVox->voxelSize[2])
+	);
 }
-*/
-bool isOverTextureHeight(glm::vec3 position) {
-	// On transforme les coordonée 3D en coordonnées images	
-	GLfloat xp = ceil(position.x / testVox->voxelSize[0]);
-	GLfloat yp = ceil(position.y / testVox->voxelSize[1]);
-	GLfloat zp = ceil(position.z / testVox->voxelSize[2]);
-	
-	bool insideMap = (xp < testVox->map.width()) && (yp < testVox->map.height()) && (zp < testVox->map.depth());
-	if( !insideMap ){ return false; }
 
-	insideMap = (xp >= 0) && (yp >= 0) && (zp >= 0);
-	if( !insideMap ){ return false; }
+bool isInsideMap(glm::vec3& position) {
+return (
+	(position.x < testVox->map.width()) && 
+	(position.y < testVox->map.height()) && 
+	(position.z < testVox->map.depth()) &&
+	(position.x >= 0) && 
+	(position.y >= 0) && 
+	(position.z >= 0) 
+	);
+}
+
+bool isFluidCube (glm::vec3& indicesVoxMap) {
+	int type = testVox->map(indicesVoxMap.x, indicesVoxMap.y, indicesVoxMap.z, MapChannels::BLOC);
+	//std::cout << "Prochain cube de type :" << type << std::endl; 
+	return ((type == CubeTypes::AIR) || (type == CubeTypes::WATER));
+}
+
+// inutilisé
+bool testCollisionSegment(glm::vec3 nextPosition) {
+	double semiEpaisseur = 0.5;
+	glm::vec4 cameraCollider (cam.getX() - semiEpaisseur, cam.getZ() - semiEpaisseur, 2 * semiEpaisseur, 2 * semiEpaisseur);
+
+	double size = testVox->voxelSize[0];
+	// On transforme les coordonée 3D en coordonnées images	
+	glm::vec3 currentCamPosition = cam.getPosition();
+	glm::vec3 currentIndices = getVoxMapIndicesByOpenGlPosition(currentCamPosition);
+	glm::vec3 nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
+	glm::vec3 directionGL = nextPosition - currentCamPosition;
+	glm::vec3 destination = currentCamPosition + directionGL;
+
+	//std::cout << "directionGL :" << directionGL.x << " " << directionGL.y << " " << directionGL.z << std::endl;
+	std::vector<glm::vec3> edgeNeighborhood;
+	if ((directionGL.x > 0) && (directionGL.z > 0)) {
+		// AB - Edge
+
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		// BC - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, (currentIndices.z + 1) * size));
+		// BD - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 2) * size));
+		// BE - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+
+/*
+		// AB - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		// AF - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, currentIndices.z * size));
+		// AH - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		// AG - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z - 1)* size));
+
+		// AH - Edge
+
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		// HI - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z - 1) * size));
+		// HJ - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z) * size));
+		// HE - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+
+		// BE - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+		// EL - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 2) * size));
+		// Ek - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z + 1) * size));
+		// HE - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+*/
+	} /*else if ((directionGL.x > 0) && (directionGL.z < 0)) {
+		// AB - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		// AF - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, currentIndices.z * size));
+		// AH - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		// AG - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z - 1)* size));
+	} else if ((directionGL.x > 0) && (directionGL.z > 0)) {
+		// AH - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		// HI - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z - 1) * size));
+		// HJ - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z) * size));
+		// HE - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+	} else if ((directionGL.x < 0) && (directionGL.z > 0)) {
+		// BE - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+		// EL - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 2) * size));
+		// Ek - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z + 1) * size));
+		// HE - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+	}*/
+	int nbEdge = edgeNeighborhood.size();
+	if (nbEdge == 0) {
+		//std::cout << "aucune aretes" << std::endl;
+		return true;
+	} else {
+
+		//std::cout << "on a des aretes" << std::endl;
+		for (int k = 0; k < nbEdge; k += 2) {
+			int nextX = currentIndices.x;
+				
+			int nextZ = currentIndices.z;
 	
-	size_t x = (size_t)xp;
-	size_t y = (size_t)yp;
-	size_t z = (size_t)zp;
-	if( testVox->map(x,y,z) != CubeTypes::AIR ){ return false; }
-	
+			switch (k) {
+				case 0:
+				nextX++;
+				break;
+				case 2:
+				nextZ++;
+				break;
+			}			
+				//std::cout << "Cube actuel :" << currentIndices.x << " " << currentIndices.y << " " <<  currentIndices.z << " " << std::endl;
+				glm::vec3 cubeIntersected = glm::vec3(nextX, currentIndices.y, nextZ);
+
+				std::cout << "Cube Intersecté :" << cubeIntersected.x << " " << cubeIntersected.y << " " <<  cubeIntersected.z << " " << std::endl;
+			if (intersection2DEdge(currentCamPosition, destination, edgeNeighborhood[k], edgeNeighborhood[k + 1])) {
+				//std::cout << "intersection----------------------------------------------------------------------------------------------" <<std::endl;
+				if (!isFluidCube(cubeIntersected)) {
+				//	std::cout << "Edge collision dectection !" << std::endl;
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
+// true -> movement accepted
+bool isOverTextureHeight(glm::vec3 nextPosition) {
+	double size = testVox->voxelSize[0];
+	// On transforme les coordonée 3D en coordonnées images	
+	glm::vec3 currentCamPosition = cam.getPosition();
+	glm::vec3 currentForwad = cam.getForward();
+
+	//currentCamPosition += currentForwad;
+
+	glm::vec3 currentIndices = getVoxMapIndicesByOpenGlPosition(currentCamPosition);
+	glm::vec3 nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
+	glm::vec3 directionGL = nextPosition - currentCamPosition;
+	glm::vec3 destination = currentCamPosition + directionGL;
+/*
+	std::cout << "indice courant :" << currentIndices.x << " " << currentIndices.y << " " << currentIndices.z << std::endl;
+	std::cout << "indice prochain :" << nextIndices.x << " " << nextIndices.y << " " << nextIndices.z << std::endl;
+	std::cout << "position courante :" << currentCamPosition.x << " " << currentCamPosition.y << " " << currentCamPosition.z << std::endl;
+	std::cout << "position prochaine :" << destination.x << " " << destination.y << " " << destination.z << std::endl;
+
+*/	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
+		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
+		return false;
+	}
+	nextPosition += glm::vec3(0.2,0.0,0.0);
+	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
+	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
+		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
+		return false;
+	}
+	nextPosition += glm::vec3(-0.6,0.0,0.0);
+	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
+	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
+		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
+		return false;
+	}
+	nextPosition += glm::vec3(0.4,0.0, 0.5);
+	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
+	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
+		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
+		return false;
+	}
+	nextPosition += glm::vec3(0.0,0.0,-1.5);
+	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
+	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
+		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
+		return false;
+	} /*else {
+		return false;
+	}*/
 	return true;
 }
 
 void forwardCam() {
-    if (isOverTextureHeight(cam.forwardPosition())) {
-    	//std::cout << "z+1" << std::endl;        
+    if (isOverTextureHeight(cam.forwardPosition())) {     
         cam.toForward();
     }
 }
@@ -390,6 +602,23 @@ int SDLCALL watch(void *userdata, SDL_Event* event) {
 	return 1;
 }
 
+void useGravity(int fps) {;
+	double gravity = 4.0; 
+	glm::vec3 position = cam.getPosition();
+	glm::vec3 indices = getVoxMapIndicesByOpenGlPosition(position);
+	if (testVox->map(indices.x, indices.y - 1, indices.z, MapChannels::BLOC) == CubeTypes::AIR) {
+		cam.toDown(gravity / double(fps+1));
+
+		//cam.toDown(0.1);
+		cam.use();
+
+			
+	}
+	context->updateGlobalUniformBuffer();
+	updateMVP();
+
+}
+
 int main(int argc, char *argv[]) {
 	SDL_Event event;
 	
@@ -441,6 +670,10 @@ int main(int argc, char *argv[]) {
 	            break;
 	            
 				case SDLK_UP :
+					upCam();
+					break;
+				
+				case SDLK_SPACE :
 					upCam();
 					break;
 					
@@ -499,7 +732,7 @@ int main(int argc, char *argv[]) {
 		//Sleep the remaining frame time 
 			SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() );
 		}
-
+		useGravity(framespersecond);
 		//printf("%f\n", framespersecond);
 	}
 

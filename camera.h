@@ -42,6 +42,7 @@ class Camera {
         void toRight();
         void toUp();
         void toDown();
+        void toDown(double offset);
 
         glm::vec3 forwardPosition () const;
         glm::vec3 backwardPosition () const;
@@ -54,6 +55,8 @@ class Camera {
 
         GLfloat getRealSpeed() const;
 
+        glm::vec3 getPosition() const;
+        glm::vec3 getForward() const;
         GLfloat getX() const;
         GLfloat getY() const;
         GLfloat getZ() const;
