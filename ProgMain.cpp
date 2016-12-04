@@ -390,7 +390,7 @@ vector<glMesh*> meshes;
 glPipeline phongPipeline;
 glPipeline simpleShadowPipeline;
 glPipeline instancedPhongPipeline;
-
+glPipeline instancedDeferredPipeline;
 
 /**
 *	shadow map structs
@@ -464,9 +464,14 @@ void init(){
 	string shadowPT_fragment = "./shaders/shadowTex.frag";
 	string instancedPhong_vertex = "./shaders/instancedPhong.vert";
 	string instancedPhong_fragment = "./shaders/instancedPhong.frag";
+
+	string instancedDeferred_vertex = "./shaders/instancedDeferred.vert";
+	string instancedDeferred_fragment = "./shaders/instancedDeferred.frag";
+	
 	phongPipeline.generateShaders(phong_vertex.c_str(), phong_fragment.c_str(), NULL);
 	simpleShadowPipeline.generateShaders(shadowPT_vertex.c_str(),shadowPT_fragment.c_str(), NULL);
 	instancedPhongPipeline.generateShaders(instancedPhong_vertex.c_str(),instancedPhong_fragment.c_str(), NULL);
+	instancedDeferredPipeline.generateShaders(instancedDeferred_vertex.c_str(), instancedDeferred_fragment.c_str(), NULL);
 	context = new glContext();
 
 	
@@ -534,7 +539,7 @@ void init(){
 	glEnable(GL_DEPTH_TEST);
 	glDepthRange(0,1);
 	
-	//glFrontFace(GL_CCW);
+	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 

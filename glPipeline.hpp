@@ -35,7 +35,9 @@ struct glPipeline {
 };
 
 
-//A renommer
+/**
+ * Structure containing the lights and necessary informations for the view
+ */
 struct glContext{
 	UniformBufferObject globalUBO;
 	LightSources lights;
@@ -78,7 +80,11 @@ struct glContext{
 };
 
 
-enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_NRM, SIZE_GBT };
+
+/**
+ * Structure used to regroup the framebuffer and textures for deferred shading
+ */
+enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_EMISSIVE, GB_NRM, GB_SPECULAR, SIZE_GBT };
 struct GBuffer{
 public:
 	GLuint fboID;
@@ -88,7 +94,7 @@ public:
 	GBuffer(){}
 	~GBuffer(){}
 
-	void init(GLuint windowWidth, GLuint windowHeight){
+	bool init(GLuint windowWidth, GLuint windowHeight){
 		//FBO creation
 		glGenFramebuffers(1, &fboID);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID);
@@ -98,10 +104,43 @@ public:
 		glGenTextures(1, &depthTexture);
 
 		for( GLuint i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
-			
+			glBindTexture(GL_TEXTURE_2D, textures[i]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, windowWidth, windowHeight, 0, GL_RGB, GL_FLOAT, NULL);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, textures[i], 0);
+		}
+
+		//depth buffer
+		glBindTexture(GL_TEXTURE_2D, depthTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, windowWidth, windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+
+		//defining attachment for drawing
+		std::vector<GLenum> DrawBuffers;
+		for( size_t i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
+			DrawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+		}
+		glDrawBuffers(GBuffer_Textures::SIZE_GBT, DrawBuffers.data());
+
+		//final FBO check
+		if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ){
+			std::cout << "\e[1;31mGBUFFER erreur creation FBO\e[0m" << std::endl;
+			return false;
+		}
+		
+		//restore default FBO
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		return true;
+	}
+
+	void bindForWrithing(){ glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID); }
+	void bindForReading(){  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboID); }
+	void setReadBuffer(GBuffer_Textures texType){ glReadBuffer(GL_COLOR_ATTACHMENT0 + texType); }
+	void bindForLightPass(){
+		for( size_t i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
+			glActiveTexture(GL_TEXTURE0+i);
+			glBindTexture(GL_TEXTURE_2D, textures[i]);
 		}
 	}
-	
 };
 
 

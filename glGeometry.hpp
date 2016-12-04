@@ -153,4 +153,20 @@ public:
 };
 
 
+/**
+ * Class defining a complete deferred shading pipeline
+ */
+class glDeferredRenderer{
+	GBuffer gbuffer;
+	glPipeline* geometryPipeline;
+	glPipeline* lightPipeline;
+
+	glMesh fullScreenQuad;
+	glMesh lightVolume; //unused for now
+	
+
+};
+
+
+
 #endif
