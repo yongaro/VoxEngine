@@ -387,10 +387,13 @@ void fpsthink() {
 vector<string> ASSETS_PATHS;
 vector<string> MODELS_NAMES;
 vector<glMesh*> meshes;
-glPipeline phongPipeline;
+glPipeline forwardPipeline;
 glPipeline simpleShadowPipeline;
-glPipeline instancedPhongPipeline;
-glPipeline instancedDeferredPipeline;
+glPipeline instancedForwardPipeline;
+glPipeline instancedDeferredGeoPassPipeline;
+glPipeline deferredLightPassPipeline;
+
+glDeferredRenderer deferredRenderer(width,height);
 
 /**
 *	shadow map structs
@@ -458,20 +461,38 @@ void init(){
 	std::cout << "DONE" << std::endl;
 	
 	// Remplissage des Pipe-line (ensemble de shaders)
-	string phong_vertex = "./shaders/phongVert.vert";
-	string phong_fragment = "./shaders/phongFrag.frag";
+	string forward_vertex = "./shaders/forward.vert";
+	string forward_fragment = "./shaders/forward.frag";
 	string shadowPT_vertex = "./shaders/shadowTex.vert";
 	string shadowPT_fragment = "./shaders/shadowTex.frag";
-	string instancedPhong_vertex = "./shaders/instancedPhong.vert";
-	string instancedPhong_fragment = "./shaders/instancedPhong.frag";
+	string instancedForward_vertex = "./shaders/instancedForward.vert";
+	string instancedForward_fragment = "./shaders/instancedForward.frag";
 
-	string instancedDeferred_vertex = "./shaders/instancedDeferred.vert";
-	string instancedDeferred_fragment = "./shaders/instancedDeferred.frag";
-	
-	phongPipeline.generateShaders(phong_vertex.c_str(), phong_fragment.c_str(), NULL);
+	string instancedDeferredGeoPass_vertex = "./shaders/instancedDeferredGeoPass.vert";
+	string instancedDeferredGeoPass_fragment = "./shaders/instancedDeferredGeoPass.frag";
+
+	string deferredLightPass_vertex = "./shaders/deferredLightPass.vert";
+	string deferredLightPass_fragment = "./shaders/deferredLightPass.frag";
+
+	std::cout << "\e[1;33mCompilation \e[1;36mforward rendering pipeline\e[0m" << std::endl;
+	forwardPipeline.generateShaders(forward_vertex.c_str(), forward_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	std::cout << "\e[1;33mCompilation \e[1;36mshadow map pipeline\e[0m" << std::endl;
 	simpleShadowPipeline.generateShaders(shadowPT_vertex.c_str(),shadowPT_fragment.c_str(), NULL);
-	instancedPhongPipeline.generateShaders(instancedPhong_vertex.c_str(),instancedPhong_fragment.c_str(), NULL);
-	instancedDeferredPipeline.generateShaders(instancedDeferred_vertex.c_str(), instancedDeferred_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	std::cout << "\e[1;33mCompilation \e[1;36minstanced forward rendering pipeline\e[0m" << std::endl;
+	instancedForwardPipeline.generateShaders(instancedForward_vertex.c_str(),instancedForward_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	std::cout << "\e[1;33mCompilation \e[1;36minstanced deferred rendering(Geometry pass) pipeline\e[0m" << std::endl;
+	instancedDeferredGeoPassPipeline.generateShaders(instancedDeferredGeoPass_vertex.c_str(),
+	                                                 instancedDeferredGeoPass_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	std::cout << "\e[1;33mCompilation \e[1;36mdeferred rendering(Light pass) pipeline\e[0m" << std::endl;
+	deferredLightPassPipeline.generateShaders(deferredLightPass_vertex.c_str(), deferredLightPass_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	 
+	deferredRenderer.init(&instancedDeferredGeoPassPipeline, &deferredLightPassPipeline);
+	
 	context = new glContext();
 
 	
@@ -481,7 +502,7 @@ void init(){
 	context->camera.backupPos = context->camera.pos;
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
-	context->lights.pos[0] = glm::vec4( context->camera.pos, 0.0f );
+	context->lights.pos[0] = glm::vec4( 1.0f, 1.0f, 1.0f, 0.0f );
 	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
 	                                           width / (float)height,
 	                                           0.001f, 500.0f);
@@ -533,7 +554,6 @@ void init(){
 	glBindBuffer(GL_UNIFORM_BUFFER, lightMatUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), &lightSpaceMatrix, GL_DYNAMIC_COPY);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	//
 
 	
 	glEnable(GL_DEPTH_TEST);
@@ -572,16 +592,19 @@ void render(){
 	*/
 	//phong render
 	//glClearColor(0.529f, 0.808f, 0.922f, 0.0);
-	glClearColor(0.200f, 0.200f, 0.200f, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClearColor(0.200f, 0.200f, 0.200f, 0.0);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
 	//glActiveTexture(GL_TEXTURE0 + 6);
 	//glBindTexture(GL_TEXTURE_2D, depthMap);
-	instancedPhongPipeline.bind();
+	//instancedForwardPipeline.bind();
+	deferredRenderer.bindGeometryPipeline();
 	context->bindUBO();
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	testVox->render();
-
+	
+	deferredRenderer.bindLightPipeline();
+	deferredRenderer.basicLightPass();
 	/*
 	glActiveTexture(GL_TEXTURE0 + 6);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
@@ -641,7 +664,7 @@ int main(int argc, char *argv[]) {
 	glewInit();
 	listen_glDebugMessage();
 	init();
-
+	SDL_GL_SetSwapInterval(0); //disable vSync for 60 fps cap on desktop monitors
 
 	// Code pour réguler les FPS
 	//Keep track of the current frame
@@ -751,6 +774,12 @@ int main(int argc, char *argv[]) {
 	
 }
 
+
+
+/**
+ * Function for openGL 4.5 debug callback
+ * currently not used for openGL 4.3 compatibility
+ */
 void openglCallbackFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam){
 	cout << "\e[1;32m" << "---------------------opengl-callback-start------------" << endl;
 	cout << "message: "<< message << endl;

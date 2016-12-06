@@ -10,6 +10,13 @@ layout(binding = 0) uniform globalMatrices {
 	 vec3 camPos;
 } globalMat;
 
+layout(binding = 2) uniform Material{
+	vec4 Ka;
+	vec4 Kd;
+	vec4 Ks;
+	float shininess; 
+} mat;
+
 layout(binding = 3) uniform Features{ mat4 list; } features;
 
 layout(binding = 4) uniform MeshTranforms{
@@ -39,10 +46,10 @@ layout(location = 2) in vec2 fragUV;
 layout(location = 3) in mat3 fragTBN; //takes slots 3,4,5
 
 layout(location = 0) out vec3 outPos;
-layout(location = 1) out vec3 outDiff;
-layout(location = 2) out vec3 outEmissive;
+layout(location = 1) out vec4 outDiff;
+layout(location = 2) out vec4 outEmissive;
 layout(location = 3) out vec3 outNrm;
-layout(location = 4) out vec3 outSpecular;
+layout(location = 4) out vec4 outSpecular;
 
 
 
@@ -50,12 +57,11 @@ vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
 float height_scale = 0.01;
 
 
-vec3 surfacePos = fragPos;
 vec2 fragTexCoord = vec2(fragUV);
 vec3 normal = fragNormal;
-vec3 surfaceColor = vec3(1.0, 1.0, 1.0);
-vec3 emissiveColor = vec3(1.0, 1.0, 1.0);
-vec3 specularColor = vec3(1.0, 1.0, 1.0);
+vec4 fragDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
+vec4 fragEmissive = vec4(0.0, 0.0, 0.0, 0.0);
+vec4 fragSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 
 //steep parallax mapping
 vec2 parallaxMapping(){
@@ -106,12 +112,19 @@ void main() {
 	}
 	
 	//texture for diffuse lighting
-	if( features.list[0][0] > 0.0 ){ surfaceColor = texture(diffuseTexSampler, fragTexCoord).rgb; }
+	if( features.list[0][0] > 0.0 ){ fragDiffuse = texture(diffuseTexSampler, fragTexCoord); }
+	fragDiffuse *= mat.Kd;
+	//texture for emissive lighting
+	if( features.list[0][2] > 0.0 ){ fragEmissive = texture(emissiveTexSampler, fragTexCoord); }
+	//texture for specular lighting
+	if( features.list[1][1] > 0.0 ){ fragSpecular = texture(specularTexSampler, fragTexCoord); }
+	fragSpecular *= mat.Ks;
+	fragSpecular.w = mat.shininess;
 	
-	//final color with gamma correction
-	outPos = fragPos;
-	outDiff = surfaceColor;
-	outEmissive = emissiveColor;
-	outNrm = normal;
-	outSpecular = specularColor;
+	//writing data to framebuffer attachments
+	outPos      = fragPos;
+	outDiff     = fragDiffuse;
+	outEmissive = fragEmissive;
+	outNrm      = normal;
+	outSpecular = fragSpecular;
 }

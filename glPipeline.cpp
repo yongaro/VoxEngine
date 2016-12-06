@@ -119,3 +119,73 @@ void glPipeline::generateShaders(const char* vertexShaderFile, const char* fragm
 
 	glUseProgram(programID);
 }
+
+
+
+//####################################### CLASS GBUFFER ####################################
+GBuffer::GBuffer(){}
+GBuffer::~GBuffer(){}
+
+bool GBuffer::init(GLuint windowWidth, GLuint windowHeight){
+	//FBO creation
+	glGenFramebuffers(1, &fboID);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID);
+
+	//GBuffer textures creation
+	glGenTextures(GBuffer_Textures::SIZE_GBT, textures);
+	glGenTextures(1, &depthTexture);
+
+	for( GLuint i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+		if( i == GB_POS || i == GB_NRM ){ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, windowWidth, windowHeight, 0, GL_RGB, GL_FLOAT, NULL); }
+		else{ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL); }
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowWidth, windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, textures[i], 0);
+	}
+
+	//depth buffer
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, windowWidth, windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+
+	//defining attachment for drawing
+	std::vector<GLenum> DrawBuffers;
+	for( size_t i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
+		DrawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+	}
+	glDrawBuffers(GBuffer_Textures::SIZE_GBT, DrawBuffers.data());
+
+	//final FBO check
+	if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ){
+		std::cout << "\e[1;31mGBUFFER erreur creation FBO\e[0m" << std::endl;
+		return false;
+	}
+		
+	//restore default FBO
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	return true;
+}
+
+void GBuffer::bindForWriting(){ glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID); }
+void GBuffer::bindForReading(){  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboID); }
+void GBuffer::setReadBuffer(GBuffer_Textures texType){ glReadBuffer(GL_COLOR_ATTACHMENT0 + texType); }
+void GBuffer::bindTextures(){
+	for( size_t i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
+		glActiveTexture(GL_TEXTURE0+i);
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+	}
+}
+
+void GBuffer::initForGeometryPass(){
+	glBindFramebuffer(GL_FRAMEBUFFER, fboID);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+void GBuffer::initForLightPass(){
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(0.02f, 0.02f, 0.02f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	bindTextures();
+}

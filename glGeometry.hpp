@@ -157,14 +157,24 @@ public:
  * Class defining a complete deferred shading pipeline
  */
 class glDeferredRenderer{
+public:
+	GLuint width;
+	GLuint height;
 	GBuffer gbuffer;
 	glPipeline* geometryPipeline;
 	glPipeline* lightPipeline;
 
-	glMesh fullScreenQuad;
-	glMesh lightVolume; //unused for now
+	glMesh* fullScreenQuad; //mesh used to render framebuffers directly to screen
+	glMesh* lightVolume; //unused for now
 	
+	glDeferredRenderer();
+	glDeferredRenderer(GLuint,GLuint);
+	virtual ~glDeferredRenderer();
 
+	virtual void init(glPipeline*, glPipeline*);
+	virtual void bindGeometryPipeline();
+	virtual void bindLightPipeline();
+	virtual void basicLightPass();
 };
 
 

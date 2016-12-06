@@ -91,56 +91,17 @@ public:
 	GLuint textures[GBuffer_Textures::SIZE_GBT];
 	GLuint depthTexture;
 
-	GBuffer(){}
-	~GBuffer(){}
+	GBuffer();
+	~GBuffer();
 
-	bool init(GLuint windowWidth, GLuint windowHeight){
-		//FBO creation
-		glGenFramebuffers(1, &fboID);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID);
+	bool init(GLuint, GLuint);
+	void bindForWriting();
+	void bindForReading();
+	void setReadBuffer(GBuffer_Textures);
+	void bindTextures();
 
-		//GBuffer textures creation
-		glGenTextures(GBuffer_Textures::SIZE_GBT, textures);
-		glGenTextures(1, &depthTexture);
-
-		for( GLuint i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
-			glBindTexture(GL_TEXTURE_2D, textures[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, windowWidth, windowHeight, 0, GL_RGB, GL_FLOAT, NULL);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, textures[i], 0);
-		}
-
-		//depth buffer
-		glBindTexture(GL_TEXTURE_2D, depthTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, windowWidth, windowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
-
-		//defining attachment for drawing
-		std::vector<GLenum> DrawBuffers;
-		for( size_t i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
-			DrawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
-		}
-		glDrawBuffers(GBuffer_Textures::SIZE_GBT, DrawBuffers.data());
-
-		//final FBO check
-		if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE ){
-			std::cout << "\e[1;31mGBUFFER erreur creation FBO\e[0m" << std::endl;
-			return false;
-		}
-		
-		//restore default FBO
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		return true;
-	}
-
-	void bindForWrithing(){ glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID); }
-	void bindForReading(){  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboID); }
-	void setReadBuffer(GBuffer_Textures texType){ glReadBuffer(GL_COLOR_ATTACHMENT0 + texType); }
-	void bindForLightPass(){
-		for( size_t i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
-			glActiveTexture(GL_TEXTURE0+i);
-			glBindTexture(GL_TEXTURE_2D, textures[i]);
-		}
-	}
+	void initForGeometryPass();
+	void initForLightPass();
 };
 
 

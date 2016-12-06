@@ -470,3 +470,52 @@ void glInstancedMesh::render(){
 		}
 	}
 }
+
+
+
+
+//####################################### CLASS DEFERRED RENDERER ##################################
+glDeferredRenderer::glDeferredRenderer():width(),height(),gbuffer(),geometryPipeline(NULL),lightPipeline(NULL),
+                                         fullScreenQuad(NULL),lightVolume(NULL){}
+glDeferredRenderer::glDeferredRenderer(GLuint w, GLuint h):width(w),height(h),gbuffer(),geometryPipeline(NULL),lightPipeline(NULL),
+                                                           fullScreenQuad(NULL),lightVolume(NULL){}
+glDeferredRenderer::~glDeferredRenderer(){}
+
+void glDeferredRenderer::init(glPipeline* geometryP, glPipeline* lightP){
+	geometryPipeline = geometryP;
+	lightPipeline = lightP;
+	gbuffer.init(width,height);
+	fullScreenQuad = new glMesh();
+	std::string path = "./assets/";
+	std::string name = "fullscreenQuad.obj";
+	fullScreenQuad->loadMesh(path,name);
+}
+void glDeferredRenderer::bindGeometryPipeline(){
+	gbuffer.initForGeometryPass();
+	if( geometryPipeline != NULL ){ geometryPipeline->bind(); }
+	else{ std::cout << "\e[1;36mglDeferredRenderer\e[0m::\e[1;32mbindLightPipeline \e[1;31m geometryPipeline == NULL \e[0m" << std::endl; }
+	
+}
+void glDeferredRenderer::bindLightPipeline(){
+	gbuffer.initForLightPass();
+	if( lightPipeline != NULL ){ lightPipeline->bind(); }
+	else{ std::cout << "\e[1;36mglDeferredRenderer\e[0m::\e[1;32mbindLightPipeline \e[1;31m lightPipeline == NULL \e[0m" << std::endl; }
+}
+
+void glDeferredRenderer::basicLightPass(){
+	//fullScreenQuad->render();
+	fullScreenQuad->bindUBO();
+	for(glSubMesh* subm : fullScreenQuad->subMeshes){
+		//subm->render();
+			subm->mat->bindUBO();
+			//mat->bindTextures();
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			
+			subm->bindVAO();
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
+			glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
+			
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER,0);
+	}
+}
