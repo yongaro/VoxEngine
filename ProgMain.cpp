@@ -503,6 +503,9 @@ void init(){
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
 	context->lights.pos[0] = glm::vec4( -0.5f, 1.0f, -0.5f, 0.0f );
+	context->lights.pos[1] = glm::vec4( 50.0f, 100.0f, 15.5f, 1.0f );
+	//context->lights.pos[2] = glm::vec4( 150.0f, 300.0f, 152.5f, 1.0f );
+	context->lights.attenuation[2] = glm::vec4( 0.0f, 00.0f, 0.0f, 0.0f );
 	//context->lights.diffuse[0] = glm::vec4( 0.6f, 0.8f, 0.4f, 1.0f );
 	//context->lights.specular[0] = glm::vec4( 0.2f, 0.2f, 0.2f, 1.0f );
 	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),

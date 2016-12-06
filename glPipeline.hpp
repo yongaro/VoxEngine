@@ -32,6 +32,9 @@ struct glPipeline {
 	void printProgramLog(GLuint);
 	void printShaderLog(GLuint);
 	void generateShaders(const char*, const char*, const char*);
+
+	//ssao
+	void buildSSAOKernel();
 };
 
 
@@ -91,6 +94,12 @@ public:
 	GLuint textures[GBuffer_Textures::SIZE_GBT];
 	GLuint depthTexture;
 
+	std::vector<glm::vec3> ssaoKernel;
+	std::vector<glm::vec3> ssaoNoise;
+	GLuint noiseTexture;
+	GLuint ssaoFBO;
+	GLuint ssaoColorBuffer;
+	
 	GBuffer();
 	~GBuffer();
 
@@ -102,6 +111,8 @@ public:
 
 	void initForGeometryPass();
 	void initForLightPass();
+
+	void build_SSAO_Kernel();
 };
 
 

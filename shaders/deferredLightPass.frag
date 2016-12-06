@@ -50,7 +50,7 @@ vec4 fragSpecular = texture(specularTexSampler, fragUV);
 vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
 
 vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
-vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
+vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 0.5);
 
 
 
