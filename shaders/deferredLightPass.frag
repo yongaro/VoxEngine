@@ -50,7 +50,7 @@ vec4 fragSpecular = texture(specularTexSampler, fragUV);
 vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
 
 vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
-vec4 scene_ambient = vec4(0.0, 0.0, 0.0, 1.0);
+vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
 
 
 
@@ -102,12 +102,12 @@ vec3 ApplyLight(int index) {
 	//diffuse
 	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.a)  * lights.specular[index].rgb * fragSpecular.rgb;
+	vec3 specular = pow(max(dot(R, V), 0.0), 450)  * lights.specular[index].rgb * fragSpecular.rgb * vec3(0.1,0.05,0.01);
 
 	//linear color (color before gamma correction)
 	return ambient + attenuation*(diffuse + specular);
 	//return ambient + attenuation*(diffuse);
-	//return ambient + diffuse;
+
 	//float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
 	//float shadow = ShadowCalculation(lightSpaceFragPos,bias);
 	//return (ambient + (1.0 - shadow) * (diffuse + specular));
@@ -125,6 +125,6 @@ void main(){
 		//}	
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
-	//outColor = vec4(pow(linearColor, gamma), 1.0);
-	outColor = vec4(linearColor, 1.0);
+	outColor = vec4(pow(linearColor, gamma), 1.0);
+	//outColor = vec4(linearColor, 1.0);
 }
