@@ -42,15 +42,15 @@ layout(location = 0) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 fragPos      = vec3( texture(positionTexSampler, fragUV).rgb );
+vec4 fragPos      = texture(positionTexSampler, fragUV);
 vec4 fragDiffuse  = texture(diffuseTexSampler, fragUV);
 vec4 fragEmissive = texture(emissiveTexSampler, fragUV);
-vec3 fragNormal   = vec3( texture(normalsTexSampler, fragUV).rgb );
+vec4 fragNormal   = texture(normalsTexSampler, fragUV);
 vec4 fragSpecular = texture(specularTexSampler, fragUV);
-vec3 fragToCamera = normalize(globalMat.camPos - fragPos);
+vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
 
-vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * vec4(fragPos,1.0);
-vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
+vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
+vec4 scene_ambient = vec4(0.0, 0.0, 0.0, 1.0);
 
 
 
@@ -79,7 +79,7 @@ vec3 ApplyLight(int index) {
 	vec3 currentLightPos = lights.pos[index].xyz;
 	vec3 L = normalize(currentLightPos - fragPos.xyz);
 	vec3 V = normalize(globalMat.camPos);
-	vec3 R = reflect(-L, fragNormal);
+	vec3 R = reflect(-L, fragNormal.xyz);
 	float attenuation = 1.0;
 
 	
@@ -90,7 +90,7 @@ vec3 ApplyLight(int index) {
 	}
 	else{
 		//point light
-		float distanceToLight = length(currentLightPos - fragPos);
+		float distanceToLight = length(currentLightPos - fragPos.xyz);
 		attenuation = 1.0 / (1.0
 		                     + lights.attenuation[index].x //constant
 		                     + lights.attenuation[index].y * distanceToLight //linear
@@ -100,14 +100,14 @@ vec3 ApplyLight(int index) {
 	//ambient
 	vec3 ambient = scene_ambient.rgb;
 	//diffuse
-	vec3 diffuse = max(dot(fragNormal, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
+	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
 	//specular
 	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.a)  * lights.specular[index].rgb * fragSpecular.rgb;
 
 	//linear color (color before gamma correction)
-	//return ambient + attenuation*(diffuse + specular);
-	return ambient + attenuation*(diffuse);
-	
+	return ambient + attenuation*(diffuse + specular);
+	//return ambient + attenuation*(diffuse);
+	//return ambient + diffuse;
 	//float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
 	//float shadow = ShadowCalculation(lightSpaceFragPos,bias);
 	//return (ambient + (1.0 - shadow) * (diffuse + specular));
@@ -116,15 +116,15 @@ vec3 ApplyLight(int index) {
 
 void main(){
 	vec3 linearColor = vec3(0.0);
-	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
-	else{
+	//if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
+	//else{
 		for( int i = 0; i < max_lights; ++i ){
 			if( lights.pos[i].w < 0.0 ){ continue; } //if light is used
 			linearColor += ApplyLight(i);
 		}
-	}	
+		//}	
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
-	//outColor = vec4(pow(linearColor, gamma), fragDiffuse.a);
-	outColor = vec4(fragDiffuse);
+	//outColor = vec4(pow(linearColor, gamma), 1.0);
+	outColor = vec4(linearColor, 1.0);
 }

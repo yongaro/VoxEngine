@@ -137,11 +137,12 @@ bool GBuffer::init(GLuint windowWidth, GLuint windowHeight){
 
 	for( GLuint i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
 		glBindTexture(GL_TEXTURE_2D, textures[i]);
-		if( i == GB_POS || i == GB_NRM ){ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, windowWidth, windowHeight, 0, GL_RGB, GL_FLOAT, NULL); }
-		else{ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL); }
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowWidth, windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		if( i == GB_POS || i == GB_NRM ){ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL); }
+		else{ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowWidth, windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); }
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, textures[i], 0);
 	}
 
@@ -185,7 +186,7 @@ void GBuffer::initForGeometryPass(){
 }
 void GBuffer::initForLightPass(){
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(0.02f, 0.02f, 0.02f, 0.0f);
+	glClearColor(0.2f, 0.4f, 0.4f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	bindTextures();
 }

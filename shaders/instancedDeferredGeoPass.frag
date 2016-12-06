@@ -45,10 +45,10 @@ layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec2 fragUV;
 layout(location = 3) in mat3 fragTBN; //takes slots 3,4,5
 
-layout(location = 0) out vec3 outPos;
+layout(location = 0) out vec4 outPos;
 layout(location = 1) out vec4 outDiff;
 layout(location = 2) out vec4 outEmissive;
-layout(location = 3) out vec3 outNrm;
+layout(location = 3) out vec4 outNrm;
 layout(location = 4) out vec4 outSpecular;
 
 
@@ -122,9 +122,9 @@ void main() {
 	fragSpecular.w = mat.shininess;
 	
 	//writing data to framebuffer attachments
-	outPos      = fragPos;
+	outPos      = vec4(fragPos, 1.0);
 	outDiff     = fragDiffuse;
 	outEmissive = fragEmissive;
-	outNrm      = normal;
+	outNrm      = vec4(normal, 1.0);//normal;
 	outSpecular = fragSpecular;
 }

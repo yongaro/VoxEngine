@@ -12,6 +12,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 map_Kd log_oak_top.png
+map_Kn log_oak_top_N.png
 
 newmtl side
 Ns 96.078431
@@ -23,3 +24,4 @@ Ni 1.000000
 d 1.000000
 illum 2
 map_Kd log_oak.png
+map_Kn log_oak_N.png
