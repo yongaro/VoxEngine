@@ -89,7 +89,7 @@ struct glContext{
 /**
  * Structure used to send an SSAO kernel to the GPU
  */
-const GLuint SSAO_KERNEL_SIZE = 16;
+const GLuint SSAO_KERNEL_SIZE = 1024;
 struct SSAO_Kernel{
 	glm::vec4 kernel[SSAO_KERNEL_SIZE];
 	glm::vec2 screenDim;
