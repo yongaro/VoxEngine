@@ -9,7 +9,7 @@ layout(binding = 0) uniform globalMatrices {
 	 vec3 camPos;
 } globalMat;
 
-#define SSAO_KERNEL_SIZE 64
+#define SSAO_KERNEL_SIZE 16
 layout(binding = 7) uniform SSAO_Kernel{
 	vec4 kernel[SSAO_KERNEL_SIZE];
 	vec2 screenDim;
