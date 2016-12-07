@@ -213,6 +213,7 @@ void GBuffer::build_SSAO_Kernel(){
 		sample *= scale;
 		ssaoKernel.kernel[i] = glm::vec4(sample, 1.0);
 	}
+	ssaoKernel.screenDim = glm::vec4((float)width, (float)height, 1.0f, 1.0f);
 	//passing ssao kernel to a Unifor Buffer Object
 	glGenBuffers(1, &SSAO_UBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, SSAO_UBO);

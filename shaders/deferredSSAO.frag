@@ -12,7 +12,7 @@ layout(binding = 0) uniform globalMatrices {
 #define SSAO_KERNEL_SIZE 16
 layout(binding = 7) uniform SSAO_Kernel{
 	vec4 kernel[SSAO_KERNEL_SIZE];
-	vec2 screenDim;
+	vec4 screenDim;
 } ssao_kernel;
 
 #define POSITION 0
@@ -33,7 +33,7 @@ layout(location = 0) in vec2 fragUV;
 layout(location = 0) out vec4 fragColor;
 
 
-const vec2 noiseScale = vec2( 640.0f/4.0f, 480.0f/4.0f );
+const vec2 noiseScale = vec2( 1024.0f/4.0f, 576.0f/4.0f );
 const float radius = 1.0;
 
 void main(){

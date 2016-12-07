@@ -92,13 +92,13 @@ struct glContext{
 const GLuint SSAO_KERNEL_SIZE = 1024;
 struct SSAO_Kernel{
 	glm::vec4 kernel[SSAO_KERNEL_SIZE];
-	glm::vec2 screenDim;
+	glm::vec4 screenDim;
 
 	SSAO_Kernel(){
 		for( GLuint i = 0; i < SSAO_KERNEL_SIZE; ++i ){
 			kernel[i] = glm::vec4(0.0f);
 		}
-		screenDim = glm::vec2(640.0f, 480.0f);
+		screenDim = glm::vec4(1024.0f, 576.0f, 1.0f, 1.0f);
 	}
 };
 
