@@ -48,12 +48,12 @@ vec4 fragPos      = texture(positionTexSampler, fragUV);
 vec4 fragDiffuse  = texture(diffuseTexSampler, fragUV);
 vec4 fragEmissive = texture(emissiveTexSampler, fragUV);
 vec4 fragNormal   = texture(normalsTexSampler, fragUV);
-vec4 fragSpecular = texture(specularTexSampler, fragUV);
+vec4 fragSpecular = texture(specularTexSampler, fragUV) * vec4(0.3, 0.3, 0.3, 1.0);
 vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
 vec4 ambiantOcclusion = texture(ssaoTexSampler, fragUV);
 
-vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
-vec4 scene_ambient = vec4(0.3, 0.3, 0.3, 1.0) * fragDiffuse;
+//vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
+//vec4 scene_ambient = vec4(0.3, 0.3, 0.3, 1.0) * fragDiffuse;
 
 
 
@@ -101,14 +101,14 @@ vec3 ApplyLight(int index) {
 	}
 
 	//ambient
-	vec3 ambient = scene_ambient.rgb;// * ambiantOcclusion.rgb;
+	vec3 ambient = fragDiffuse.rgb * ambiantOcclusion.rgb;
 	//diffuse
-	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;// * ambiantOcclusion.rgb;
+	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*25.0)  * lights.specular[index].rgb * fragSpecular.rgb  * vec3(0.2, 0.2, 0.2);
+	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*25.0)  * lights.specular[index].rgb * fragSpecular.rgb;
 
 	//linear color (color before gamma correction)
-	return (ambient + attenuation*(diffuse + specular))* ambiantOcclusion.rgb;
+	return ambient + attenuation*(diffuse + specular);
 	//return ambient + attenuation*(diffuse);
 
 	//float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
