@@ -101,7 +101,7 @@ vec3 ApplyLight(int index) {
 	}
 
 	//ambient
-	vec3 ambient = fragDiffuse.rgb * vec3(0.5, 0.5, 0.5);// * ambiantOcclusion.rgb;
+	vec3 ambient = fragDiffuse.rgb * ambiantOcclusion.rgb;
 	//diffuse
 	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
 	//specular
