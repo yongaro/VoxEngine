@@ -163,6 +163,8 @@ public:
 	GBuffer gbuffer;
 	glPipeline* geometryPipeline;
 	glPipeline* lightPipeline;
+	glPipeline* ssaoPipeline;
+	glPipeline* ssaoBlurPipeline;
 
 	glMesh* fullScreenQuad; //mesh used to render framebuffers directly to screen
 	glMesh* lightVolume; //unused for now
@@ -171,10 +173,11 @@ public:
 	glDeferredRenderer(GLuint,GLuint);
 	virtual ~glDeferredRenderer();
 
-	virtual void init(glPipeline*, glPipeline*);
+	virtual void init(glPipeline*, glPipeline*, glPipeline*, glPipeline*);
 	virtual void bindGeometryPipeline();
 	virtual void bindLightPipeline();
 	virtual void basicLightPass();
+	virtual void ssaoPass();
 };
 
 

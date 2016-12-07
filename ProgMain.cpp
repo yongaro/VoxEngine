@@ -392,6 +392,8 @@ glPipeline simpleShadowPipeline;
 glPipeline instancedForwardPipeline;
 glPipeline instancedDeferredGeoPassPipeline;
 glPipeline deferredLightPassPipeline;
+glPipeline deferred_SSAO_Pipeline;
+glPipeline SSAOBlur_Pipeline;
 
 glDeferredRenderer deferredRenderer(width,height);
 
@@ -455,8 +457,6 @@ void init(){
 	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
 	testVox->newMap(128,128,256);
 	testVox->testMap(); // remplissage test
-	//testVox->save(mapFile);
-	//testVox->fillVisibleCubes(5,5,5);
 
 	std::cout << "DONE" << std::endl;
 	
@@ -474,6 +474,12 @@ void init(){
 	string deferredLightPass_vertex = "./shaders/deferredLightPass.vert";
 	string deferredLightPass_fragment = "./shaders/deferredLightPass.frag";
 
+	string deferredSSAO_vertex = "./shaders/deferredSSAO.vert";
+	string deferredSSAO_fragment = "./shaders/deferredSSAO.frag";
+
+	string SSAOBlur_vertex = "./shaders/SSAOBlur.vert";
+	string SSAOBlur_fragment = "./shaders/SSAOBlur.frag";
+
 	std::cout << "\e[1;33mCompilation \e[1;36mforward rendering pipeline\e[0m" << std::endl;
 	forwardPipeline.generateShaders(forward_vertex.c_str(), forward_fragment.c_str(), NULL);
 	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
@@ -490,8 +496,14 @@ void init(){
 	std::cout << "\e[1;33mCompilation \e[1;36mdeferred rendering(Light pass) pipeline\e[0m" << std::endl;
 	deferredLightPassPipeline.generateShaders(deferredLightPass_vertex.c_str(), deferredLightPass_fragment.c_str(), NULL);
 	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	std::cout << "\e[1;33mCompilation \e[1;36mdeferred SSAO pipeline\e[0m" << std::endl;
+	deferred_SSAO_Pipeline.generateShaders(deferredSSAO_vertex.c_str(), deferredSSAO_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	std::cout << "\e[1;33mCompilation \e[1;36mdeferred SSAO Blur pipeline\e[0m" << std::endl;
+	SSAOBlur_Pipeline.generateShaders(SSAOBlur_vertex.c_str(), SSAOBlur_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
 	 
-	deferredRenderer.init(&instancedDeferredGeoPassPipeline, &deferredLightPassPipeline);
+	deferredRenderer.init(&instancedDeferredGeoPassPipeline, &deferredLightPassPipeline, &deferred_SSAO_Pipeline, &SSAOBlur_Pipeline);
 	
 	context = new glContext();
 
@@ -568,7 +580,7 @@ void init(){
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
-	glEnable(GL_PROGRAM_POINT_SIZE);
+	//glEnable(GL_PROGRAM_POINT_SIZE);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable( GL_BLEND );
@@ -596,7 +608,6 @@ void render(){
 	//glCullFace(GL_BACK);
 	*/
 	//phong render
-	//glClearColor(0.529f, 0.808f, 0.922f, 0.0);
 	//glClearColor(0.200f, 0.200f, 0.200f, 0.0);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
@@ -607,6 +618,8 @@ void render(){
 	context->bindUBO();
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	testVox->render();
+
+	deferredRenderer.ssaoPass();
 	
 	deferredRenderer.bindLightPipeline();
 	deferredRenderer.basicLightPass();
@@ -618,10 +631,6 @@ void render(){
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	for( glMesh* mesh : meshes ){ mesh->render(); }
 	*/
-	
-	
-	//context->bindUBO();
-	//glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	
 	glFlush();
 	SDL_GL_SwapWindow(window);

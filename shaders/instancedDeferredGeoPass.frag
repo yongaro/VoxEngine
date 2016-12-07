@@ -98,6 +98,13 @@ vec2 parallaxMapping(){
 	return currentTexCoords;
 }   
 
+const float NEAR = 0.001;
+const float FAR = 500.0;
+
+float linearizeDepth(float depth){
+	float z = depth * 2.0 - 1.0; //back to NDC
+	return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
+}
 
 void main() {
 	//parallax mapping
@@ -119,10 +126,10 @@ void main() {
 	//texture for specular lighting
 	if( features.list[1][1] > 0.0 ){ fragSpecular = texture(specularTexSampler, fragTexCoord); }
 	fragSpecular *= mat.Ks;
-	fragSpecular.w = mat.shininess;
+	fragSpecular.w = mat.shininess; //real bad idea
 	
 	//writing data to framebuffer attachments
-	outPos      = vec4(fragPos, 1.0);
+	outPos      = vec4(fragPos, 1.0); outPos.w = linearizeDepth(outPos.z);
 	outDiff     = fragDiffuse;
 	outEmissive = fragEmissive;
 	outNrm      = vec4(normal, 1.0);//normal;

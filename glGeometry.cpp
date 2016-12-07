@@ -209,7 +209,7 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			if( material->GetTextureCount(aiTextureType_DIFFUSE) > 0 && material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS ){
 				path = assetPath + std::string( texturePath.C_Str() );
 				std::replace( path.begin(), path.end(), '\\', '/');
-				std::cout << "\t texture DIFF trouvay \e[1;31m" << path.c_str() << "\e[0m"<< std::endl;
+				std::cout << "\t texture DIFF \e[1;31m" << path.c_str() << "\e[0m"<< std::endl;
 				matg->createTextureImage(path.c_str(), Textures::DIFF);
 				matg->features.list[0][0] = 1.0f;
 			}
@@ -218,7 +218,7 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			if( material->GetTextureCount(aiTextureType_DISPLACEMENT) > 0 && material->GetTexture(aiTextureType_DISPLACEMENT, 0, &texturePath) == AI_SUCCESS ){
 				path = assetPath + std::string( texturePath.C_Str() );
 				std::replace( path.begin(), path.end(), '\\', '/');
-				std::cout << "\t texture DISPLACEMENT trouvay \e[1;32m" << path.c_str() << "\e[0m"<< std::endl;
+				std::cout << "\t texture DISPLACEMENT \e[1;32m" << path.c_str() << "\e[0m"<< std::endl;
 				matg->createTextureImage(path.c_str(), Textures::DISPLACEMENT);
 				matg->features.list[0][1] = 1.0f;
 			}
@@ -227,7 +227,7 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			if( material->GetTextureCount(aiTextureType_EMISSIVE) > 0 && material->GetTexture(aiTextureType_EMISSIVE, 0, &texturePath) == AI_SUCCESS ){
 				path = assetPath + std::string( texturePath.C_Str() );
 				std::replace( path.begin(), path.end(), '\\', '/');
-				std::cout << "\t texture EMISSIVE trouvay \e[1;33m" << path.c_str() << "\e[0m"<< std::endl;
+				std::cout << "\t texture EMISSIVE \e[1;33m" << path.c_str() << "\e[0m"<< std::endl;
 				matg->createTextureImage(path.c_str(), Textures::EMISSIVE);
 				matg->features.list[0][2] = 1.0f;
 			}
@@ -236,7 +236,7 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			if( material->GetTextureCount(aiTextureType_HEIGHT) > 0 && material->GetTexture(aiTextureType_HEIGHT, 0, &texturePath) == AI_SUCCESS ){
 				path = assetPath + std::string( texturePath.C_Str() );
 				std::replace( path.begin(), path.end(), '\\', '/');
-				std::cout << "\t texture HEIGHT trouvay \e[1;34m" << path.c_str() << "\e[0m"<< std::endl;
+				std::cout << "\t texture HEIGHT \e[1;34m" << path.c_str() << "\e[0m"<< std::endl;
 				matg->createTextureImage(path.c_str(), Textures::HEIGHT);
 				matg->features.list[0][3] = 1.0f;
 			}
@@ -245,7 +245,7 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			if( material->GetTextureCount(aiTextureType_NORMALS) > 0 && material->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == AI_SUCCESS ){
 				path = assetPath + std::string( texturePath.C_Str() );
 				std::replace( path.begin(), path.end(), '\\', '/');
-				std::cout << "\t texture NRM trouvay \e[1;35m" << path.c_str() << "\e[0m"<< std::endl;
+				std::cout << "\t texture NRM \e[1;35m" << path.c_str() << "\e[0m"<< std::endl;
 				matg->createTextureImage(path.c_str(), Textures::NORMALS);
 				matg->features.list[1][0] = 1.0f;
 			}
@@ -255,7 +255,7 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			if( material->GetTextureCount(aiTextureType_SPECULAR) > 0 && material->GetTexture(aiTextureType_SPECULAR, 0, &texturePath) == AI_SUCCESS ){
 				path = assetPath + std::string( texturePath.C_Str() );
 				std::replace( path.begin(), path.end(), '\\', '/');
-				std::cout << "\t texture SPEC trouvay \e[1;36m" << path.c_str() << "\e[0m"<< std::endl;
+				std::cout << "\t texture SPEC \e[1;36m" << path.c_str() << "\e[0m"<< std::endl;
 				matg->createTextureImage(path.c_str(), Textures::SPECULAR);
 				matg->features.list[1][1] = 1.0f;
 			}
@@ -481,14 +481,17 @@ glDeferredRenderer::glDeferredRenderer(GLuint w, GLuint h):width(w),height(h),gb
                                                            fullScreenQuad(NULL),lightVolume(NULL){}
 glDeferredRenderer::~glDeferredRenderer(){}
 
-void glDeferredRenderer::init(glPipeline* geometryP, glPipeline* lightP){
+void glDeferredRenderer::init(glPipeline* geometryP, glPipeline* lightP, glPipeline* ssaoP, glPipeline* ssaoBP){
 	geometryPipeline = geometryP;
 	lightPipeline = lightP;
+	ssaoPipeline = ssaoP;
+	ssaoBlurPipeline = ssaoBP;
 	gbuffer.init(width,height);
 	fullScreenQuad = new glMesh();
 	std::string path = "./assets/";
 	std::string name = "fullscreenQuad.obj";
 	fullScreenQuad->loadMesh(path,name);
+	gbuffer.build_SSAO_Kernel();
 }
 void glDeferredRenderer::bindGeometryPipeline(){
 	gbuffer.initForGeometryPass();
@@ -503,19 +506,51 @@ void glDeferredRenderer::bindLightPipeline(){
 }
 
 void glDeferredRenderer::basicLightPass(){
-	//fullScreenQuad->render();
 	fullScreenQuad->bindUBO();
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
-		//subm->render();
-			subm->mat->bindUBO();
-			//mat->bindTextures();
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			
-			subm->bindVAO();
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
-			glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
-			
-			glBindVertexArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER,0);
+		subm->mat->bindUBO();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		
+		subm->bindVAO();
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
+		glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
+		
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
+	}
+}
+
+void glDeferredRenderer::ssaoPass(){
+	gbuffer.initForSSAO();
+	gbuffer.bind_SSAO_Kernel_UBO();
+	ssaoPipeline->bind();
+	
+	fullScreenQuad->bindUBO();
+	for(glSubMesh* subm : fullScreenQuad->subMeshes){
+		subm->mat->bindUBO();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		
+		subm->bindVAO();
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
+		glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
+		
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
+	}
+	
+	gbuffer.initForSSAOBlur();
+	ssaoBlurPipeline->bind();
+
+	fullScreenQuad->bindUBO();
+	for(glSubMesh* subm : fullScreenQuad->subMeshes){
+		subm->mat->bindUBO();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		
+		subm->bindVAO();
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
+		glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
+		
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
 	}
 }

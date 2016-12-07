@@ -28,11 +28,13 @@ layout(binding = 5) uniform Dummy{
 #define EMISSIVE 2
 #define NORMALS 3
 #define SPECULAR 4
+#define SSAO 5
 layout(binding = POSITION) uniform sampler2D positionTexSampler;
 layout(binding = DIFFUSE) uniform sampler2D diffuseTexSampler;
 layout(binding = EMISSIVE) uniform sampler2D emissiveTexSampler;
 layout(binding = NORMALS) uniform sampler2D normalsTexSampler;
 layout(binding = SPECULAR) uniform sampler2D specularTexSampler;
+layout(binding = SSAO) uniform sampler2D ssaoTexSampler;
 
 #define SHADOW 6
 layout(binding = SHADOW) uniform sampler2D shadowTexSampler;
@@ -48,9 +50,10 @@ vec4 fragEmissive = texture(emissiveTexSampler, fragUV);
 vec4 fragNormal   = texture(normalsTexSampler, fragUV);
 vec4 fragSpecular = texture(specularTexSampler, fragUV);
 vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
+vec4 ambiantOcclusion = texture(ssaoTexSampler, fragUV);
 
 vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
-vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 0.5);
+vec4 scene_ambient = vec4(0.3, 0.3, 0.3, 1.0) * fragDiffuse;
 
 
 
@@ -98,14 +101,14 @@ vec3 ApplyLight(int index) {
 	}
 
 	//ambient
-	vec3 ambient = scene_ambient.rgb;
+	vec3 ambient = scene_ambient.rgb;// * ambiantOcclusion.rgb;
 	//diffuse
-	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
+	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;// * ambiantOcclusion.rgb;
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), 450)  * lights.specular[index].rgb * fragSpecular.rgb * vec3(0.1,0.05,0.01);
+	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*25.0)  * lights.specular[index].rgb * fragSpecular.rgb  * vec3(0.2, 0.2, 0.2);
 
 	//linear color (color before gamma correction)
-	return ambient + attenuation*(diffuse + specular);
+	return (ambient + attenuation*(diffuse + specular))* ambiantOcclusion.rgb;
 	//return ambient + attenuation*(diffuse);
 
 	//float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
@@ -126,5 +129,5 @@ void main(){
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), 1.0);
-	//outColor = vec4(linearColor, 1.0);
+	//outColor = vec4(texture(ssaoTexSampler, fragUV));
 }

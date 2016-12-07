@@ -173,9 +173,6 @@ bool GBuffer::init(GLuint windowWidth, GLuint windowHeight){
 	return true;
 }
 
-void GBuffer::bindForWriting(){ glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboID); }
-void GBuffer::bindForReading(){  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboID); }
-void GBuffer::setReadBuffer(GBuffer_Textures texType){ glReadBuffer(GL_COLOR_ATTACHMENT0 + texType); }
 void GBuffer::bindTextures(){
 	for( size_t i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
 		glActiveTexture(GL_TEXTURE0+i);
@@ -193,6 +190,7 @@ void GBuffer::initForLightPass(){
 	glClearColor(0.2f, 0.4f, 0.4f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	bindTextures();
+	bind_Blurred_SSAO_Texture();
 }
 
 
@@ -201,30 +199,38 @@ GLfloat lerp(GLfloat a, GLfloat b, GLfloat f){ return a + f * (b - a); }
 
 
 void GBuffer::build_SSAO_Kernel(){
-	ssaoKernel.clear();
+	//ssaoKernel.clear();
 	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
 	std::default_random_engine generator;
-	
-	for (GLuint i = 0; i < 64; ++i){
+
+	//Creation of the ssao kernel
+	for (GLuint i = 0; i < SSAO_KERNEL_SIZE; ++i){
 		glm::vec3 sample( randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) );
 		sample  = glm::normalize(sample);
 		sample *= randomFloats(generator);
-		GLfloat scale = GLfloat(i) / 64.0;
+		GLfloat scale = GLfloat(i) / (GLfloat)SSAO_KERNEL_SIZE;
 		scale = lerp(0.1f, 1.0f, scale * scale);
 		sample *= scale;
-		ssaoKernel.push_back(sample);
+		ssaoKernel.kernel[i] = glm::vec4(sample, 1.0);
 	}
+	//passing ssao kernel to a Unifor Buffer Object
+	glGenBuffers(1, &SSAO_UBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, SSAO_UBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(SSAO_Kernel), &ssaoKernel, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+	
+	//creation of the ssao noise
 	ssaoNoise.clear();
-	for (GLuint i = 0; i < 16; ++i){
-			glm::vec3 noise( randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); 
-			ssaoNoise.push_back(noise);
+	for( GLuint i = 0; i < 16; ++i ){
+		glm::vec3 noise( randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); 
+		ssaoNoise.push_back(noise);
 	}
 
 	//Creation of the ssao noise texture
 	glGenTextures(1, &noiseTexture);
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGBA, GL_FLOAT, &ssaoNoise[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -237,10 +243,61 @@ void GBuffer::build_SSAO_Kernel(){
 	//ssao framebuffer color attachment
 	glGenTextures(1, &ssaoColorBuffer);
 	glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
+	std::vector<GLenum> DrawBuffers;
+	DrawBuffers.push_back(GL_COLOR_ATTACHMENT0);
+	glDrawBuffers(1, DrawBuffers.data());
 
+	
+	//Creation of the blurred ssao ressources
+	glGenFramebuffers(1, &ssaoBlurFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+	glGenTextures(1, &ssaoColorBufferBlur);
+	glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
+	glDrawBuffers(1, DrawBuffers.data());
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void GBuffer::bind_SSAO_Kernel_UBO(){
+	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::SSAO_KERNEL_UBP, SSAO_UBO);
+}
+
+void GBuffer::bind_SSAO_Noise(){
+	glActiveTexture(GL_TEXTURE0+SIZE_GBT);
+	glBindTexture(GL_TEXTURE_2D, noiseTexture);
+}
+
+void GBuffer::bind_SSAO_Texture(){
+	glActiveTexture(GL_TEXTURE0+SIZE_GBT);
+	glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+}
+void GBuffer::bind_Blurred_SSAO_Texture(){
+	glActiveTexture(GL_TEXTURE0+SIZE_GBT);
+	glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
+}
+
+void GBuffer::initForSSAO(){
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	bindTextures();
+	bind_SSAO_Noise();
+}
+void GBuffer::initForSSAOBlur(){
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	bindTextures();
+	bind_SSAO_Texture();
 }

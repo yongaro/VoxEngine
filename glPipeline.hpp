@@ -13,7 +13,7 @@
 
 //##################### GLPIPELINE ##################################
 enum UniformsBindingPoints{ GLOBAL_UBP, LIGHTS_UBP, MATERIAL_UBP, FEATURES_UBP, MESH_TRANS_UBP,
-                            SHADOW_TRANS_UBP, OFFSET_UBP, SIZE_UBP };
+                            SHADOW_TRANS_UBP, OFFSET_UBP, SSAO_KERNEL_UBP, SIZE_UBP };
 enum ShaderStorageBindingPoints{ INSTANCE_SSBP, SIZE_SSBP};
 enum VertexAttributes{ POS, NRM, UV, TANGENT, BITANGENT, SIZE_VA };
 enum GlobalUniforms{ GLOBAL_GU, LIGHTS_GU, SIZE_GU };
@@ -84,6 +84,25 @@ struct glContext{
 
 
 
+
+
+/**
+ * Structure used to send an SSAO kernel to the GPU
+ */
+const GLuint SSAO_KERNEL_SIZE = 64;
+struct SSAO_Kernel{
+	glm::vec4 kernel[SSAO_KERNEL_SIZE];
+	glm::vec2 screenDim;
+
+	SSAO_Kernel(){
+		for( GLuint i = 0; i < SSAO_KERNEL_SIZE; ++i ){
+			kernel[i] = glm::vec4(0.0f);
+		}
+		screenDim = glm::vec2(640.0f, 480.0f);
+	}
+};
+
+
 /**
  * Structure used to regroup the framebuffer and textures for deferred shading
  */
@@ -93,26 +112,38 @@ public:
 	GLuint fboID;
 	GLuint textures[GBuffer_Textures::SIZE_GBT];
 	GLuint depthTexture;
-
-	std::vector<glm::vec3> ssaoKernel;
+	
+	SSAO_Kernel ssaoKernel;
+	GLuint SSAO_UBO;
+	
 	std::vector<glm::vec3> ssaoNoise;
 	GLuint noiseTexture;
+	
 	GLuint ssaoFBO;
 	GLuint ssaoColorBuffer;
+	GLuint ssaoBlurFBO;
+	GLuint ssaoColorBufferBlur;
+	
+	
 	
 	GBuffer();
 	~GBuffer();
 
 	bool init(GLuint, GLuint);
-	void bindForWriting();
-	void bindForReading();
-	void setReadBuffer(GBuffer_Textures);
 	void bindTextures();
 
 	void initForGeometryPass();
 	void initForLightPass();
 
 	void build_SSAO_Kernel();
+	void bind_SSAO_Kernel_UBO();
+	void bind_SSAO_Noise();
+	void bind_SSAO_Texture();
+	void bind_Blurred_SSAO_Texture();
+
+	void initForSSAO();
+	void initForSSAOBlur();
+	
 };
 
 
