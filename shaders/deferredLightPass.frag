@@ -48,7 +48,7 @@ vec4 fragPos      = texture(positionTexSampler, fragUV);
 vec4 fragDiffuse  = texture(diffuseTexSampler, fragUV);
 vec4 fragEmissive = texture(emissiveTexSampler, fragUV);
 vec4 fragNormal   = texture(normalsTexSampler, fragUV);
-vec4 fragSpecular = texture(specularTexSampler, fragUV) * vec4(0.3, 0.3, 0.3, 1.0);
+vec4 fragSpecular = texture(specularTexSampler, fragUV) * vec4(0.5, 0.5, 0.5, 1.0);
 vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
 vec4 ambiantOcclusion = texture(ssaoTexSampler, fragUV);
 
@@ -118,6 +118,7 @@ vec3 ApplyLight(int index) {
 
 
 void main(){
+	if( fragPos.x == 0.0 && fragPos.y == 0.0 && fragPos.z == 0.0 ){ discard; }
 	vec3 linearColor = vec3(0.0);
 	//if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
 	//else{
@@ -129,5 +130,5 @@ void main(){
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), 1.0);
-	//outColor = vec4(texture(ssaoTexSampler, fragUV));
+	//outColor = vec4(texture(positionTexSampler, fragUV));
 }
