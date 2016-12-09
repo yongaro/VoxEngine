@@ -1,0 +1,698 @@
+/*	enum CubeTypes{  AIR, ADMINIUM, CACTUS, COAL, DIAMOND, DIRT, FOLLIAGE, GLOWSTONE, GOLD,
+                 GRASS, IRON, SAND, SNOW, SNOW_BLOCK, STONE, WATER, WOOD, SIZE_CT };
+*/
+	
+	
+	std::vector<std::vector<double>> probaBloc;
+
+	std::vector<double> probaAir;
+	probaAir.push_back(0.2);  // Air
+	probaAir.push_back(0.0);  // Admin
+	probaAir.push_back(0.0);  // Cactus
+	probaAir.push_back(0.0);  // Coal
+	probaAir.push_back(0.0);  // Diamond
+	probaAir.push_back(0.3);  // Dirt
+	probaAir.push_back(0.0);  // Folliage
+	probaAir.push_back(0.0);  // Glowstone
+	probaAir.push_back(0.0);  // Gold
+	probaAir.push_back(0.0);  // Grass
+	probaAir.push_back(0.0);  // Iron
+	probaAir.push_back(0.0);  // Sand
+	probaAir.push_back(0.0);  // Snow
+	probaAir.push_back(0.0);  // Snow-block
+	probaAir.push_back(0.5);  // Stone
+	probaAir.push_back(0.0);  // Water
+	probaAir.push_back(0.0);  // Wood
+	probaBloc.push_back(probaAir);
+
+
+	std::vector<double> probaAdminium;
+	probaAdminium.push_back(0.0); // Adminium
+	probaAdminium.push_back(0.2); // ADMINIUM
+	probaAdminium.push_back(0.0); // Cactus
+	probaAdminium.push_back(0.1); // Coal
+	probaAdminium.push_back(0.05); // Diamond
+	probaAdminium.push_back(0.0); // Dirt
+	probaAdminium.push_back(0.0); // Foliage
+	probaAdminium.push_back(0.0); // Glowstone
+	probaAdminium.push_back(0.05); // Gold
+	probaAdminium.push_back(0.0); // Grass
+	probaAdminium.push_back(0.1); // IRON
+	probaAdminium.push_back(0.0); // Sand
+	probaAdminium.push_back(0.0); // Snow
+	probaAdminium.push_back(0.0); // Snow_Block
+	probaAdminium.push_back(0.5); // Stone
+	probaAdminium.push_back(0.0); // Water
+	probaAdminium.push_back(0.0); // Wood
+	probaBloc.push_back(probaAdminium);
+
+
+
+	std::vector<double> probaCactus;
+	probaCactus.push_back(0.5); // Cactus
+	probaCactus.push_back(0.0); // ADMINIUM
+	probaCactus.push_back(0.5); // Cactus
+	probaCactus.push_back(0.0); // Coal
+	probaCactus.push_back(0.0); // Diamond
+	probaCactus.push_back(0.0); // Dirt
+	probaCactus.push_back(0.0); // Foliage
+	probaCactus.push_back(0.0); // Glowstone
+	probaCactus.push_back(0.0); // Gold
+	probaCactus.push_back(0.0); // Grass
+	probaCactus.push_back(0.0); // IRON
+	probaCactus.push_back(0.0); // Sand
+	probaCactus.push_back(0.0); // Snow
+	probaCactus.push_back(0.0); // Snow_Block
+	probaCactus.push_back(0.0); // Stone
+	probaCactus.push_back(0.0); // Water
+	probaCactus.push_back(0.0); // Wood
+	probaBloc.push_back(probaCactus);
+
+
+	std::vector<double> probaCoal;
+	probaCoal.push_back(0.1); // Coal
+	probaCoal.push_back(0.0); // ADMINIUM
+	probaCoal.push_back(0.0); // Cactus
+	probaCoal.push_back(0.3); // Coal
+	probaCoal.push_back(0.05); // Diamond
+	probaCoal.push_back(0.0); // Dirt
+	probaCoal.push_back(0.0); // Foliage
+	probaCoal.push_back(0.0); // Glowstone
+	probaCoal.push_back(0.05); // Gold
+	probaCoal.push_back(0.0); // Grass
+	probaCoal.push_back(0.1); // IRON
+	probaCoal.push_back(0.0); // Sand
+	probaCoal.push_back(0.0); // Snow
+	probaCoal.push_back(0.0); // Snow_Block
+	probaCoal.push_back(0.4); // Stone
+	probaCoal.push_back(0.0); // Water
+	probaCoal.push_back(0.0); // Wood
+	probaBloc.push_back(probaCoal);
+
+	std::vector<double> probaDiamond;
+	probaDiamond.push_back(0.0); // Diamond
+	probaDiamond.push_back(0.0); // ADMINIUM
+	probaDiamond.push_back(0.0); // Cactus
+	probaDiamond.push_back(0.0); // Coal
+	probaDiamond.push_back(0.3); // Diamond
+	probaDiamond.push_back(0.0); // Dirt
+	probaDiamond.push_back(0.0); // Foliage
+	probaDiamond.push_back(0.0); // Glowstone
+	probaDiamond.push_back(0.); // Gold
+	probaDiamond.push_back(0.0); // Grass
+	probaDiamond.push_back(0.0); // IRON
+	probaDiamond.push_back(0.0); // Sand
+	probaDiamond.push_back(0.0); // Snow
+	probaDiamond.push_back(0.0); // Snow_Block
+	probaDiamond.push_back(0.7); // Stone
+	probaDiamond.push_back(0.0); // Water
+	probaDiamond.push_back(0.0); // Wood
+	probaBloc.push_back(probaDiamond);
+
+	std::vector<double> probaDirt;
+	probaDirt.push_back(0.1); // Dirt
+	probaDirt.push_back(0.0); // ADMINIUM
+	probaDirt.push_back(0.1); // Cactus
+	probaDirt.push_back(0.0); // Coal
+	probaDirt.push_back(0.0); // Diamond
+	probaDirt.push_back(0.3); // Dirt
+	probaDirt.push_back(0.0); // Foliage
+	probaDirt.push_back(0.0); // Glowstone
+	probaDirt.push_back(0.0); // Gold
+	probaDirt.push_back(0.05); // Grass
+	probaDirt.push_back(0.0); // IRON
+	probaDirt.push_back(0.1); // Sand
+	probaDirt.push_back(0.0); // Snow
+	probaDirt.push_back(0.0); // Snow_Block
+	probaDirt.push_back(0.2); // Stone
+	probaDirt.push_back(0.1); // Water
+	probaDirt.push_back(0.05); // Wood
+	probaBloc.push_back(probaDirt);
+
+
+	std::vector<double> probaFolliage;
+	probaFolliage.push_back(0.7); // Folliage
+	probaFolliage.push_back(0.0); // ADMINIUM
+	probaFolliage.push_back(0.0); // Cactus
+	probaFolliage.push_back(0.0); // Coal
+	probaFolliage.push_back(0.0); // Diamond
+	probaFolliage.push_back(0.0); // Dirt
+	probaFolliage.push_back(0.3); // Foliage
+	probaFolliage.push_back(0.0); // Glowstone
+	probaFolliage.push_back(0.0); // Gold
+	probaFolliage.push_back(0.0); // Grass
+	probaFolliage.push_back(0.0); // IRON
+	probaFolliage.push_back(0.0); // Sand
+	probaFolliage.push_back(0.0); // Snow
+	probaFolliage.push_back(0.0); // Snow_Block
+	probaFolliage.push_back(0.0); // Stone
+	probaFolliage.push_back(0.0); // Water
+	probaFolliage.push_back(0.0); // Wood
+	probaBloc.push_back(probaFolliage);
+
+
+	std::vector<double> probaGlowstone;
+	probaGlowstone.push_back(0.0); // Glowstone
+	probaGlowstone.push_back(0.0); // ADMINIUM
+	probaGlowstone.push_back(0.0); // Cactus
+	probaGlowstone.push_back(0.0); // Coal
+	probaGlowstone.push_back(0.0); // Diamond
+	probaGlowstone.push_back(0.0); // Dirt
+	probaGlowstone.push_back(0.0); // Foliage
+	probaGlowstone.push_back(0.1); // Glowstone
+	probaGlowstone.push_back(0.0); // Gold
+	probaGlowstone.push_back(0.0); // Grass
+	probaGlowstone.push_back(0.0); // IRON
+	probaGlowstone.push_back(0.0); // Sand
+	probaGlowstone.push_back(0.0); // Snow
+	probaGlowstone.push_back(0.0); // Snow_Block
+	probaGlowstone.push_back(0.0); // Stone
+	probaGlowstone.push_back(0.0); // Water
+	probaGlowstone.push_back(0.0); // Wood
+	probaBloc.push_back(probaGlowstone);
+
+
+	std::vector<double> probaGold;
+	probaGold.push_back(0.0); // Gold
+	probaGold.push_back(0.0); // ADMINIUM
+	probaGold.push_back(0.0); // Cactus
+	probaGold.push_back(0.05); // Coal
+	probaGold.push_back(0.05); // Diamond
+	probaGold.push_back(0.0); // Dirt
+	probaGold.push_back(0.0); // Foliage
+	probaGold.push_back(0.0); // Glowstone
+	probaGold.push_back(0.5); // Gold
+	probaGold.push_back(0.0); // Grass
+	probaGold.push_back(0.05); // IRON
+	probaGold.push_back(0.0); // Sand
+	probaGold.push_back(0.0); // Snow
+	probaGold.push_back(0.0); // Snow_Block
+	probaGold.push_back(0.35); // Stone
+	probaGold.push_back(0.0); // Water
+	probaGold.push_back(0.0); // Wood
+	probaBloc.push_back(probaGold);
+
+
+	std::vector<double> probaGrass;
+	probaGrass.push_back(0.8); // Grass
+	probaGrass.push_back(0.0); // ADMINIUM
+	probaGrass.push_back(0.0); // Cactus
+	probaGrass.push_back(0.0); // Coal
+	probaGrass.push_back(0.0); // Diamond
+	probaGrass.push_back(0.0); // Dirt
+	probaGrass.push_back(0.0); // Foliage
+	probaGrass.push_back(0.0); // Glowstone
+	probaGrass.push_back(0.0); // Gold
+	probaGrass.push_back(0.2); // Grass
+	probaGrass.push_back(0.0); // IRON
+	probaGrass.push_back(0.0); // Sand
+	probaGrass.push_back(0.0); // Snow
+	probaGrass.push_back(0.0); // Snow_Block
+	probaGrass.push_back(0.0); // Stone
+	probaGrass.push_back(0.0); // Water
+	probaGrass.push_back(0.0); // Wood
+	probaBloc.push_back(probaGrass);
+
+	std::vector<double> probaIron;
+	probaIron.push_back(0.0); // Iron
+	probaIron.push_back(0.0); // ADMINIUM
+	probaIron.push_back(0.0); // Cactus
+	probaIron.push_back(0.1); // Coal
+	probaIron.push_back(0.0); // Diamond
+	probaIron.push_back(0.0); // Dirt
+	probaIron.push_back(0.0); // Foliage
+	probaIron.push_back(0.0); // Glowstone
+	probaIron.push_back(0.05); // Gold
+	probaIron.push_back(0.0); // Grass
+	probaIron.push_back(0.45); // IRON
+	probaIron.push_back(0.0); // Sand
+	probaIron.push_back(0.0); // Snow
+	probaIron.push_back(0.0); // Snow_Block
+	probaIron.push_back(0.4); // Stone
+	probaIron.push_back(0.0); // Water
+	probaIron.push_back(0.0); // Wood
+	probaBloc.push_back(probaIron);
+
+
+	std::vector<double> probaSand;
+	probaSand.push_back(0.15); // Sand
+	probaSand.push_back(0.0); // ADMINIUM
+	probaSand.push_back(0.0); // Cactus
+	probaSand.push_back(0.0); // Coal
+	probaSand.push_back(0.0); // Diamond
+	probaSand.push_back(0.15); // Dirt
+	probaSand.push_back(0.0); // Foliage
+	probaSand.push_back(0.0); // Glowstone
+	probaSand.push_back(0.0); // Gold
+	probaSand.push_back(0.0); // Grass
+	probaSand.push_back(0.0); // IRON
+	probaSand.push_back(0.4); // Sand
+	probaSand.push_back(0.0); // Snow
+	probaSand.push_back(0.0); // Snow_Block
+	probaSand.push_back(0.0); // Stone
+	probaSand.push_back(0.3); // Water
+	probaSand.push_back(0.0); // Wood
+	probaBloc.push_back(probaSand);
+
+
+	std::vector<double> probaSnow;
+	probaSnow.push_back(0.0); // Snow
+	probaSnow.push_back(0.0); // ADMINIUM
+	probaSnow.push_back(0.0); // Cactus
+	probaSnow.push_back(0.0); // Coal
+	probaSnow.push_back(0.0); // Diamond
+	probaSnow.push_back(0.0); // Dirt
+	probaSnow.push_back(0.0); // Foliage
+	probaSnow.push_back(0.0); // Glowstone
+	probaSnow.push_back(0.0); // Gold
+	probaSnow.push_back(0.0); // Grass
+	probaSnow.push_back(0.0); // IRON
+	probaSnow.push_back(0.0); // Sand
+	probaSnow.push_back(1.0); // Snow
+	probaSnow.push_back(0.0); // Snow_Block
+	probaSnow.push_back(0.0); // Stone
+	probaSnow.push_back(0.0); // Water
+	probaSnow.push_back(0.0); // Wood
+	probaBloc.push_back(probaSnow);
+
+	std::vector<double> probaSnowBlock;
+	probaSnowBlock.push_back(0.0); // SnowBlock
+	probaSnowBlock.push_back(0.0); // ADMINIUM
+	probaSnowBlock.push_back(0.0); // Cactus
+	probaSnowBlock.push_back(0.0); // Coal
+	probaSnowBlock.push_back(0.0); // Diamond
+	probaSnowBlock.push_back(0.0); // Dirt
+	probaSnowBlock.push_back(0.0); // Foliage
+	probaSnowBlock.push_back(0.0); // Glowstone
+	probaSnowBlock.push_back(0.0); // Gold
+	probaSnowBlock.push_back(0.0); // Grass
+	probaSnowBlock.push_back(0.0); // IRON
+	probaSnowBlock.push_back(0.0); // Sand
+	probaSnowBlock.push_back(1.0); // Snow
+	probaSnowBlock.push_back(0.0); // Snow_Block
+	probaSnowBlock.push_back(0.0); // Stone
+	probaSnowBlock.push_back(0.0); // Water
+	probaSnowBlock.push_back(0.0); // Wood
+	probaBloc.push_back(probaSnowBlock);
+
+
+	std::vector<double> probaStone;
+	probaStone.push_back(0.1); // air
+	probaStone.push_back(0.0); // ADMINIUM
+	probaStone.push_back(0.0); // Cactus
+	probaStone.push_back(0.1); // Coal
+	probaStone.push_back(0.03); // Diamond
+	probaStone.push_back(0.1); // Dirt
+	probaStone.push_back(0.0); // Foliage
+	probaStone.push_back(0.0); // Glowstone
+	probaStone.push_back(0.03); // Gold
+	probaStone.push_back(0.0); // Grass
+	probaStone.push_back(0.04); // IRON
+	probaStone.push_back(0.0); // Sand
+	probaStone.push_back(0.0); // Snow
+	probaStone.push_back(0.0); // Snow_Block
+	probaStone.push_back(0.55); // Stone
+	probaStone.push_back(0.05); // Water
+	probaStone.push_back(0.0); // Wood
+	probaBloc.push_back(probaStone);
+
+
+	std::vector<double> probaWater;
+	probaWater.push_back(0.0); // Water
+	probaWater.push_back(0.0); // ADMINIUM
+	probaWater.push_back(0.0); // Cactus
+	probaWater.push_back(0.0); // Coal
+	probaWater.push_back(0.0); // Diamond
+	probaWater.push_back(0.0); // Dirt
+	probaWater.push_back(0.0); // Foliage
+	probaWater.push_back(0.0); // Glowstone
+	probaWater.push_back(0.0); // Gold
+	probaWater.push_back(0.0); // Grass
+	probaWater.push_back(0.0); // IRON
+	probaWater.push_back(0.3); // Sand
+	probaWater.push_back(0.0); // Snow
+	probaWater.push_back(0.0); // Snow_Block
+	probaWater.push_back(0.0); // Stone
+	probaWater.push_back(0.7); // Water
+	probaWater.push_back(0.0); // Wood
+	probaBloc.push_back(probaWater);
+
+
+	std::vector<double> probaWood;
+	probaWood.push_back(0.0); // Wood
+	probaWood.push_back(0.0); // ADMINIUM
+	probaWood.push_back(0.0); // Cactus
+	probaWood.push_back(0.0); // Coal
+	probaWood.push_back(0.0); // Diamond
+	probaWood.push_back(0.0); // Dirt
+	probaWood.push_back(0.5); // Foliage
+	probaWood.push_back(0.0); // Glowstone
+	probaWood.push_back(0.0); // Gold
+	probaWood.push_back(0.0); // Grass
+	probaWood.push_back(0.0); // IRON
+	probaWood.push_back(0.0); // Sand
+	probaWood.push_back(0.0); // Snow
+	probaWood.push_back(0.0); // Snow_Block
+	probaWood.push_back(0.0); // Stone
+	probaWood.push_back(0.0); // Water
+	probaWood.push_back(0.5); // Wood
+	probaBloc.push_back(probaWood);
+
+
+
+	std::vector<double> probaSup;
+	probaSup.push_back(0.0); // Sup
+	probaSup.push_back(0.0); // ADMINIUM
+	probaSup.push_back(0.0); // Cactus
+	probaSup.push_back(0.0); // Coal
+	probaSup.push_back(0.0); // Diamond
+	probaSup.push_back(0.0); // Dirt
+	probaSup.push_back(0.0); // Foliage
+	probaSup.push_back(0.0); // Glowstone
+	probaSup.push_back(0.0); // Gold
+	probaSup.push_back(0.0); // Grass
+	probaSup.push_back(1.0); // IRON
+	probaSup.push_back(0.0); // Sand
+	probaSup.push_back(0.0); // Snow
+	probaSup.push_back(0.0); // Snow_Block
+	probaSup.push_back(0.0); // Stone
+	probaSup.push_back(0.0); // Water
+	probaSup.push_back(0.0); // Sup
+	probaBlocLevel.push_back(probaSup);
+
+	std::vector<double> probaInf;
+	probaInf.push_back(0.0); // Inf
+	probaInf.push_back(0.0); // ADMINIUM
+	probaInf.push_back(0.0); // Cactus
+	probaInf.push_back(0.0); // Coal
+	probaInf.push_back(0.0); // Diamond
+	probaInf.push_back(0.0); // Dirt
+	probaInf.push_back(0.0); // Foliage
+	probaInf.push_back(0.0); // Glowstone
+	probaInf.push_back(0.0); // Gold
+	probaInf.push_back(0.0); // Grass
+	probaInf.push_back(1.0); // IRON
+	probaInf.push_back(0.0); // Sand
+	probaInf.push_back(0.0); // Snow
+	probaInf.push_back(0.0); // Snow_Block
+	probaInf.push_back(0.0); // Stone
+	probaInf.push_back(0.0); // Water
+	probaInf.push_back(0.0); // Inf
+	probaBlocLevel.push_back(probaInf);	
+
+
+	// Initialisation matrice
+
+
+	std::vector<std::vector<std::vector<std::vector<double>>>> mat;
+	for (int x = 0; x < map.width(); ++x) {
+		std::vector<std::vector<std::vector<double>>> xAxis;
+	  	for (int y = 0; y < map.height(); ++y ){
+	  		std::vector<std::vector<double>> yAxis;
+	  		for (int z = 0; z < map.depth(); ++z ) {
+	  			std::vector<double> zAxis;
+
+	  			if (y == 0) {
+  					zAxis = probaBloc[CubeTypes::ADMINIUM];
+  				} else {
+	  				for (int k = 0; k < CubeTypes::SIZE_CT; ++k) {
+	  					zAxis.push_back(0.0);
+		  			}	
+  				}
+	  			yAxis.push_back(zAxis);
+	      	}
+	      	xAxis.push_back(yAxis);
+		}
+		mat.push_back(xAxis);
+	}
+
+	// Diffusion base
+
+		if (x >= 1) {
+		 
+		      		if (z >= 1) {
+		      			mat[x - 1][y][z - 1][k] += probaBloc[1][k];
+		      			mat[x - 1][(y + 1) % hSize][z - 1][k] += probaBloc[1][k];
+		      		}
+
+		      		mat[x - 1][y][z][k] += probaBloc[1][k];
+		      		mat[x - 1][y][(z + 1) % dSize][k] += probaBloc[1][k];
+		      		
+
+		      		mat[x - 1][(y + 1) % hSize][z][k] += probaBloc[1][k];
+		      		mat[x - 1][(y + 1) % hSize][(z + 1) % dSize][k] += probaBloc[1][k];
+		      	}
+		      		
+
+		 
+
+	      		if (z >= 1) {
+	      			mat[x][y][z - 1][k] += probaBloc[1][k];
+	      			mat[x][(y + 1) % hSize][z - 1][k] += probaBloc[1][k];
+	      			mat[(x + 1) % wSize][y][z - 1][k] += probaBloc[1][k];
+	      			mat[(x + 1) % wSize][(y + 1) % hSize][z - 1][k] += probaBloc[1][k];
+	      		}
+
+	      		mat[x][y][z][k] += probaBloc[1][k];
+	      		mat[x][y][(z + 1) % dSize][k] += probaBloc[1][k];
+	      		
+	      		mat[x][(y + 1) % hSize][z][k] += probaBloc[1][k];
+	      		mat[x][(y + 1) % hSize][(z + 1) % dSize][k] += probaBloc[1][k];
+		      		
+		      	//
+
+	      		mat[(x + 1) % wSize][y][z][k] += probaBloc[1][k];
+	      		mat[(x + 1) % wSize][y][(z + 1) % dSize][k] += probaBloc[1][k];
+	      		
+	      		mat[(x + 1) % wSize][(y + 1) % hSize][z][k] += probaBloc[1][k];
+	      		mat[(x + 1) % wSize][(y + 1) % hSize][(z + 1) % dSize][k] += probaBloc[1][k];   
+		    }
+
+
+
+
+		      // diffusion
+
+		       for (int k = 0; k < CubeTypes::SIZE_CT; ++k) {
+		       	if (x >= 1) {
+		       		if (y >= 1) {
+		      			if (z >= 1) {
+		      				mat[x - 1][y - 1][z - 1][k] += probaBloc[numeroBlocSuppose][k];	
+		      			}
+		      			mat[x - 1][y - 1][z][k] += probaBloc[numeroBlocSuppose][k];
+		      			mat[x - 1][y - 1][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];	
+		      		}
+
+		      		if (z >= 1) {
+		      			mat[x - 1][y][z - 1][k] += probaBloc[numeroBlocSuppose][k];
+		      			mat[x - 1][(y + 1) % hSize][z - 1][k] += probaBloc[numeroBlocSuppose][k];
+		      		}
+
+		      		mat[x - 1][y][z][k] += probaBloc[numeroBlocSuppose][k];
+		      		mat[x - 1][y][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];
+		      		
+
+		      		mat[x - 1][(y + 1) % hSize][z][k] += probaBloc[numeroBlocSuppose][k];
+		      		mat[x - 1][(y + 1) % hSize][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];
+		      	}
+		      		
+
+		      		
+		      		//
+		      	if (y >= 1) {
+		      		if (z >= 1) {
+		      			mat[(x + 1) % wSize][y - 1][z - 1][k] += probaBloc[numeroBlocSuppose][k];
+		      			mat[x][y - 1][z - 1][k] += probaBloc[numeroBlocSuppose][k];	
+		      		}
+		      		mat[x][y - 1][z][k] += probaBloc[numeroBlocSuppose][k];
+		      		mat[x][y - 1][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];
+
+	      			mat[(x + 1) % wSize][y - 1][z][k] += probaBloc[numeroBlocSuppose][k];
+	      			mat[(x + 1) % wSize][y - 1][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];
+	      		
+		      	}
+
+	      		if (z >= 1) {
+	      			mat[x][y][z - 1][k] += probaBloc[numeroBlocSuppose][k];
+	      			mat[x][(y + 1) % hSize][z - 1][k] += probaBloc[numeroBlocSuppose][k];
+	      			mat[(x + 1) % wSize][y][z - 1][k] += probaBloc[numeroBlocSuppose][k];
+	      			mat[(x + 1) % wSize][(y + 1) % hSize][z - 1][k] += probaBloc[numeroBlocSuppose][k];
+	      		}
+
+	      		mat[x][y][z][k] += probaBloc[numeroBlocSuppose][k];
+	      		mat[x][y][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];
+	      		
+	      		mat[x][(y + 1) % hSize][z][k] += probaBloc[numeroBlocSuppose][k];
+	      		mat[x][(y + 1) % hSize][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];
+		      		
+		      	//
+
+	      		mat[(x + 1) % wSize][y][z][k] += probaBloc[numeroBlocSuppose][k];
+	      		mat[(x + 1) % wSize][y][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];
+	      		
+	      		mat[(x + 1) % wSize][(y + 1) % hSize][z][k] += probaBloc[numeroBlocSuppose][k];
+	      		mat[(x + 1) % wSize][(y + 1) % hSize][(z + 1) % dSize][k] += probaBloc[numeroBlocSuppose][k];   
+		    }
+
+    
+		    // Normalisation - Le vecteur mat contient un vecteur de probabilité d'apparitions de chaque cubes. 
+		    for (int k = 0; (k < CubeTypes::SIZE_CT); ++k) {
+			    sum += mat[x][y][z][k];
+			}
+		
+	        if (sum == 0) { 
+	        	std::cout <<x<<y<<z<< "sum = 0" << std::endl;
+				//assert(sum == 0);
+	            sum = 1.0;
+		    }
+
+
+
+
+
+
+
+
+
+
+
+		    // Collision
+
+		    /*
+bool isOverTextureHeight(GLfloat x, GLfloat y, GLfloat z) {
+	unsigned int hSize = testVox->map.height();
+	unsigned int wSize = testVox->map.width();
+	unsigned int dSize = testVox->map.depth();
+    // On transforme les coordonée 3D en coordonnées images
+    //return true;
+    
+    unsigned int xp = x / testVox->voxelSize[0]; //x * wSize;
+    unsigned int yp = y / testVox->voxelSize[1];// * hSize;
+	unsigned int zp = z / testVox->voxelSize[2];// * dSize;
+
+    // Lecture du pixel
+    if((xp < wSize) && (yp < hSize) && (zp < dSize)) {
+    	std::cout<< (testVox->map(xp, yp, zp, MapChannels::BLOC))<< std::endl;
+    	return (testVox->map(xp, yp, zp, MapChannels::BLOC) == CubeTypes::AIR);
+        //cout << y  << " : " << groundHeight[xp][yp];
+        //return (y > groundHeight[xp][yp]);
+    } else {
+    	std::cout <<"on est dehors :" << x << " " << y << " " << z << std::endl;
+        return true;
+    }
+    
+    return true;
+}
+*/
+
+/*
+bool testCollisionSegmentExtended(glm::vec3 nextPosition) {
+	glm::vec3 biais = glm::vec3(0.2,0,0.2);
+	
+	double size = testVox->voxelSize[0];
+	// On transforme les coordonée 3D en coordonnées images	
+	glm::vec3 currentCamPosition = cam.getPosition();
+	glm::vec3 currentIndices = getVoxMapIndicesByOpenGlPosition(currentCamPosition);
+	glm::vec3 nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
+	glm::vec3 directionGL = nextPosition - currentCamPosition;
+	glm::vec3 destination = currentCamPosition + directionGL;
+
+	std::vector<glm::vec3> edgeNeighborhood;
+	if ((directionGL.x > 0) && (directionGL.z > 0)) {
+		// AB - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		// BC - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, (currentIndices.z + 1) * size));
+		// BD - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 2) * size));
+		// BE - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+	} else if ((directionGL.x > 0) && (directionGL.z < 0)) {
+		// AB - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		// AF - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, currentIndices.z * size));
+		// AH - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		// AG - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z - 1)* size));
+	} else if ((directionGL.x < 0) && (directionGL.z < 0)) {
+		// AH - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		// HI - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z - 1) * size));
+		// HJ - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z) * size));
+		// HE - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+	} else if ((directionGL.x < 0) && (directionGL.z > 0)) {
+		// BE - Edge
+		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
+		// EL - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 2) * size));
+		// Ek - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z + 1) * size));
+		// HE - Edge
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
+		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
+	}
+	int nbEdge = edgeNeighborhood.size();
+	if (nbEdge == 0) {
+		return true;
+	} else {
+		nbEdge /= 2;
+		for (int k = 0; k < nbEdge; k += 2) {
+			int nextX = currentCamPosition.x;
+				if (edgeNeighborhood[k].x > currentCamPosition.x) {
+					++nextX;
+				}
+
+				if (edgeNeighborhood[k].x < currentCamPosition.x) {
+					--nextX;
+				}
+
+				int nextZ = currentCamPosition.z;
+				if (edgeNeighborhood[k].z > currentCamPosition.z) {
+					++nextZ;
+				}
+
+				if (edgeNeighborhood[k].z < currentCamPosition.z) {
+					--nextZ;
+				}
+				
+				glm::vec3 cubeIntersected = glm::vec3(currentIndices.x + nextX, currentIndices.y, currentIndices.z + nextZ);
+			if (intersection2DEdge(currentCamPosition + biais, currentCamPosition + destination + biais, edgeNeighborhood[k], edgeNeighborhood[k + 1])) {
+				
+				if (!isFluidCube(cubeIntersected)) {
+					std::cout << "Edge-extended collision dectection !" << std::endl;
+					return false;
+				}
+			}
+
+			if (intersection2DEdge(currentCamPosition - biais, currentCamPosition + destination - biais, edgeNeighborhood[k], edgeNeighborhood[k + 1])) {
+				
+				if (!isFluidCube(cubeIntersected)) {
+					std::cout << "Edge-extended collision dectection !" << std::endl;
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+*/
