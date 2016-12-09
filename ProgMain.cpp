@@ -463,8 +463,8 @@ void init(){
 	// Remplissage des Pipe-line (ensemble de shaders)
 	string forward_vertex = "./shaders/forward.vert";
 	string forward_fragment = "./shaders/forward.frag";
-	string shadowPT_vertex = "./shaders/shadowTex.vert";
-	string shadowPT_fragment = "./shaders/shadowTex.frag";
+	string shadowPT_vertex = "./shaders/instancedShadow.vert";
+	string shadowPT_fragment = "./shaders/instancedShadow.frag";
 	string instancedForward_vertex = "./shaders/instancedForward.vert";
 	string instancedForward_fragment = "./shaders/instancedForward.frag";
 
@@ -515,11 +515,6 @@ void init(){
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
 	context->lights.pos[0] = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
-	//context->lights.pos[1] = glm::vec4( 50.0f, 100.0f, 15.5f, 1.0f );
-	//context->lights.pos[2] = glm::vec4( 150.0f, 300.0f, 152.5f, 1.0f );
-	//context->lights.attenuation[2] = glm::vec4( 0.0f, 00.0f, 0.0f, 0.0f );
-	//context->lights.diffuse[0] = glm::vec4( 0.6f, 0.8f, 0.4f, 1.0f );
-	//context->lights.specular[0] = glm::vec4( 0.2f, 0.2f, 0.2f, 1.0f );
 	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
 	                                           width / (float)height,
 	                                           0.001f, 500.0f);
@@ -537,12 +532,11 @@ void init(){
 	glGenFramebuffers(1, &depthMapFBO);
 
 	//shadow map texture
-	const GLuint SHADOW_WIDTH = width, SHADOW_HEIGHT = width;
+	const GLuint SHADOW_WIDTH = width, SHADOW_HEIGHT = height;
 	
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
-	             SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width/2, height/2, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -559,9 +553,9 @@ void init(){
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//building light space infos
-	GLfloat near_plane = 1.0f, far_plane = 10.0f;
-	glm::mat4 lightProjection = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(glm::vec3(context->camera.pos), 
+	GLfloat near_plane = 1.0f, far_plane = 100.0f;
+	glm::mat4 lightProjection = glm::ortho(0.0f, (float)width, 0.0f, (float)height, near_plane, far_plane);
+	glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 300.0f, 10.0f), 
 	                                  glm::vec3(context->camera.target), 
 	                                  glm::vec3( 0.0f, 1.0f,  0.0f));
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -580,8 +574,6 @@ void init(){
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
-	//glEnable(GL_PROGRAM_POINT_SIZE);
-
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable( GL_BLEND );
 
@@ -597,31 +589,26 @@ void render(){
 
 	//render to depth map
 	//glCullFace(GL_FRONT);
-	/*
 	simpleShadowPipeline.bind();
 	context->bindUBO();
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
-	for( glMesh* mesh : meshes ){ mesh->render(); }
+	//testVox->render();
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	//glCullFace(GL_BACK);
-	*/
-	//phong render
-	//glClearColor(0.200f, 0.200f, 0.200f, 0.0);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	//glActiveTexture(GL_TEXTURE0 + 6);
-	//glBindTexture(GL_TEXTURE_2D, depthMap);
-	//instancedForwardPipeline.bind();
+
 	deferredRenderer.bindGeometryPipeline();
 	context->bindUBO();
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	testVox->render();
 
 	deferredRenderer.ssaoPass();
 	
 	deferredRenderer.bindLightPipeline();
+	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
+	glActiveTexture(GL_TEXTURE0 + 6);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+
 	deferredRenderer.basicLightPass();
 	/*
 	glActiveTexture(GL_TEXTURE0 + 6);

@@ -248,9 +248,9 @@ void GBuffer::build_SSAO_Kernel(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
-	std::vector<GLenum> DrawBuffers;
-	DrawBuffers.push_back(GL_COLOR_ATTACHMENT0);
-	glDrawBuffers(1, DrawBuffers.data());
+	//std::vector<GLenum> DrawBuffers;
+	//DrawBuffers.push_back(GL_COLOR_ATTACHMENT0);
+	//glDrawBuffers(1, DrawBuffers.data());
 
 	
 	//Creation of the blurred ssao ressources
@@ -262,7 +262,7 @@ void GBuffer::build_SSAO_Kernel(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
-	glDrawBuffers(1, DrawBuffers.data());
+	//glDrawBuffers(1, DrawBuffers.data());
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

@@ -51,6 +51,7 @@ vec4 fragNormal   = texture(normalsTexSampler, fragUV);
 vec4 fragSpecular = texture(specularTexSampler, fragUV) * vec4(0.5, 0.5, 0.5, 1.0);
 vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
 vec4 ambiantOcclusion = texture(ssaoTexSampler, fragUV);
+vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
 
 //vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
 //vec4 scene_ambient = vec4(0.3, 0.3, 0.3, 1.0) * fragDiffuse;
@@ -111,7 +112,7 @@ vec3 ApplyLight(int index) {
 	return ambient + attenuation*(diffuse + specular);
 	//return ambient + attenuation*(diffuse);
 
-	//float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
+	//float bias = max(0.05 * (1.0 - dot(fragNormal.rgb, L)), 0.005);
 	//float shadow = ShadowCalculation(lightSpaceFragPos,bias);
 	//return (ambient + (1.0 - shadow) * (diffuse + specular));
 }
@@ -120,15 +121,15 @@ vec3 ApplyLight(int index) {
 void main(){
 	if( fragPos.x == 0.0 && fragPos.y == 0.0 && fragPos.z == 0.0 ){ discard; }
 	vec3 linearColor = vec3(0.0);
-	//if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
-	//else{
+	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
+	else{
 		for( int i = 0; i < max_lights; ++i ){
 			if( lights.pos[i].w < 0.0 ){ continue; } //if light is used
 			linearColor += ApplyLight(i);
 		}
-		//}	
+	}	
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), 1.0);
-	//outColor = vec4(texture(positionTexSampler, fragUV));
+	//outColor = vec4(texture(shadowTexSampler, fragUV).r);
 }
