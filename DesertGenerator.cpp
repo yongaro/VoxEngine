@@ -122,7 +122,7 @@ DesertGenerator::~DesertGenerator() {}
 	double u = double(height) / maxHeight;
 	double v = double(height) / superMaxHeight;
 	if ((u < 8)) {
-		return 0.05;
+		return 0.00;
 	} else {
 		return 0.0;
 	}

@@ -58,7 +58,7 @@ void VoxMap::testMap(){
 		cubes[i].createOffsetUBO();
 	}
 	
-	MapGenerator *biome = new DesertGenerator();
+	MapGenerator *biome = new ArchipelGenerator();
 	biome->fill(map);
 	delete biome;
 
