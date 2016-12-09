@@ -129,7 +129,7 @@ void main() {
 	fragSpecular.w = mat.shininess; //real bad idea
 	
 	//writing data to framebuffer attachments
-	//outPos      = vec4(fragPos, 1.0); outPos.w = linearizeDepth(outPos.z);
+	outPos      = vec4(fragPos, 1.0); outPos.w = linearizeDepth(outPos.z);
 	outDiff     = fragDiffuse;
 	outEmissive = fragEmissive;
 	outNrm      = vec4(normal, 1.0);//normal;
