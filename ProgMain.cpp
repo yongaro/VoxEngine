@@ -2,6 +2,9 @@
 #include "camera.h"
 //#include "VoxMap.hpp"
 #include <string>
+
+#include <SDL2/SDL.h>
+
 using namespace std;
 
 
@@ -78,7 +81,9 @@ void initCamera(glContext* context) {
     cam.see(2.0f, 0.0f, 0.0f);
     cam.setSpeed(step);
     cam.setBoost(10.0f);
-    cam.setSensivity(0.3f);
+    cam.setSensivity(0.1f);
+    cam.setWidth(width);
+    cam.setHeight(height);
 }
 
 glm::vec3 getVoxMapIndicesByOpenGlPosition(glm::vec3& position) {
@@ -666,6 +671,8 @@ int main(int argc, char *argv[]) {
 	listen_glDebugMessage();
 	init();
 	SDL_GL_SetSwapInterval(0); //disable vSync for 60 fps cap on desktop monitors
+	//SDL_SetWindowGrab(window, SDL_TRUE);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	// Code pour réguler les FPS
 	//Keep track of the current frame
@@ -675,8 +682,11 @@ int main(int argc, char *argv[]) {
 	//The frame rate regulator
 	Timer fps;
 
+//SDL_ShowCursor(0);
+
 	while(!quitting) {
 		fps.start();
+		
 		while( SDL_PollEvent(&event) ) {
 			cam.update(event);
 			
@@ -709,28 +719,25 @@ int main(int argc, char *argv[]) {
 				case SDLK_DOWN :
 					downCam();
 	            break;
+
+
+				case SDLK_ESCAPE :
+					quitting = true;
+					break;
 				}
+
 			}
 			
+
+		//SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);/*ignorer l'entrée du warpMouse*/
+		//SDL_WarpMouseInWindow(NULL, width / 2, height / 2);
+		//SDL_EventState(SDL_MOUSEMOTION, SDL_ENABLE);
 			if(event.type == SDL_QUIT) { quitting = true; }
 			
-			if( event.type == SDL_MOUSEWHEEL ){
-				if( event.wheel.y < 0 ){
-					context->camera.pos.z += -0.5f; 
-				}
-				else{
-					context->camera.pos.z += 0.5f;
-				}
-
-				//context->globalUBO.view = glm::lookAt(context->camera.pos, context->camera.target, context->camera.up);
-				cam.use();
-				context->updateGlobalUniformBuffer();
-				updateMVP();
-			}
-
-			cam.use();
+			//cam.use();
 			context->updateGlobalUniformBuffer();
 			updateMVP();
+
 		}
 
 
@@ -761,9 +768,19 @@ int main(int argc, char *argv[]) {
 		//Sleep the remaining frame time 
 			SDL_Delay( ( 1000 / FRAMES_PER_SECOND ) - fps.get_ticks() );
 		}
+
+      
+		
 		useGravity(framespersecond);
-		//printf("%f\n", framespersecond);
+		cam.use();
+		context->updateGlobalUniformBuffer();
+		updateMVP();
+
+
+
 	}
+
+
 
 	SDL_DelEventWatch(watch, NULL);
 	SDL_GL_DeleteContext(gl_context);

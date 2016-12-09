@@ -1,6 +1,8 @@
 #ifndef SNOWVALLEYGENERATOR_HPP
 #define SNOWVALLEYGENERATOR_HPP
 
+#include "MapGenerator.hpp"
+
 #define cimg_display 0
 #include "CImg.h"
 

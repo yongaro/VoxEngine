@@ -8,7 +8,9 @@ using namespace std;
 Camera::Camera() :
     speed(.05f),
     theta(.0f),
-    phi(.0f)
+    phi(.0f),
+    circleX(0),
+    circleY (0)
 {}
 
 Camera::Camera(GLfloat x, GLfloat y, GLfloat z) {
@@ -18,6 +20,8 @@ Camera::Camera(GLfloat x, GLfloat y, GLfloat z) {
     booster = false;
     enabledMoves = false;
     this->endurance = 300;
+    circleX = 0;
+    circleY = 0;
 }
 
 
@@ -166,6 +170,14 @@ void Camera::setPhi(GLfloat phi) {
     this->phi = phi;
 }
 
+void Camera::setWidth(int w) {
+    this->width = w;
+}
+
+void Camera::setHeight(int h) {
+    this->height = h;
+}
+
 void Camera::setSpeed(GLfloat speed) {
     this->speed = speed;
 }
@@ -179,8 +191,10 @@ void Camera::setSensivity(GLfloat sensivity) {
 }
 
 void Camera::mouseMove(int x, int y) {
-   setTheta(x * sensivity);
-   setPhi(y * sensivity);
+    if ((x != 0) && (y != 0)) {
+        setTheta(x * sensivity);
+        setPhi(y * sensivity);   
+    }
 }
 
 // Gère les évenements SDL
@@ -204,15 +218,32 @@ void Camera::update(SDL_Event& event) {
 	} else if (event.type == SDL_MOUSEBUTTONDOWN) {
 		enabledMoves = true;
 	} else if (event.type == SDL_MOUSEMOTION) {
+        //cout << "A " << event.button.x << " " << event.button.y << endl;
+        //cout << "B " << event.motion.xrel << " " << event.motion.yrel << endl;
+   
+        // Si on est à 0, on prend les valeurs courantes
+       
+        circleX += event.motion.xrel;
+        circleY += event.motion.yrel;
+
+        //cout << circleX << " " << circleY << endl;
+        mouseMove(circleX,  circleY);
+        //mouseMove(event.motion.xrel,  event.motion.yrel);
+        //mouseMove(event.button.x,  event.button.y);
+        
+    
 		if (enabledMoves) {
-			mouseMove(event.button.x, event.button.y);
+			//mouseMove(event.button.x, event.button.y);
 		}
-	}
+	} else {
+        cout << "il se passe rien" << endl;
+    }
+
 }
 
 
 void Camera::use() {
-	if (booster) {
+   if (booster) {
 		if (this->endurance <= 5) {
 			setBooster(false);
 		} else {

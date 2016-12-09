@@ -12,6 +12,11 @@ class Camera {
         glm::vec3 left;
 
         glm::mat4* context;
+        int width;
+        int height;
+
+        int circleX;
+        int circleY;
 
         GLfloat speed;
         GLfloat sensivity;
@@ -65,6 +70,8 @@ class Camera {
 
         // Settings
         void setBooster(bool);
+        void setHeight(int);
+        void setWidth(int);
         void setSpeed(GLfloat);
         void setSensivity(GLfloat);
         void setBoost(GLfloat);
