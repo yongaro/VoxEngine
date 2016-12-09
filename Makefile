@@ -61,6 +61,9 @@ clean:
 	@rm -f ./*~
 	@rm -f ./shaders/*~
 	@rm -rf ./$(shadersDir)/SPIR-V
+	@rm -rf ./maMap.img
+	@rm -rf ./maMap.hdr
+	@rm -rf ./maMap
 
 
 # $@ nom de la cible
