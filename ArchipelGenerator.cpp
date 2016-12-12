@@ -117,9 +117,7 @@ ArchipelGenerator::~ArchipelGenerator() {}
 }
 
   double ArchipelGenerator::getProbaWater(int height, int maxHeight, int superMaxHeight) const {
-	double u = double(height) / maxHeight;
 	double v = double(height) / superMaxHeight;
-	
 	if (v < 0.5) {
 		return 1;
 	} else {

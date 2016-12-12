@@ -66,11 +66,43 @@ void Camera::toForward() {
     double v = getRealSpeed();
     position.x += forward.x * v;
     position.z += forward.z * v;
+/*
+        int xInt = position.x;
+    if (position.x - xInt < 0.1) {
+        position.x = xInt + 0.1;
+    } else if (position.x - xInt > 0.9) {
+        position.x = xInt + 0.9;
+    }
+    
+    int yInt = position.z;
+    if (position.z - yInt < 0.1) {
+        position.z = yInt + 0.1;
+    } else if (position.z - yInt > 0.9) {
+        position.z = yInt + 0.9;
+    }
+    */
 }
 
 glm::vec3 Camera::forwardPosition() const {
     double v = getRealSpeed();
-    return glm::vec3(position.x +  forward.x * v, position.y, position.z +  forward.z * v);
+    glm::vec3 nextPos = glm::vec3(position.x +  forward.x * v, position.y, position.z +  forward.z * v); 
+  /*  
+    int xInt = nextPos.x;
+    if (nextPos.x - xInt < 0.1) {
+        nextPos.x = xInt + 0.1;
+    } else if (nextPos.x - xInt > 0.9) {
+        nextPos.x = xInt + 0.9;
+    }
+    
+    int yInt = nextPos.z;
+    if (nextPos.z - yInt < 0.1) {
+        nextPos.z = yInt + 0.1;
+    } else if (nextPos.z - yInt > 0.9) {
+        nextPos.z = yInt + 0.9;
+    }
+    
+*/
+    return nextPos;
 }
 
 void Camera::toBackward() {
@@ -218,27 +250,10 @@ void Camera::update(SDL_Event& event) {
 	} else if (event.type == SDL_MOUSEBUTTONDOWN) {
 		enabledMoves = true;
 	} else if (event.type == SDL_MOUSEMOTION) {
-        //cout << "A " << event.button.x << " " << event.button.y << endl;
-        //cout << "B " << event.motion.xrel << " " << event.motion.yrel << endl;
-   
-        // Si on est à 0, on prend les valeurs courantes
-       
         circleX += event.motion.xrel;
         circleY += event.motion.yrel;
-
-        //cout << circleX << " " << circleY << endl;
         mouseMove(circleX,  circleY);
-        //mouseMove(event.motion.xrel,  event.motion.yrel);
-        //mouseMove(event.button.x,  event.button.y);
-        
-    
-		if (enabledMoves) {
-			//mouseMove(event.button.x, event.button.y);
-		}
-	} else {
-        cout << "il se passe rien" << endl;
-    }
-
+	}
 }
 
 
@@ -257,7 +272,21 @@ void Camera::use() {
     // Recalcul des coordonées position - vue
     vectorsFromAngles();
     target = position + forward;
-
+    /*
+    int xInt = position.x;
+    if (position.x - xInt < 0.05) {
+        position.x = xInt + 0.15;
+    } else if (position.x - xInt > 0.95) {
+        position.x = xInt + 1.2;
+    }
+    
+    int yInt = position.z;
+    if (position.z - yInt < 0.05) {
+        position.z = yInt + 0.15;
+    } else if (position.z - yInt > 0.95) {
+        position.z = yInt + 1.2;
+    }
+    */
     *context = glm::lookAt(
         glm::vec3(position.x, position.y, position.z),
         glm::vec3(target.x, target.y, target.z),

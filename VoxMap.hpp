@@ -5,6 +5,10 @@
 
 #define cimg_display 0
 #include "CImg.h"
+#include "MapGenerator.hpp"
+
+#include <vector>
+#include <string>
 
 //Regroupement des cubes par matériaux
 enum CubeTypes{  AIR, ADMINIUM, CACTUS, COAL, DIAMOND, DIRT, FOLLIAGE, GLOWSTONE, GOLD,
@@ -31,6 +35,10 @@ public:
 	std::vector< InstanceInfos > instances;
 	GLuint mapSSBO;
 	
+
+	std::vector<MapGenerator*> bioms;
+	std::vector<std::string> biomName;
+
 	VoxMap();
 	virtual ~VoxMap();
 	virtual void save(std::string&);
@@ -38,7 +46,8 @@ public:
 	virtual void newMap(int,int,int);
 	virtual cimg_library::CImg<bool> getMapObjects();
 	virtual void getMapOutline(cimg_library::CImg<bool>&,cimg_library::CImg<bool>&);
-	virtual void testMap();
+	virtual void testMap(std::vector<std::string>&);
+	virtual void genereMap(MapGenerator*, std::string);
 	virtual void render();
 	virtual glm::vec3 getCamPos();
 	virtual void loadVoxel(std::string&,std::string&);

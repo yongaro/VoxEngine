@@ -29,41 +29,7 @@ float framespersecond;
 const int FRAMES_PER_SECOND = 1000000;
 double step = 0.2f;
 
-bool intersection2DEdge (glm::vec3 A, glm::vec3 B, glm::vec3 I, glm::vec3 P) {
 
-	
-	glm::vec3 D,E;
-
-   D.x = B.x - A.x;
-
-   D.y = B.y - A.y;
-
-   E.x = P.x - I.x;
-
-   E.y = P.y - I.y;
-   double t, u;
-
-   double denom = D.x*E.y - D.y*E.x;
-
-   if (denom==0)
-
-       return -1;   // erreur, cas limite
-
-   t = - (A.x*E.y-I.x*E.y-E.x*A.y+E.x*I.y) / denom;
-
-   if (t<0 || t>=1)
-
-      return 0;
-
-   u = - (-D.x*A.y+D.x*I.y+D.y*A.x-D.y*I.x) / denom;
-
-   if (u<0 || u>=1)
-
-      return 0;
-
-   return 1;
-  
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Camera cam;
 
@@ -88,9 +54,9 @@ void initCamera(glContext* context) {
 
 glm::vec3 getVoxMapIndicesByOpenGlPosition(glm::vec3& position) {
 	return glm::vec3(
-		ceil((position.x) / testVox->voxelSize[0]),
+		floor((position.x) / testVox->voxelSize[0]),
 		position.y / testVox->voxelSize[1],
-		ceil((position.z) / testVox->voxelSize[2])
+		floor((position.z) / testVox->voxelSize[2]) 
 	);
 }
 
@@ -111,203 +77,15 @@ bool isFluidCube (glm::vec3& indicesVoxMap) {
 	return ((type == CubeTypes::AIR) || (type == CubeTypes::WATER));
 }
 
-// inutilisé
-bool testCollisionSegment(glm::vec3 nextPosition) {
-	double semiEpaisseur = 0.5;
-	glm::vec4 cameraCollider (cam.getX() - semiEpaisseur, cam.getZ() - semiEpaisseur, 2 * semiEpaisseur, 2 * semiEpaisseur);
-
-	double size = testVox->voxelSize[0];
-	// On transforme les coordonée 3D en coordonnées images	
-	glm::vec3 currentCamPosition = cam.getPosition();
-	glm::vec3 currentIndices = getVoxMapIndicesByOpenGlPosition(currentCamPosition);
-	glm::vec3 nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
-	glm::vec3 directionGL = nextPosition - currentCamPosition;
-	glm::vec3 destination = currentCamPosition + directionGL;
-
-	//std::cout << "directionGL :" << directionGL.x << " " << directionGL.y << " " << directionGL.z << std::endl;
-	std::vector<glm::vec3> edgeNeighborhood;
-	if ((directionGL.x > 0) && (directionGL.z > 0)) {
-		// AB - Edge
-
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		// BC - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, (currentIndices.z + 1) * size));
-		// BD - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 2) * size));
-		// BE - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
-
-/*
-		// AB - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		// AF - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, currentIndices.z * size));
-		// AH - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		// AG - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z - 1)* size));
-
-		// AH - Edge
-
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		// HI - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z - 1) * size));
-		// HJ - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z) * size));
-		// HE - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
-
-		// BE - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
-		// EL - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 2) * size));
-		// Ek - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z + 1) * size));
-		// HE - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
-*/
-	} /*else if ((directionGL.x > 0) && (directionGL.z < 0)) {
-		// AB - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		// AF - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x + 1) * size, 0, currentIndices.z * size));
-		// AH - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		// AG - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z - 1)* size));
-	} else if ((directionGL.x > 0) && (directionGL.z > 0)) {
-		// AH - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		// HI - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z - 1) * size));
-		// HJ - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z) * size));
-		// HE - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
-	} else if ((directionGL.x < 0) && (directionGL.z > 0)) {
-		// BE - Edge
-		edgeNeighborhood.push_back(glm::vec3(currentIndices.x * size, 0, (currentIndices.z + 1) * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));
-		// EL - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 2) * size));
-		// Ek - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 2) * size, 0, (currentIndices.z + 1) * size));
-		// HE - Edge
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, currentIndices.z * size));
-		edgeNeighborhood.push_back(glm::vec3((currentIndices.x - 1) * size, 0, (currentIndices.z + 1) * size));	
-	}*/
-	int nbEdge = edgeNeighborhood.size();
-	if (nbEdge == 0) {
-		//std::cout << "aucune aretes" << std::endl;
-		return true;
-	} else {
-
-		//std::cout << "on a des aretes" << std::endl;
-		for (int k = 0; k < nbEdge; k += 2) {
-			int nextX = currentIndices.x;
-				
-			int nextZ = currentIndices.z;
-	
-			switch (k) {
-				case 0:
-				nextX++;
-				break;
-				case 2:
-				nextZ++;
-				break;
-			}			
-				//std::cout << "Cube actuel :" << currentIndices.x << " " << currentIndices.y << " " <<  currentIndices.z << " " << std::endl;
-				glm::vec3 cubeIntersected = glm::vec3(nextX, currentIndices.y, nextZ);
-
-				std::cout << "Cube Intersecté :" << cubeIntersected.x << " " << cubeIntersected.y << " " <<  cubeIntersected.z << " " << std::endl;
-			if (intersection2DEdge(currentCamPosition, destination, edgeNeighborhood[k], edgeNeighborhood[k + 1])) {
-				//std::cout << "intersection----------------------------------------------------------------------------------------------" <<std::endl;
-				if (!isFluidCube(cubeIntersected)) {
-				//	std::cout << "Edge collision dectection !" << std::endl;
-					return false;
-				}
-			}
-		}
-	}
-	return true;
-}
 
 // true -> movement accepted
 bool isOverTextureHeight(glm::vec3 nextPosition) {
-	double size = testVox->voxelSize[0];
-	// On transforme les coordonée 3D en coordonnées images	
-	glm::vec3 currentCamPosition = cam.getPosition();
-	glm::vec3 currentForwad = cam.getForward();
-
-	//currentCamPosition += currentForwad;
-
-	glm::vec3 currentIndices = getVoxMapIndicesByOpenGlPosition(currentCamPosition);
+	bool isOkay = true;
 	glm::vec3 nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
-	glm::vec3 directionGL = nextPosition - currentCamPosition;
-	glm::vec3 destination = currentCamPosition + directionGL;
-/*
-	std::cout << "indice courant :" << currentIndices.x << " " << currentIndices.y << " " << currentIndices.z << std::endl;
-	std::cout << "indice prochain :" << nextIndices.x << " " << nextIndices.y << " " << nextIndices.z << std::endl;
-	std::cout << "position courante :" << currentCamPosition.x << " " << currentCamPosition.y << " " << currentCamPosition.z << std::endl;
-	std::cout << "position prochaine :" << destination.x << " " << destination.y << " " << destination.z << std::endl;
-
-*/	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
-		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
-		return false;
-	}
-	nextPosition += glm::vec3(0.2,0.0,0.0);
-	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
 	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
-		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
-		return false;
+		isOkay = false;
 	}
-	nextPosition += glm::vec3(-0.6,0.0,0.0);
-	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
-	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
-		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
-		return false;
-	}
-	nextPosition += glm::vec3(0.4,0.0, 0.5);
-	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
-	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
-		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
-		return false;
-	}
-	nextPosition += glm::vec3(0.0,0.0,-1.5);
-	nextIndices = getVoxMapIndicesByOpenGlPosition(nextPosition);
-	if (!(isInsideMap(nextIndices) && isFluidCube(nextIndices))) {
-		//return testCollisionSegment(nextPosition);// && testCollisionSegmentExtended(nextPosition));
-		return false;
-	} /*else {
-		return false;
-	}*/
-	return true;
+	return isOkay;
 }
 
 void forwardCam() {
@@ -417,7 +195,7 @@ static SDL_GLContext gl_context;
 void updateMVP(){ for( glMesh* mesh : meshes ){ mesh->updateMVP(context->globalUBO.proj, context->globalUBO.view); } }
 void listen_glDebugMessage();
 
-void init(){
+void init(std::vector<string>& args){
 	GLint infoValue = 0;
 	cout << "\e[1;33m---- Global infos ----\e[0m" << endl; 
 	cout << glGetString(GL_RENDERER) << endl;
@@ -461,7 +239,7 @@ void init(){
 	std::string cubeName = "cube.obj";
 	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
 	testVox->newMap(128,128,256);
-	testVox->testMap(); // remplissage test
+	testVox->testMap(args); // remplissage test
 
 	std::cout << "DONE" << std::endl;
 	
@@ -587,6 +365,33 @@ void init(){
 
 
 
+void glBlitOnScreen() {
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+//  glBindTexture(... your texture here ...);
+
+  glBegin(GL_QUADS); {
+    //glTexCoords2i(0,0); 
+    glVertex2i(-1,-1);
+    //glTexCoords2i(1,0); 
+    glVertex2i( 1,-1);
+    //glTexCoords2i(1,1);
+     glVertex2i( 1, 1);
+    //glTexCoords2i(0,1);
+     glVertex2i(-1, 1);
+  } glEnd();
+
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+}
+
 
 void render(){
 	SDL_GL_MakeCurrent(window, gl_context);
@@ -623,7 +428,7 @@ void render(){
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
 	for( glMesh* mesh : meshes ){ mesh->render(); }
 	*/
-	
+	//glBlitOnScreen();
 	glFlush();
 	SDL_GL_SwapWindow(window);
 }
@@ -668,8 +473,17 @@ int main(int argc, char *argv[]) {
 	gl_context = SDL_GL_CreateContext(window);
 	SDL_AddEventWatch(watch, NULL);
 	glewInit();
+
 	listen_glDebugMessage();
-	init();
+
+
+	std::vector<string> args;
+	for (int i=1; i < argc; ++i) {
+		args.push_back(string(argv[i]));
+	}
+	init(args);
+	
+
 	SDL_GL_SetSwapInterval(0); //disable vSync for 60 fps cap on desktop monitors
 	//SDL_SetWindowGrab(window, SDL_TRUE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);

@@ -1,17 +1,67 @@
 #include "VoxMap.hpp"
 #include <assert.h>
+
+#include <vector>
+#include <string>
+
 #include "biome.hpp"
+
 
 VoxMap::VoxMap(){
 	voxelSize[0] = 2.0f;
 	voxelSize[1] = 2.0f;
 	voxelSize[2] = 2.0f;
 	maxLightLevel = 15;
-}
-VoxMap::~VoxMap(){}
 
-void VoxMap::save(std::string& path){ map.save_analyze(path.c_str(),voxelSize); }
-void VoxMap::load(std::string& path){  map.load_analyze(path.c_str(),voxelSize); }
+
+	biomName.push_back("default");
+	bioms.push_back(new MapGenerator());
+
+	biomName.push_back("valley");
+	bioms.push_back(new MapGenerator());
+
+
+	biomName.push_back("desert");
+	bioms.push_back(new DesertGenerator());
+
+
+	biomName.push_back("archipel");
+	bioms.push_back(new ArchipelGenerator());
+
+
+	biomName.push_back("mangrove");
+	bioms.push_back(new MangroveGenerator());
+
+
+	biomName.push_back("prairie");
+	bioms.push_back(new PrairieGenerator());
+
+
+	biomName.push_back("snowPrairie");
+	bioms.push_back(new SnowPrairieGenerator());
+
+
+	biomName.push_back("snowValley");
+	bioms.push_back(new SnowValleyGenerator());
+}
+
+VoxMap::~VoxMap(){
+	int size = bioms.size();
+	for (int i = 0; i < size; ++i) {
+		delete bioms[i];
+	}
+}
+
+void VoxMap::save(std::string& path) { 
+	std::string repositoryPath = "Map/" + path;
+	std::cout << repositoryPath << std::endl;
+	map.save_analyze(repositoryPath.c_str(),voxelSize);
+}
+
+void VoxMap::load(std::string& path) {
+	map.load_analyze(path.c_str(), voxelSize);
+}
+
 void VoxMap::newMap(int width, int height, int depth){
 	map = cimg_library::CImg<unsigned char>(width,height,depth,2,0x0);
 	voxelSize[0] = 2.0f;
@@ -50,7 +100,12 @@ void VoxMap::getMapOutline(cimg_library::CImg<bool>& dil, cimg_library::CImg<boo
 }
 
 
-void VoxMap::testMap(){
+void VoxMap::genereMap(MapGenerator* biome, std::string name) {
+	biome->fill(map);
+	save(name);
+}
+
+void VoxMap::testMap(std::vector<std::string>& args){
 	createInstanceSSBO();
 	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
 		cubes[i].maxNbInstances = map.width()*map.height()*map.depth();
@@ -58,12 +113,41 @@ void VoxMap::testMap(){
 		cubes[i].createOffsetUBO();
 	}
 	
-	MapGenerator *biome = new ArchipelGenerator();
-	biome->fill(map);
-	delete biome;
+	
+	if ((args.size() >= 2)) { 
+		if (args[0] == "load") {
+			try {
+				args[1] += ".hdr";
+				args[1].insert(0, "Map/");
+				map.load(args[1].c_str());
+			} catch (cimg_library::CImgIOException e) {
+				genereMap(bioms[0], "maMap");
+			}
+		} else if (args[0] == "new") {
+			if (args.size() >= 3) {
+				// Get the standard biom
+				MapGenerator* biom = bioms[0];
+				int size = bioms.size();
+				bool match = false;
 
-  std::string name = "maMap";
-  save(name);
+				for (int i = 1; (i < size) && !match; ++i) {
+					if (biomName[i] == args[2]) {
+						biom = bioms[i];
+						match = true;
+					}
+				}
+
+				genereMap(biom, args[1]);
+			} else {
+				genereMap(bioms[0], args[1]);
+			}
+		} else {
+			genereMap(bioms[0], "maMap");
+		}
+	} else {
+		genereMap(bioms[0], "maMap");
+	}
+	
 /*
 
 	for( int z = 0; z < map.depth(); ++z ){
