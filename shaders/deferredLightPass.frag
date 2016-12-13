@@ -106,7 +106,7 @@ vec3 ApplyLight(int index) {
 	//diffuse
 	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*25.0)  * lights.specular[index].rgb * fragSpecular.rgb;
+	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*5.0)  * lights.specular[index].rgb * fragSpecular.rgb;
 
 	//linear color (color before gamma correction)
 	return ambient + attenuation*(diffuse + specular);

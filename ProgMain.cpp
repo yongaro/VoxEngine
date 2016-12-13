@@ -152,6 +152,8 @@ glPipeline SSAOBlur_Pipeline;
 
 glDeferredRenderer deferredRenderer(width,height);
 
+bool useDeferredRendering = true;
+
 /**
 *	shadow map structs
 */
@@ -337,32 +339,6 @@ void init(std::vector<string>& args){
 
 
 
-void glBlitOnScreen() {
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-  glLoadIdentity();
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-  glLoadIdentity();
-
-//  glBindTexture(... your texture here ...);
-
-  glBegin(GL_QUADS); {
-    //glTexCoords2i(0,0); 
-    glVertex2i(-1,-1);
-    //glTexCoords2i(1,0); 
-    glVertex2i( 1,-1);
-    //glTexCoords2i(1,1);
-     glVertex2i( 1, 1);
-    //glTexCoords2i(0,1);
-     glVertex2i(-1, 1);
-  } glEnd();
-
-  glPopMatrix();
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glMatrixMode(GL_MODELVIEW);
-}
 
 
 void render(){
@@ -380,36 +356,28 @@ void render(){
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	//glCullFace(GL_BACK);
 
-	/*
-	glClearColor(0.27f, 0.51f, 0.71f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	instancedForwardPipeline.bind();
-	context->bindUBO();
-	testVox->render();
-	*/
-	
-	deferredRenderer.bindGeometryPipeline();
-	context->bindUBO();
-	testVox->render();
+	if( useDeferredRendering ){	
+		deferredRenderer.bindGeometryPipeline();
+		context->bindUBO();
+		testVox->render();
 
-	deferredRenderer.ssaoPass();
+		deferredRenderer.ssaoPass();
 	
-	deferredRenderer.bindLightPipeline();
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
-	glActiveTexture(GL_TEXTURE0 + 6);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
+		deferredRenderer.bindLightPipeline();
+		glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
+		glActiveTexture(GL_TEXTURE0 + 6);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
 
-	deferredRenderer.basicLightPass();
-	
-	/*
-	glActiveTexture(GL_TEXTURE0 + 6);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	phongPipeline.bind();
-	context->bindUBO();
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
-	for( glMesh* mesh : meshes ){ mesh->render(); }
-	*/
-	//glBlitOnScreen();
+		deferredRenderer.basicLightPass();
+	}
+	else{
+		glClearColor(0.27f, 0.51f, 0.71f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		instancedForwardPipeline.bind();
+		context->bindUBO();
+		testVox->render();
+	}
+
 	glFlush();
 	SDL_GL_SwapWindow(window);
 }
@@ -490,7 +458,11 @@ int main(int argc, char *argv[]) {
 				case SDLK_z :
 					forwardCam();
 					break;
-					
+
+				case SDLK_w :
+					forwardCam();
+					break;
+
 				case SDLK_s :
 					rearwardCam();
 					break;
@@ -501,6 +473,14 @@ int main(int argc, char *argv[]) {
 					
 				case SDLK_q :
 					towardRightCam();
+	            break;
+
+	            case SDLK_a :
+					towardRightCam();
+	            break;
+
+	            case SDLK_p :
+					useDeferredRendering = !useDeferredRendering;
 	            break;
 	            
 				case SDLK_UP :
