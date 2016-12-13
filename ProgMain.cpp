@@ -26,7 +26,7 @@ float framespersecond;
 // This function gets called once on startup.
 
 // On régule le nombre de frame par seconde
-const int FRAMES_PER_SECOND = 1000000;
+const int FRAMES_PER_SECOND = 60;
 double step = 0.2f;
 
 
@@ -88,41 +88,13 @@ bool isOverTextureHeight(glm::vec3 nextPosition) {
 	return isOkay;
 }
 
-void forwardCam() {
-    if (isOverTextureHeight(cam.forwardPosition())) {     
-        cam.toForward();
-    }
-}
-
-void rearwardCam() {
-    if (isOverTextureHeight(cam.backwardPosition())) {
-        cam.toBackward();
-    }
-}
-
-void towardRightCam() {
-    if (isOverTextureHeight(cam.rightPosition())) {
-        cam.toRight();
-    }
-}
-
-void towardLeftCam() {
-    if (isOverTextureHeight(cam.leftPosition())) {
-        cam.toLeft();
-    }
-}
-
-void upCam() {
-    if (isOverTextureHeight(cam.upPosition())) {
-        cam.toUp();
-    }
-}
-
-void downCam() {
-    if (isOverTextureHeight(cam.downPosition())) {
-        cam.toDown();
-    }
-}
+//camera mouvements
+void forwardCam(){ if( isOverTextureHeight(cam.forwardPosition()) ){ cam.toForward(); } }
+void rearwardCam(){ if( isOverTextureHeight(cam.backwardPosition()) ){ cam.toBackward(); } }
+void towardRightCam(){ if( isOverTextureHeight(cam.rightPosition()) ){ cam.toRight(); } }
+void towardLeftCam(){ if( isOverTextureHeight(cam.leftPosition()) ){ cam.toLeft(); } }
+void upCam(){ if( isOverTextureHeight(cam.upPosition()) ){ cam.toUp(); } }
+void downCam(){ if (isOverTextureHeight(cam.downPosition()) ){ cam.toDown(); } }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void fpsinit() {
@@ -408,6 +380,14 @@ void render(){
 	glBindFramebuffer(GL_FRAMEBUFFER,0);
 	//glCullFace(GL_BACK);
 
+	/*
+	glClearColor(0.27f, 0.51f, 0.71f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	instancedForwardPipeline.bind();
+	context->bindUBO();
+	testVox->render();
+	*/
+	
 	deferredRenderer.bindGeometryPipeline();
 	context->bindUBO();
 	testVox->render();
@@ -420,6 +400,7 @@ void render(){
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 
 	deferredRenderer.basicLightPass();
+	
 	/*
 	glActiveTexture(GL_TEXTURE0 + 6);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
@@ -551,7 +532,7 @@ int main(int argc, char *argv[]) {
 			//cam.use();
 			context->updateGlobalUniformBuffer();
 			updateMVP();
-
+			
 		}
 
 
@@ -562,9 +543,7 @@ int main(int argc, char *argv[]) {
 			fpsthink();
 			windowName = "VoxEngine -- ";
 			windowName += std::to_string((size_t)framespersecond);
-			//windowName += " - ";
-			//windowName += std::to_string(fps.get_ticks());
-			windowName += " fps";
+			windowName += " - ";
 			SDL_SetWindowTitle(window, windowName.c_str());
 		}
 		if( frame % FRAMES_PER_SECOND == 1 )

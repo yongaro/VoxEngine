@@ -148,26 +148,7 @@ void VoxMap::testMap(std::vector<std::string>& args){
 		genereMap(bioms[0], "maMap");
 	}
 	
-/*
-
-	for( int z = 0; z < map.depth(); ++z ){
-		for( int y = 0; y < map.height(); ++y ){
-			for( int x = 0; x < map.width(); ++x ){
-				if( (size_t)y < CubeTypes::SIZE_CT ){
-					map(x,y,z,MapChannels::BLOC) = y;
-				}
-				else{ map(x,y,z,MapChannels::BLOC) = CubeTypes::AIR; }
-				map(x,y,z,MapChannels::LIGHT) = 0xFF;	
-			}
-		}
-	}
-*/
-	cimg_library::CImg<bool> mapObjects = getMapObjects();
-	cimg_library::CImg<bool> dilate = mapObjects.get_dilate(3);
-	cimg_library::CImg<bool> erode = mapObjects.get_erode(3);
-	getMapOutline(dilate,erode);
-	//
-	//fillVisibleCubes(120, hauteur[119][119], 120 );
+	fillVisibleCubes(map.width()-20, map.height()-20, map.depth()-20 );
 } 
 
 void VoxMap::render(){
@@ -208,78 +189,6 @@ void VoxMap::loadVoxel(std::string& path, std::string& name){
 }
 
 
-void VoxMap::diffuseLight( int x, int y, int z, unsigned char light, std::vector<PixelCoord>& stack ){
-	for( int i = -1; i < 2; ++i ){
-		for( int j = -1; j < 2; ++j ){
-			for( int k = -1; k < 2; ++k ){
-				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
-					if( light > 0 && !tempMap(x+i, y+j, z+k) ){
-						map(x+i, y+j, z+k, MapChannels::LIGHT) += light - 1;
-						tempMap(x+i, y+j, z+k) = true;
-						stack.push_back( PixelCoord(x+i,y+j,z+k) );
-					}
-				}
-			}
-		}
-	}
-}
-
-void VoxMap::undiffuseLight( int x, int y, int z, unsigned char light, std::vector<PixelCoord>& stack ){
-	for( int i = -1; i < 2; ++i ){
-		for( int j = -1; j < 2; ++j ){
-			for( int k = -1; k < 2; ++k ){
-				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
-					if( light > 0 && !tempMap(x+i, y+j, z+k) ){
-						map(x+i, y+j, z+k, MapChannels::LIGHT) -= light - 1;
-						tempMap(x+i, y+j, z+k) = true;
-						stack.push_back( PixelCoord(x+i,y+j,z+k) );
-					}
-				}
-			}
-		}
-	}
-}
-
-void VoxMap::addLight(size_t x, size_t y, size_t z, unsigned char light){
-	tempMap = cimg_library::CImg<bool>(map.width(), map.height(), map.depth(), 1, false);
-	std::vector<PixelCoord> stack;
-	std::vector<PixelCoord> stackBuffer;
-
-	//Initialisation
-	map(x,y,z,MapChannels::LIGHT) = light;
-	tempMap(x,y,z) = true;
-	diffuseLight((int)x, (int)y, (int)z, light , stack);
-
-	while( !stack.empty() ){
-		for( PixelCoord& pix : stack ){
-			diffuseLight((int)pix.x, (int)pix.y, (int)pix.z, map(pix.x, pix.y, pix.z, MapChannels::LIGHT), stackBuffer);
-		}
-		stack.clear();
-		stack = stackBuffer;
-		stackBuffer.clear();
-	}
-}
-
-void VoxMap::removeLight(size_t x, size_t y, size_t z, unsigned char light){
-	tempMap = cimg_library::CImg<bool>(map.width(), map.height(), map.depth(), 1, false);
-	std::vector<PixelCoord> stack;
-	std::vector<PixelCoord> stackBuffer;
-
-	//Initialisation
-	map(x,y,z,MapChannels::LIGHT) = light;
-	tempMap(x,y,z) = true;
-	undiffuseLight((int)x, (int)y, (int)z, light , stack);
-
-	while( !stack.empty() ){
-		for( PixelCoord& pix : stack ){
-			undiffuseLight((int)pix.x, (int)pix.y, (int)pix.z, map(pix.x, pix.y, pix.z, MapChannels::LIGHT), stackBuffer);
-		}
-		stack.clear();
-		stack = stackBuffer;
-		stackBuffer.clear();
-	}
-}
-
 void VoxMap::resetVisibleCubes(){
 	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
 		cubes[i].instances.clear();
@@ -288,7 +197,7 @@ void VoxMap::resetVisibleCubes(){
 
 
 bool VoxMap::seeThroughCubeType(size_t cubeType){
-	return cubeType == CubeTypes::AIR || cubeType == CubeTypes::FOLLIAGE || cubeType == CubeTypes::WATER; 
+	return cubeType == CubeTypes::AIR || cubeType == CubeTypes::WATER; 
 }
 
 void VoxMap::getVisibleNeighbors(int x, int y, int z, std::vector<PixelCoord>& stack){

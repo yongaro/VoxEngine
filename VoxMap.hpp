@@ -51,10 +51,6 @@ public:
 	virtual void render();
 	virtual glm::vec3 getCamPos();
 	virtual void loadVoxel(std::string&,std::string&);
-	virtual void diffuseLight(int, int, int, unsigned char, std::vector<PixelCoord>&);
-	virtual void undiffuseLight(int, int, int, unsigned char, std::vector<PixelCoord>&);
-	virtual void addLight(size_t, size_t, size_t, unsigned char);
-	virtual void removeLight(size_t, size_t, size_t, unsigned char);
 	virtual void resetVisibleCubes();
 	virtual bool seeThroughCubeType(size_t);
 	virtual void getVisibleNeighbors(int, int, int, std::vector<PixelCoord>&);
