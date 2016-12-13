@@ -111,7 +111,7 @@ vec3 ApplyLight(int index, vec3 surfaceColor, vec3 N) {
 	}
 
 	//ambient
-	vec3 ambient = scene_ambient.rgb * mat.Ka.rgb;
+	vec3 ambient = scene_ambient.rgb * mat.Ka.rgb * surfaceColor.rgb;
 	
 	//diffuse
 	vec3 diffuse = max(dot(N, L), 0.0) * surfaceColor.rgb * lights.diffuse[index].rgb * mat.Kd.rgb;
@@ -185,7 +185,7 @@ void main() {
 	//texture for diffuse lighting
 	if( features.list[0][0] > 0.0 ){ surfaceColor = texture(diffuseTexSampler, fragTexCoord); }
 	//else{ surfaceColor = vec4(1.0, 1.0, 1.0, 1.0); }
-	/*
+	
 	//combine color from all the lights
 	vec3 linearColor = vec3(0.0);
 	if( features.list[0][2] > 0.0 ){ linearColor = texture(emissiveTexSampler, fragTexCoord).rgb; }
@@ -195,9 +195,9 @@ void main() {
 			linearColor += ApplyLight(i, surfaceColor.rgb, normal);
 		}
 	}
-             */
+    
 	//final color with gamma correction
-	//vec3 gamma = vec3(1.0/2.2);
-	//outColor = vec4(pow(linearColor, gamma), surfaceColor.a);
-	outColor = vec4(surfaceColor);
+	vec3 gamma = vec3(1.0/2.2);
+	outColor = vec4(pow(linearColor, gamma), surfaceColor.a);
+	//outColor = vec4(surfaceColor);
 }
