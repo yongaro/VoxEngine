@@ -62,6 +62,7 @@ class Camera {
 
         glm::vec3 getPosition() const;
         glm::vec3 getForward() const;
+		glm::vec3 getTarget() const;
         GLfloat getX() const;
         GLfloat getY() const;
         GLfloat getZ() const;

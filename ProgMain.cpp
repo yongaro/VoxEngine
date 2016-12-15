@@ -276,7 +276,7 @@ void init(std::vector<string>& args){
 		std::string cubeName = "cube.obj";
 
 	 	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-	 	testVox->newMap(200,128,200);
+	 	testVox->newMap(128,128,128);
 		testVox->testMap(args); // remplissage test
 
 		mapManager.mapList.push_back(testVox);
@@ -403,7 +403,11 @@ void init(std::vector<string>& args){
 
 
 void addCube(){
-	mapManager.addBlock(cam.getPosition()+cam.getForward(), CubeTypes::GLOWSTONE, deferredRenderer, context);
+	glm::vec3 newPos = glm::normalize(cam.getForward());
+	float dist = 2.0f;
+	newPos.x *= dist; newPos.y *= dist; newPos.z *= dist;
+	newPos.x += cam.getPosition().x; newPos.y += cam.getPosition().y; newPos.z += cam.getPosition().z;
+	mapManager.addBlock(newPos, CubeTypes::GLOWSTONE, deferredRenderer, context);
 }
 
 

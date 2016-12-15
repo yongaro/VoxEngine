@@ -40,6 +40,9 @@ glm::vec3 Camera::getPosition() const {
 glm::vec3 Camera::getForward() const {
     return forward;
 }
+glm::vec3 Camera::getTarget() const{
+	return target;
+}
 
 void Camera::vectorsFromAngles() {
     static const glm::vec3 up(0,1,0);

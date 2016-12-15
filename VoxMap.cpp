@@ -199,7 +199,6 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 	resetVisibleCubes();
 	tempMap(x,y,z) = true;
 	getVisibleNeighbors((int)x, (int)y, (int)z, stack);
-	std::cout << stack.size() << std::endl;
 	
 	if( map(x, y, z, MapChannels::BLOC) < CubeTypes::SIZE_CT && map(x, y, z, MapChannels::BLOC) != CubeTypes::AIR ){
 		cubes[ map(x, y, z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
@@ -259,6 +258,7 @@ void VoxMap::addBlock(size_t x, size_t y, size_t z, CubeTypes type, glDeferredRe
 			renderer.addLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 			context->addLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 		}
+		map(x,y,z) = type;
 		fillSSBO();
 		//fillVisibleCubes(x,y,z);
 	}	
@@ -270,8 +270,9 @@ void VoxMap::removeBlock(size_t x, size_t y, size_t z, glDeferredRenderer& rende
 			renderer.removeLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 			context->removeLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 		}
-		fillSSBO();
-		//fillVisibleCubes(map.width()-20, map.height()-10, map.depth()-20 );
+		map(x,y,z) = CubeTypes::AIR;
+		//fillSSBO();
+		fillVisibleCubes(map.width()-20, map.height()-10, map.depth()-20 );
 	}
 }
 
@@ -305,7 +306,7 @@ void VoxMapManager::addBlock(glm::vec3 pos, CubeTypes type, glDeferredRenderer& 
 	for( VoxMap* map : mapList ){
 		if( map->isInMap(pos) ){
 			PixelCoord coord = map->mapCoord(pos);
-			map->addBlock(coord.z,coord.y,coord.z,type,renderer, context);
+			map->addBlock(coord.x,coord.y,coord.z,type,renderer, context);
 			break;
 		}
 	}
@@ -314,7 +315,7 @@ void VoxMapManager::removeBlock(glm::vec3 pos, glDeferredRenderer& renderer, glC
 	for( VoxMap* map : mapList ){
 		if( map->isInMap(pos) ){
 			PixelCoord coord = map->mapCoord(pos);
-			map->removeBlock(coord.z,coord.y,coord.z,renderer,context);
+			map->removeBlock(coord.x,coord.y,coord.z,renderer,context);
 			break;
 		}
 	}
