@@ -165,13 +165,13 @@ DesertGenerator::~DesertGenerator() {}
 	for (int y = hSize-1; y > 1; --y ) {
 	  	for (int z = 1; z < (dSize - 1); ++z ) {
 	    	for (int x = 1; x < (wSize - 1); ++x ) {
-	    		if (map(x, y, z, MapChannels::BLOC) == CubeTypes::WATER) {
+	    		if (map(x, y, z) == CubeTypes::WATER) {
 	    			for (int w = 0; w < 9; ++w) {
-    					if (map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR) {
-	    					map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::WATER;
+    					if (map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3)) == CubeTypes::AIR) {
+	    					map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3)) = CubeTypes::WATER;
 	    				}
-	    				if ((map(x - 1 + (w / 3), y,  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR) && ((rand() % 100 < 20))) {
-	    					map(x - 1 + (w / 3), y,  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::WATER;
+	    				if ((map(x - 1 + (w / 3), y,  z - 1 + (w %3)) == CubeTypes::AIR) && ((rand() % 100 < 20))) {
+	    					map(x - 1 + (w / 3), y,  z - 1 + (w %3)) = CubeTypes::WATER;
 	    				}	
     				}
 	    		}
@@ -189,14 +189,14 @@ DesertGenerator::~DesertGenerator() {}
 	for (int y = 0; y < (hSize-1); ++y ) {
 	  	for (int z = 0; z < dSize; ++z ) {
 	    	for (int x = 0; x < wSize; ++x ) {
-	    		if (map(x, y, z, MapChannels::BLOC) == CubeTypes::CACTUS && map(x, y + 1, z, MapChannels::BLOC) == CubeTypes::AIR) {
+	    		if (map(x, y, z) == CubeTypes::CACTUS && map(x, y + 1, z) == CubeTypes::AIR) {
 	    			int random = rand() % 100;
-	    			if (map(x, y - 4, z, MapChannels::BLOC) == CubeTypes::CACTUS) {	
+	    			if (map(x, y - 4, z) == CubeTypes::CACTUS) {	
 	    				if (random < 15) {
-	    					map(x, y + 1, z, MapChannels::BLOC) = CubeTypes::CACTUS;
+	    					map(x, y + 1, z) = CubeTypes::CACTUS;
 	    				}	
 	    			} else {
-    					map(x, y + 1, z, MapChannels::BLOC) = CubeTypes::CACTUS;
+    					map(x, y + 1, z) = CubeTypes::CACTUS;
 	    			} 
    	    		}
 
@@ -274,7 +274,7 @@ for( int y = 0; y < hSize; ++y ){
   for( int z = 0; z < dSize; ++z ){
     for( int x = 0; x < wSize; ++x ){
       	if (y == 0) {
-      		map(x, y, z, MapChannels::BLOC) = CubeTypes::ADMINIUM; 
+      		map(x, y, z) = CubeTypes::ADMINIUM; 
       	} else if (y <= hauteur[x][z]) {
 
       		// On déclare la variable qui déterminera le type de bloc
@@ -317,12 +317,11 @@ for( int y = 0; y < hSize; ++y ){
 		    }  
 		
 
-		    map(x, y, z, MapChannels::BLOC) = numeroBlocSuppose;
+		    map(x, y, z) = numeroBlocSuppose;
         } else { 
 
-          map(x, y,z,MapChannels::BLOC) = CubeTypes::AIR;
-        }
-        map(x,y,z,MapChannels::LIGHT) = 0xFF; 
+          map(x, y, z) = CubeTypes::AIR;
+        } 
       }
     }
   }

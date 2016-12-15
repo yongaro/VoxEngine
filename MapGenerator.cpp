@@ -284,6 +284,7 @@ MapGenerator::~MapGenerator() {}
 
 
  void MapGenerator::fill(cimg_library::CImg<unsigned char>& map) {
+ 	std::cout << "begin fill 2" << std::endl;
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -395,12 +396,12 @@ for( int y = 0; y < hSize; ++y ){
 		    }  
 		
 
-		    map(x, y, z, MapChannels::BLOC) = numeroBlocSuppose;
+		    map(x, y, z) = numeroBlocSuppose;
         } else { 
 
-          map(x, y,z,MapChannels::BLOC) = CubeTypes::AIR;
+          map(x, y,z) = CubeTypes::AIR;
         }
-        map(x,y,z,MapChannels::LIGHT) = 0xFF; 
+        //map(x,y,z) = 0xFF; 
       }
     }
   }

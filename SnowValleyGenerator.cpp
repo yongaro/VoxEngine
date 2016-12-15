@@ -178,10 +178,10 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
 	for (int y = hSize-1; y > 1; --y ) {
 	  	for (int z = 1; z < (dSize - 1); ++z ) {
 	    	for (int x = 1; x < (wSize - 1); ++x ) {
-	    		if (SnowValley(x, y, z, MapChannels::BLOC) == CubeTypes::WATER) {
+	    		if (SnowValley(x, y, z) == CubeTypes::WATER) {
 	    			for (int w = 0; w < 9; ++w) {
-    					if (SnowValley(x - 1 + (w / 3), y - 1,  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR) {
-	    					SnowValley(x - 1 + (w / 3), y - 1,  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::WATER;
+    					if (SnowValley(x - 1 + (w / 3), y - 1,  z - 1 + (w %3)) == CubeTypes::AIR) {
+	    					SnowValley(x - 1 + (w / 3), y - 1,  z - 1 + (w %3)) = CubeTypes::WATER;
 	    				}	
     				}
 	    		}
@@ -199,7 +199,7 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
    	for (int i = 0; i < wSize; ++i) {
    		for (int j = 0; j < hSize; ++j) {
    			for (int k = 0; k < dSize; ++k) {
-   				if (SnowValley(i,j,k, MapChannels::BLOC) == CubeTypes::FOLLIAGE) {
+   				if (SnowValley(i,j,k) == CubeTypes::FOLLIAGE) {
    					maskFolliage(i, j, k, 0) = true;
    				}
    			}
@@ -215,8 +215,8 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
 	    		if (maskFolliage(x, y, z, 0)) {
 	    			for (int w = 0; w < 27; ++w) {
 	    				int random = rand() % 100;
-    					if ((SnowValley(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR) && (random < 45)) {
-	    					SnowValley(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+    					if ((SnowValley(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3)) == CubeTypes::AIR) && (random < 45)) {
+	    					SnowValley(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3)) = CubeTypes::FOLLIAGE;
 	    				}	
     				}
 	    		}
@@ -233,51 +233,51 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
 	for (int y = 0; y < (hSize-1); ++y ) {
 	  	for (int z = 1; z < (dSize - 1); ++z ) {
 	    	for (int x = 1; x < (wSize - 1); ++x ) {
-	    		if (SnowValley(x, y, z, MapChannels::BLOC) == CubeTypes::WOOD && SnowValley(x, y + 1, z, MapChannels::BLOC) == CubeTypes::AIR) {
+	    		if (SnowValley(x, y, z) == CubeTypes::WOOD && SnowValley(x, y + 1, z) == CubeTypes::AIR) {
 	    			int random = rand() % 100;
-	    			if (SnowValley(x, y - 1, z, MapChannels::BLOC) != CubeTypes::WOOD) {
+	    			if (SnowValley(x, y - 1, z) != CubeTypes::WOOD) {
 	    				random = 90;
 	    			}
 
 	    			if (random < 35) {
-	    				SnowValley(x, y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				SnowValley(x, y + 1, z) = CubeTypes::FOLLIAGE;
 	    				
 	    				random = rand() % 4;
-	    				if (SnowValley(x + 1, y + 1,  z + 1, MapChannels::BLOC) == CubeTypes::AIR && random < 3) {
-	    					SnowValley(x + 1, y + 1, z + 1, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (SnowValley(x + 1, y + 1,  z + 1) == CubeTypes::AIR && random < 3) {
+	    					SnowValley(x + 1, y + 1, z + 1) = CubeTypes::FOLLIAGE;
 	    				}
 
 	    				random = rand() % 4;
-	    				if (SnowValley(x + 1, y + 1,  z - 1, MapChannels::BLOC) == CubeTypes::AIR && random < 2) {
-	    					SnowValley(x + 1, y + 1, z - 1, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (SnowValley(x + 1, y + 1,  z - 1) == CubeTypes::AIR && random < 2) {
+	    					SnowValley(x + 1, y + 1, z - 1 ) = CubeTypes::FOLLIAGE;
 	    				}
 	    				
-	    				if (SnowValley(x + 1, y + 1,  z , MapChannels::BLOC) == CubeTypes::AIR) {
-	    					SnowValley(x + 1, y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (SnowValley(x + 1, y + 1,  z  ) == CubeTypes::AIR) {
+	    					SnowValley(x + 1, y + 1, z ) = CubeTypes::FOLLIAGE;
 	    				}
 
 
 	    				// 
-	    				if (SnowValley(x , y + 1,  z, MapChannels::BLOC) == CubeTypes::AIR) {
-	    					SnowValley(x , y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (SnowValley(x , y + 1,  z ) == CubeTypes::AIR) {
+	    					SnowValley(x , y + 1, z ) = CubeTypes::FOLLIAGE;
 	    				}
 	    				
-	    				if (SnowValley(x - 1, y + 1,  z , MapChannels::BLOC) == CubeTypes::AIR) {
-	    					SnowValley(x - 1, y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (SnowValley(x - 1, y + 1,  z  ) == CubeTypes::AIR) {
+	    					SnowValley(x - 1, y + 1, z ) = CubeTypes::FOLLIAGE;
 	    				}
 
 	    				random = rand() % 4;
-	    				if (SnowValley(x - 1, y + 1,  z + 1, MapChannels::BLOC) == CubeTypes::AIR && random < 3) {
-	    					SnowValley(x - 1, y + 1, z + 1, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (SnowValley(x - 1, y + 1,  z + 1 ) == CubeTypes::AIR && random < 3) {
+	    					SnowValley(x - 1, y + 1, z + 1 ) = CubeTypes::FOLLIAGE;
 	    				}
 	    				
 
 	    			} else {
-	    				SnowValley(x, y + 1, z, MapChannels::BLOC) = CubeTypes::WOOD;
+	    				SnowValley(x, y + 1, z ) = CubeTypes::WOOD;
 	    				for (int w = 0; w < 9; ++w) {
 	    					random = rand() % 4;
-		    				if (SnowValley(x - 1 + (w / 3), y + 1,  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR && random < 2) {
-		    					SnowValley(x - 1 + (w / 3), y + 1,  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+		    				if (SnowValley(x - 1 + (w / 3), y + 1,  z - 1 + (w %3) ) == CubeTypes::AIR && random < 2) {
+		    					SnowValley(x - 1 + (w / 3), y + 1,  z - 1 + (w %3) ) = CubeTypes::FOLLIAGE;
 		    				}	
 	    				}
 	    			}
@@ -359,7 +359,7 @@ for( int y = 0; y < hSize; ++y ){
   for( int z = 0; z < dSize; ++z ){
     for( int x = 0; x < wSize; ++x ){
       	if (y == 0) {
-      		SnowValley(x, y, z, MapChannels::BLOC) = CubeTypes::ADMINIUM; 
+      		SnowValley(x, y, z ) = CubeTypes::ADMINIUM; 
       	} else if (y <= hauteur[x][z]) {
 
       		// On déclare la variable qui déterminera le type de bloc
@@ -402,12 +402,12 @@ for( int y = 0; y < hSize; ++y ){
 		    }  
 		
 
-		    SnowValley(x, y, z, MapChannels::BLOC) = numeroBlocSuppose;
+		    SnowValley(x, y, z ) = numeroBlocSuppose;
         } else { 
 
-          SnowValley(x, y,z,MapChannels::BLOC) = CubeTypes::AIR;
+          SnowValley(x, y,z) = CubeTypes::AIR;
         }
-        SnowValley(x,y,z,MapChannels::LIGHT) = 0xFF; 
+        //SnowValley(x,y,z,MapChannels::LIGHT) = 0xFF; 
       }
     }
   }

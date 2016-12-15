@@ -76,7 +76,7 @@ void VoxMap::genereMap(MapGenerator* biome, std::string name) {
 	save(name);
 }
 
-void VoxMap::testMap(std::vector<std::string>& args){
+void VoxMap::testMap(std::vector<std::string>& args) {
 	createInstanceSSBO();
 	for( size_t i = 0; i < CubeTypes::SIZE_CT; ++i ){
 		cubes[i].maxNbInstances = map.width()*map.height()*map.depth();
@@ -110,13 +110,18 @@ void VoxMap::testMap(std::vector<std::string>& args){
 
 				genereMap(biom, args[1]);
 			} else {
-				genereMap(bioms[0], args[1]);
+				int indexBiom = rand() % bioms.size();
+				genereMap(bioms[indexBiom], args[1]);
 			}
 		} else {
-			genereMap(bioms[0], "maMap");
+
+			int indexBiom = rand() % bioms.size();
+			genereMap(bioms[indexBiom], "maMap");
 		}
 	} else {
-		genereMap(bioms[0], "maMap");
+
+		int indexBiom = rand() % bioms.size();
+		genereMap(bioms[indexBiom], "maMap");
 	}
 	
 	fillVisibleCubes(map.width()-20, map.height()-10, map.depth()-20 );

@@ -2,6 +2,7 @@
 #include "camera.h"
 //#include "VoxMap.hpp"
 #include <string>
+#include <list>
 
 #include <SDL2/SDL.h>
 
@@ -207,7 +208,94 @@ void init(std::vector<string>& args){
 	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &infoValue);
 	cout << "GL_MAX_DRAW_BUFFERS -- " << infoValue << endl;
 	
+
+	testVox = new VoxMap(glm::vec3(0.0f,0.0f,0.0f));
+	std::vector<std::string> tempArgs;
+	std::string mapFile = "./testMap.hdr";
+	std::string cubePath = "./assets/cubes/";
+	std::string cubeName = "cube.obj";
+
+	int nbMap = 0;
+	list<string> li;
+	copy(args.begin(), args.end(),back_inserter(li));
 	// Map des voxels (wrapper Cimg)
+	if (li.front() == "multi") {
+		li.pop_front();
+		while (li.size() > 0) {
+			VoxMap* tempMap = NULL;
+			if (nbMap == 0) {
+				tempMap = testVox;
+			} else {
+				tempMap = new VoxMap(glm::vec3((nbMap / 2) * testVox->map.width()*testVox->voxelSize[0],0.0f, (nbMap % 2)* testVox->map.depth()*testVox->voxelSize[2]));		
+			}
+			tempMap->loadVoxel(cubePath,cubeName); // charge la forme du voxel
+			tempMap->newMap(64, 128 ,64);
+			
+			tempArgs.clear();
+			if (li.front() == "new") {
+				tempArgs.push_back("new");
+				li.pop_front();
+				if (li.size() > 0) {	
+					if (li.front() != "load" && li.front() != "new") {
+						// On a le nom de la map
+						tempArgs.push_back(li.front());
+						li.pop_front();
+						if (li.size() > 0) {	
+							if (li.front() != "load" && li.front() != "new") {
+								// On a le nom du biome
+								tempArgs.push_back(li.front());
+								li.pop_front();
+							} 	
+						}
+					} 	
+				}
+			} else if (li.front() == "load") {
+				tempArgs.push_back("load");
+				li.pop_front();
+				if (li.size() > 0) {	
+					if (li.front() != "load" && li.front() != "new") {
+						// On a le nom de la map
+						tempArgs.push_back(li.front());
+						li.pop_front();
+					}
+				}
+			}
+		
+			tempMap->testMap(tempArgs);
+			mapManager.mapList.push_back(tempMap);
+			++nbMap;
+		}
+		//tempArgs.push_back("new"); tempArgs.push_back("part1");
+		//testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
+		//testVox->newMap(64, 128 ,64);
+		//testVox->testMap(tempArgs); // remplissage test
+		
+		/*
+		VoxMap* tempMap = NULL;
+		tempArgs.push_back("new"); tempArgs.push_back("part2");
+		tempMap->testMap(tempArgs); // remplissage test
+		mapManager.mapList.push_back(tempMap);
+
+		tempArgs.clear();
+		tempArgs.push_back("new"); tempArgs.push_back("part3");
+		tempMap = new VoxMap(glm::vec3(0.0f,0.0f,testVox->map.depth()*testVox->voxelSize[2]));
+		tempMap->loadVoxel(cubePath,cubeName); // charge la forme du voxel
+		tempMap->newMap(64, 128 ,64);
+		tempMap->testMap(tempArgs); // remplissage test
+		mapManager.mapList.push_back(tempMap);
+		*/
+	} else {
+
+		std::string cubePath = "./assets/cubes/";
+		std::string cubeName = "cube.obj";
+
+	 	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
+	 	testVox->newMap(64,128,64);
+		testVox->testMap(args); // remplissage test
+
+		mapManager.mapList.push_back(testVox);
+	}
+/*
 	std::vector<std::string> tempArgs;
 	tempArgs.push_back("load"); tempArgs.push_back("archipel");
 	testVox = new VoxMap(glm::vec3(0.0f,0.0f,0.0f));
@@ -235,7 +323,12 @@ void init(std::vector<string>& args){
 	tempMap->newMap(64, 128 ,64);
 	tempMap->testMap(tempArgs); // remplissage test
 	mapManager.mapList.push_back(tempMap);
-	
+*/	
+
+	/*
+
+	*/
+
 	//testVox = tempMap;
 	std::cout << "DONE" << std::endl;
 	

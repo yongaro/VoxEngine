@@ -182,13 +182,13 @@ SnowPrairieGenerator::~SnowPrairieGenerator() {}
 	for (int y = hSize-1; y > 1; --y ) {
 	  	for (int z = 1; z < (dSize - 1); ++z ) {
 	    	for (int x = 1; x < (wSize - 1); ++x ) {
-	    		if (map(x, y, z, MapChannels::BLOC) == CubeTypes::WATER) {
+	    		if (map(x, y, z) == CubeTypes::WATER) {
 	    			for (int w = 0; w < 9; ++w) {
-    					if (map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR) {
-	    					map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::WATER;
+    					if (map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3)) == CubeTypes::AIR) {
+	    					map(x - 1 + (w / 3), y - 1,  z - 1 + (w %3)) = CubeTypes::WATER;
 	    				}
-	    				if ((map(x - 1 + (w / 3), y,  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR) && ((rand() % 100 > 50))) {
-	    					map(x - 1 + (w / 3), y,  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::WATER;
+	    				if ((map(x - 1 + (w / 3), y,  z - 1 + (w %3)) == CubeTypes::AIR) && ((rand() % 100 > 50))) {
+	    					map(x - 1 + (w / 3), y,  z - 1 + (w %3)) = CubeTypes::WATER;
 	    				}	
     				}
 	    		}
@@ -206,7 +206,7 @@ SnowPrairieGenerator::~SnowPrairieGenerator() {}
    	for (int i = 0; i < wSize; ++i) {
    		for (int j = 0; j < hSize; ++j) {
    			for (int k = 0; k < dSize; ++k) {
-   				if (map(i,j,k, MapChannels::BLOC) == CubeTypes::FOLLIAGE) {
+   				if (map(i,j,k) == CubeTypes::FOLLIAGE) {
    					maskFolliage(i, j, k, 0) = true;
    				}
    			}
@@ -222,8 +222,8 @@ SnowPrairieGenerator::~SnowPrairieGenerator() {}
 	    		if (maskFolliage(x, y, z, 0)) {
 	    			for (int w = 0; w < 27; ++w) {
 	    				int random = rand() % 100;
-    					if ((map(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR) && (random < 45)) {
-	    					map(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+    					if ((map(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3)) == CubeTypes::AIR) && (random < 45)) {
+	    					map(x - 1 + (w / 3), y - 1 + (w / 9),  z - 1 + (w %3)) = CubeTypes::FOLLIAGE;
 	    				}	
     				}
 	    		}
@@ -240,51 +240,51 @@ SnowPrairieGenerator::~SnowPrairieGenerator() {}
 	for (int y = 0; y < (hSize-1); ++y ) {
 	  	for (int z = 1; z < (dSize - 1); ++z ) {
 	    	for (int x = 1; x < (wSize - 1); ++x ) {
-	    		if (map(x, y, z, MapChannels::BLOC) == CubeTypes::WOOD && map(x, y + 1, z, MapChannels::BLOC) == CubeTypes::AIR) {
+	    		if (map(x, y, z) == CubeTypes::WOOD && map(x, y + 1, z) == CubeTypes::AIR) {
 	    			int random = rand() % 100;
-	    			if (map(x, y - 1, z, MapChannels::BLOC) != CubeTypes::WOOD) {
+	    			if (map(x, y - 1, z) != CubeTypes::WOOD) {
 	    				random = 90;
 	    			}
 
 	    			if (random < 35) {
-	    				map(x, y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				map(x, y + 1, z) = CubeTypes::FOLLIAGE;
 	    				
 	    				random = rand() % 4;
-	    				if (map(x + 1, y + 1,  z + 1, MapChannels::BLOC) == CubeTypes::AIR && random < 3) {
-	    					map(x + 1, y + 1, z + 1, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (map(x + 1, y + 1,  z + 1) == CubeTypes::AIR && random < 3) {
+	    					map(x + 1, y + 1, z + 1) = CubeTypes::FOLLIAGE;
 	    				}
 
 	    				random = rand() % 4;
-	    				if (map(x + 1, y + 1,  z - 1, MapChannels::BLOC) == CubeTypes::AIR && random < 2) {
-	    					map(x + 1, y + 1, z - 1, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (map(x + 1, y + 1,  z - 1) == CubeTypes::AIR && random < 2) {
+	    					map(x + 1, y + 1, z - 1) = CubeTypes::FOLLIAGE;
 	    				}
 	    				
-	    				if (map(x + 1, y + 1,  z , MapChannels::BLOC) == CubeTypes::AIR) {
-	    					map(x + 1, y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (map(x + 1, y + 1,  z) == CubeTypes::AIR) {
+	    					map(x + 1, y + 1, z) = CubeTypes::FOLLIAGE;
 	    				}
 
 
 	    				// 
-	    				if (map(x , y + 1,  z, MapChannels::BLOC) == CubeTypes::AIR) {
-	    					map(x , y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (map(x , y + 1,  z) == CubeTypes::AIR) {
+	    					map(x , y + 1, z) = CubeTypes::FOLLIAGE;
 	    				}
 	    				
-	    				if (map(x - 1, y + 1,  z , MapChannels::BLOC) == CubeTypes::AIR) {
-	    					map(x - 1, y + 1, z, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (map(x - 1, y + 1,  z) == CubeTypes::AIR) {
+	    					map(x - 1, y + 1, z) = CubeTypes::FOLLIAGE;
 	    				}
 
 	    				random = rand() % 4;
-	    				if (map(x - 1, y + 1,  z + 1, MapChannels::BLOC) == CubeTypes::AIR && random < 3) {
-	    					map(x - 1, y + 1, z + 1, MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+	    				if (map(x - 1, y + 1,  z + 1) == CubeTypes::AIR && random < 3) {
+	    					map(x - 1, y + 1, z + 1) = CubeTypes::FOLLIAGE;
 	    				}
 	    				
 
 	    			} else {
-	    				map(x, y + 1, z, MapChannels::BLOC) = CubeTypes::WOOD;
+	    				map(x, y + 1, z) = CubeTypes::WOOD;
 	    				for (int w = 0; w < 9; ++w) {
 	    					random = rand() % 4;
-		    				if (map(x - 1 + (w / 3), y + 1,  z - 1 + (w %3), MapChannels::BLOC) == CubeTypes::AIR && random < 2) {
-		    					map(x - 1 + (w / 3), y + 1,  z - 1 + (w %3), MapChannels::BLOC) = CubeTypes::FOLLIAGE;
+		    				if (map(x - 1 + (w / 3), y + 1,  z - 1 + (w %3)) == CubeTypes::AIR && random < 2) {
+		    					map(x - 1 + (w / 3), y + 1,  z - 1 + (w %3)) = CubeTypes::FOLLIAGE;
 		    				}	
 	    				}
 	    			}
@@ -365,7 +365,7 @@ for( int y = 0; y < hSize; ++y ){
   for( int z = 0; z < dSize; ++z ){
     for( int x = 0; x < wSize; ++x ){
       	if (y == 0) {
-      		map(x, y, z, MapChannels::BLOC) = CubeTypes::ADMINIUM; 
+      		map(x, y, z) = CubeTypes::ADMINIUM; 
       	} else if (y <= hauteur[x][z]) {
 
       		// On déclare la variable qui déterminera le type de bloc
@@ -408,12 +408,12 @@ for( int y = 0; y < hSize; ++y ){
 		    }  
 		
 
-		    map(x, y, z, MapChannels::BLOC) = numeroBlocSuppose;
+		    map(x, y, z) = numeroBlocSuppose;
         } else { 
 
-          map(x, y,z,MapChannels::BLOC) = CubeTypes::AIR;
+          map(x, y,z) = CubeTypes::AIR;
         }
-        map(x,y,z,MapChannels::LIGHT) = 0xFF; 
+        //map(x,y,z) = 0xFF; 
       }
     }
   }
