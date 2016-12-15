@@ -9,7 +9,7 @@ layout(binding = 0) uniform globalMatrices {
 	 vec3 camPos;
 } globalMat;
 
-#define max_lights 1
+#define max_lights 100
 layout(binding = 1) uniform lightSources{
 	vec4 pos[max_lights];
 	vec4 diffuse[max_lights];
@@ -139,20 +139,23 @@ void main(){
 	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
 	else{
 		for( int i = 0; i < max_lights; ++i ){
-			if( lights.pos[i].w < 0.0 ){ continue; } //if light is used
+			//float distanceToLight = length(ssboLights.lights[i].pos.xyz - fragPos.xyz);
+			//if( lights.pos[i].w < 0.0 ){ continue; } //if light is used
+			if( lights.pos[i].w != 0.0 ){ continue; }
+			//if(  lights.pos[i].w > 0.0 && distanceToLight > 25.0 ){ continue; } //light is too far
 			linearColor += ApplyLight(lights.pos[i], lights.attenuation[i], lights.diffuse[i], lights.specular[i]);
 		}
-		
+		/*
 		for( int i = 0; i < max_ssbo_lights; ++i ){
 			float distanceToLight = length(ssboLights.lights[i].pos.xyz - fragPos.xyz);
-			if( ssboLights.lights[i].pos.w < 0.0){ continue; } //if light is used
-			if( ssboLights.lights[i].pos.w > 0.0 && distanceToLight > 50.0 ){ continue; } //light is too far
+			if( ssboLights.lights[i].pos.w < 0.0){ continue; } //light is not used
+			if( ssboLights.lights[i].pos.w > 0.0 && distanceToLight > 25.0 ){ continue; } //light is too far
 			linearColor += ApplyLight(ssboLights.lights[i].pos,
 			                          ssboLights.lights[i].attenuation,
 			                          ssboLights.lights[i].diffuse,
 			                          ssboLights.lights[i].specular);
 		}
-		
+		*/
 	}	
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);

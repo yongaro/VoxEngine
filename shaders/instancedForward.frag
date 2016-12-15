@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-#define max_lights 500
+#define max_lights 100
 
 layout(binding = 0) uniform globalMatrices {
     mat4 view;
@@ -16,7 +16,6 @@ layout(binding = 1) uniform lightSources{
 	vec4 diffuse[max_lights];
 	vec4 specular[max_lights];
 	vec4 attenuation[max_lights]; //constant - linear - quadratic - spotExpoment
-	//vec4 spots[max_lights]; // xyz - spotCutoff
 } lights;
 
 layout(binding = 2) uniform Material{
@@ -79,7 +78,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias){
     return shadow;
 }
 
-vec4 scene_ambient = vec4(0.1, 0.1, 0.1, 1.0);
+vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
 float height_scale = 0.01;
 
 
@@ -99,7 +98,6 @@ vec3 ApplyLight(int index, vec3 surfaceColor, vec3 N) {
 	if( lights.pos[index].w == 0.0 ){
 		//directional light
 		L = normalize( currentLightPos );
-		attenuation = 1.0; //no attenuation for directional lights
 	}
 	else{
 		//point light
@@ -117,9 +115,8 @@ vec3 ApplyLight(int index, vec3 surfaceColor, vec3 N) {
 	vec3 diffuse = max(dot(N, L), 0.0) * surfaceColor.rgb * lights.diffuse[index].rgb * mat.Kd.rgb;
     
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), mat.shininess)  * lights.specular[index].rgb * mat.Ks.rgb;
+	vec3 specular = pow(max(dot(R, V), 0.0), mat.shininess)  * lights.specular[index].rgb * mat.Ks.rgb * vec3(2.0);
 	if( features.list[1][1] > 0.0 ){ specular *= texture(specularTexSampler, fragTexCoord).rgb; }
-	//else{ specular *= mat.specular.rgb; }
 
 	//linear color (color before gamma correction)
 	return ambient + attenuation*(diffuse + specular);
@@ -192,7 +189,7 @@ void main() {
 	else{
 		for( int i = 0; i < max_lights; ++i ){
 			float distanceToLight = length( lights.pos[i].xyz - fragPos.xyz);
-			if( lights.pos[i].w == 0.0 ){ continue; }
+			//if( lights.pos[i].w == 0.0 ){ continue; }
 			if( lights.pos[i].w < 0.0 ){ continue; } //if light is used
 			if(  lights.pos[i].w > 0.0 && distanceToLight > 25.0 ){ continue; } //light is too far
 			linearColor += ApplyLight(i, surfaceColor.rgb, normal);
@@ -202,5 +199,5 @@ void main() {
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), surfaceColor.a);
-	//outColor = vec4(surfaceColor);
+	//outColor = vec4(surf);
 }

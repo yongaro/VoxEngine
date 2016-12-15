@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-#define max_lights 1000
+#define max_lights 100
 
 layout(binding = 0) uniform globalMatrices {
     mat4 view;
