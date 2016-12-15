@@ -37,19 +37,20 @@ Camera cam;
 *	contexte qui contient les constantes globales (caméras, lumières, UBO)
 */
 glContext* context;
+VoxMapManager mapManager;
 VoxMap* testVox;
 
 void initCamera(glContext* context) {
-	cam = Camera(0.0f, 133.0f, 0.0f);
-    cam.bind(&context->globalUBO.view);
+	cam = Camera(0.0f, 200.0f, 100.0f);
+	cam.bind(&context->globalUBO.view);
 
 
-    cam.see(2.0f, 0.0f, 0.0f);
-    cam.setSpeed(step);
-    cam.setBoost(10.0f);
-    cam.setSensivity(0.1f);
-    cam.setWidth(width);
-    cam.setHeight(height);
+	cam.see(2.0f, 0.0f, 0.0f);
+	cam.setSpeed(step);
+	cam.setBoost(10.0f);
+	cam.setSensivity(0.1f);
+	cam.setWidth(width);
+	cam.setHeight(height);
 }
 
 glm::vec3 getVoxMapIndicesByOpenGlPosition(glm::vec3& position) {
@@ -207,14 +208,35 @@ void init(std::vector<string>& args){
 	cout << "GL_MAX_DRAW_BUFFERS -- " << infoValue << endl;
 	
 	// Map des voxels (wrapper Cimg)
-	testVox = new VoxMap();
+	std::vector<std::string> tempArgs;
+	tempArgs.push_back("load"); tempArgs.push_back("archipel");
+	testVox = new VoxMap(glm::vec3(0.0f,0.0f,0.0f));
 	std::string mapFile = "./testMap.hdr";
 	std::string cubePath = "./assets/cubes/";
 	std::string cubeName = "cube.obj";
 	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-	testVox->newMap(128,128,256);
-	testVox->testMap(args); // remplissage test
+	testVox->newMap(64, 128 ,64);
+	testVox->testMap(tempArgs); // remplissage test
+	mapManager.mapList.push_back(testVox);
+	
+	VoxMap* tempMap = NULL;
+	tempArgs.clear();
+	tempArgs.push_back("load"); tempArgs.push_back("mangrove");
+	tempMap = new VoxMap(glm::vec3(testVox->map.width()*testVox->voxelSize[0],0.0f,0.0f));
+	tempMap->loadVoxel(cubePath,cubeName); // charge la forme du voxel
+	tempMap->newMap(64, 128 ,64);
+	tempMap->testMap(tempArgs); // remplissage test
+	mapManager.mapList.push_back(tempMap);
 
+	tempArgs.clear();
+	tempArgs.push_back("load"); tempArgs.push_back("snowValley");
+	tempMap = new VoxMap(glm::vec3(0.0f,0.0f,testVox->map.depth()*testVox->voxelSize[2]));
+	tempMap->loadVoxel(cubePath,cubeName); // charge la forme du voxel
+	tempMap->newMap(64, 128 ,64);
+	tempMap->testMap(tempArgs); // remplissage test
+	mapManager.mapList.push_back(tempMap);
+	
+	//testVox = tempMap;
 	std::cout << "DONE" << std::endl;
 	
 	// Remplissage des Pipe-line (ensemble de shaders)
@@ -274,7 +296,7 @@ void init(std::vector<string>& args){
 	context->lights.pos[0] = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
 	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
 	                                           width / (float)height,
-	                                           0.001f, 500.0f);
+	                                           0.001f, 1500.0f);
 	
 
 	updateMVP();
@@ -289,8 +311,6 @@ void init(std::vector<string>& args){
 	glGenFramebuffers(1, &depthMapFBO);
 
 	//shadow map texture
-	const GLuint SHADOW_WIDTH = width, SHADOW_HEIGHT = height;
-	
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width/2, height/2, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -338,36 +358,24 @@ void init(std::vector<string>& args){
 }
 
 
-
+void testAddCube(){
+	for( size_t i = 0; i < 32; ++i ){
+		testVox->addBlock(i, 130, i, CubeTypes::GLOWSTONE, deferredRenderer);
+	}
+}
 
 
 void render(){
 	SDL_GL_MakeCurrent(window, gl_context);
-
-
-	//render to depth map
-	//glCullFace(GL_FRONT);
-	simpleShadowPipeline.bind();
-	context->bindUBO();
-	glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	//testVox->render();
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
-	//glCullFace(GL_BACK);
-
+	
 	if( useDeferredRendering ){	
 		deferredRenderer.bindGeometryPipeline();
 		context->bindUBO();
-		testVox->render();
+		for( VoxMap* map : mapManager.mapList ){ map->render(); }
 
 		deferredRenderer.ssaoPass();
-	
+		
 		deferredRenderer.bindLightPipeline();
-		glBindBufferBase(GL_UNIFORM_BUFFER, 5, lightMatUBO);
-		glActiveTexture(GL_TEXTURE0 + 6);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-
 		deferredRenderer.basicLightPass();
 	}
 	else{
@@ -375,7 +383,7 @@ void render(){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		instancedForwardPipeline.bind();
 		context->bindUBO();
-		testVox->render();
+		for( VoxMap* map : mapManager.mapList ){ map->render(); }
 	}
 
 	glFlush();
@@ -495,6 +503,9 @@ int main(int argc, char *argv[]) {
 					downCam();
 	            break;
 
+				case SDLK_g :
+					testAddCube();
+	            break;
 
 				case SDLK_ESCAPE :
 					quitting = true;

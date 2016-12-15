@@ -9,7 +9,7 @@ layout(binding = 0) uniform globalMatrices {
 	 vec3 camPos;
 } globalMat;
 
-#define max_lights 10
+#define max_lights 1
 layout(binding = 1) uniform lightSources{
 	vec4 pos[max_lights];
 	vec4 diffuse[max_lights];
@@ -22,6 +22,20 @@ layout(binding = 1) uniform lightSources{
 layout(binding = 5) uniform Dummy{
 	mat4 lightSpaceMatrix;
 }dummy;
+
+#define max_ssbo_lights 100
+#define LIGHTS_SSBP 1
+struct DeferredLight{
+	vec4 pos;
+	vec4 diffuse;
+	vec4 specular;
+	vec4 attenuation; 
+};
+
+layout (binding = LIGHTS_SSBP) buffer InstanceSSBO{
+	DeferredLight lights[max_ssbo_lights];
+} ssboLights;
+
 
 #define POSITION 0
 #define DIFFUSE 1
@@ -79,39 +93,38 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias){
 
 
 
-vec3 ApplyLight(int index) {
-	vec3 currentLightPos = lights.pos[index].xyz;
-	vec3 L = normalize(currentLightPos - fragPos.xyz);
+vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec4 lightSpec) {
+	vec3 L = normalize(currentLightPos.xyz - fragPos.xyz);
 	vec3 V = normalize(globalMat.camPos);
 	vec3 R = reflect(-L, fragNormal.xyz);
 	float attenuation = 1.0;
 
 	
-	if( lights.pos[index].w == 0.0 ){
+	if( currentLightPos.w == 0.0 ){
 		//directional light
-		L = normalize( currentLightPos );
+		L = normalize( currentLightPos.xyz );
 		attenuation = 1.0; //no attenuation for directional lights
 	}
 	else{
 		//point light
-		float distanceToLight = length(currentLightPos - fragPos.xyz);
+		float distanceToLight = length(currentLightPos.xyz - fragPos.xyz);
 		attenuation = 1.0 / (1.0
-		                     + lights.attenuation[index].x //constant
-		                     + lights.attenuation[index].y * distanceToLight //linear
-		                     + lights.attenuation[index].z * distanceToLight * distanceToLight); //quadratic
+		                     + lightAttenuation.x //constant
+		                     + lightAttenuation.y * distanceToLight //linear
+		                     + lightAttenuation.z * distanceToLight * distanceToLight); //quadratic
 	}
 
 	//ambient
 	vec3 ambient = fragDiffuse.rgb * ambiantOcclusion.rgb;
 	//diffuse
-	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * fragDiffuse.rgb * lights.diffuse[index].rgb;
+	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * lightDiff.rgb * fragDiffuse.rgb;
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*5.0)  * lights.specular[index].rgb * fragSpecular.rgb;
+	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*5.0)  * lightSpec.rgb * fragSpecular.rgb;
 
 	//linear color (color before gamma correction)
 	return ambient + attenuation*(diffuse + specular);
-	//return ambient + attenuation*(diffuse);
-
+	//return attenuation*(diffuse + specular);
+	
 	//float bias = max(0.05 * (1.0 - dot(fragNormal.rgb, L)), 0.005);
 	//float shadow = ShadowCalculation(lightSpaceFragPos,bias);
 	//return (ambient + (1.0 - shadow) * (diffuse + specular));
@@ -119,17 +132,29 @@ vec3 ApplyLight(int index) {
 
 
 void main(){
+	//fragPos.xyz *= 1000000;
 	if( fragPos.x == 0.0 && fragPos.y == 0.0 && fragPos.z == 0.0 ){ discard; }
 	vec3 linearColor = vec3(0.0);
 	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
 	else{
 		for( int i = 0; i < max_lights; ++i ){
 			if( lights.pos[i].w < 0.0 ){ continue; } //if light is used
-			linearColor += ApplyLight(i);
+			linearColor += ApplyLight(lights.pos[i], lights.attenuation[i], lights.diffuse[i], lights.specular[i]);
 		}
+		
+		for( int i = 0; i < max_ssbo_lights; ++i ){
+			float distanceToLight = length(ssboLights.lights[i].pos.xyz - fragPos.xyz);
+			if( ssboLights.lights[i].pos.w < 0.0){ continue; } //if light is used
+			if( ssboLights.lights[i].pos.w > 0.0 && distanceToLight > 50.0 ){ continue; } //light is too far
+			linearColor += ApplyLight(ssboLights.lights[i].pos,
+			                          ssboLights.lights[i].attenuation,
+			                          ssboLights.lights[i].diffuse,
+			                          ssboLights.lights[i].specular);
+		}
+		
 	}	
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), 1.0);
-	//outColor = vec4(texture(shadowTexSampler, fragUV).r);
+	//outColor = vec4(fragPos.rgb, 1.0);
 }

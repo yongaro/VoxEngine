@@ -99,7 +99,7 @@ vec2 parallaxMapping(){
 }   
 
 const float NEAR = 0.001;
-const float FAR = 500.0;
+const float FAR = 1500.0;
 
 float linearizeDepth(float depth){
 	float z = depth * 2.0 - 1.0; //back to NDC
@@ -129,7 +129,7 @@ void main() {
 	fragSpecular.w = mat.shininess; //real bad idea
 	
 	//writing data to framebuffer attachments
-	outPos      = vec4(fragPos, 1.0); outPos.w = linearizeDepth(outPos.z);
+	outPos      = vec4(fragPos, 1.0); outPos.w = linearizeDepth(fragPos.z);
 	outDiff     = fragDiffuse;
 	outEmissive = fragEmissive;
 	outNrm      = vec4(normal, 1.0);//normal;

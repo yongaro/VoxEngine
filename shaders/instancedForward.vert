@@ -109,10 +109,10 @@ void main() {
 	fragNormal = mat3(transpose(inverse(instanceModel))) * vertNormal; 
 	fragUV = vertUV;
 
-	//vec3 T = normalize(vec3(instanceModel * vec4(vertTangent,   0.0)));
-	//vec3 B = normalize(vec3(instanceModel * vec4(vertBiTangent, 0.0)));
-	//vec3 N = normalize(vec3(instanceModel * vec4(vertNormal,    0.0)));
-	//fragTBN = mat3(T, B, N);
+	vec3 T = normalize(vec3(instanceModel * vec4(vertTangent,   0.0)));
+	vec3 B = normalize(vec3(instanceModel * vec4(vertBiTangent, 0.0)));
+	vec3 N = normalize(vec3(instanceModel * vec4(vertNormal,    0.0)));
+	fragTBN = mat3(T, B, N);
 	//lightSpaceFragPos = dummy.lightSpaceMatrix * vec4(fragPos,1.0);
 	
 	//fragColor =  instanceSSBO.infos[gl_InstanceID].color;

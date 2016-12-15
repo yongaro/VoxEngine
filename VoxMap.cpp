@@ -7,40 +7,27 @@
 #include "biome.hpp"
 
 
-VoxMap::VoxMap(){
+VoxMap::VoxMap(glm::vec3 pos){
 	voxelSize[0] = 2.0f;
 	voxelSize[1] = 2.0f;
 	voxelSize[2] = 2.0f;
-	maxLightLevel = 15;
-
+	position = glm::vec3(pos);
+	
 
 	biomName.push_back("default");
 	bioms.push_back(new MapGenerator());
-
 	biomName.push_back("valley");
 	bioms.push_back(new MapGenerator());
-
-
 	biomName.push_back("desert");
 	bioms.push_back(new DesertGenerator());
-
-
 	biomName.push_back("archipel");
 	bioms.push_back(new ArchipelGenerator());
-
-
 	biomName.push_back("mangrove");
 	bioms.push_back(new MangroveGenerator());
-
-
 	biomName.push_back("prairie");
 	bioms.push_back(new PrairieGenerator());
-
-
 	biomName.push_back("snowPrairie");
 	bioms.push_back(new SnowPrairieGenerator());
-
-
 	biomName.push_back("snowValley");
 	bioms.push_back(new SnowValleyGenerator());
 }
@@ -63,7 +50,7 @@ void VoxMap::load(std::string& path) {
 }
 
 void VoxMap::newMap(int width, int height, int depth){
-	map = cimg_library::CImg<unsigned char>(width,height,depth,2,0x0);
+	map = cimg_library::CImg<unsigned char>(width,height,depth,1,0x0);
 	voxelSize[0] = 2.0f;
 	voxelSize[1] = 2.0f;
 	voxelSize[2] = 2.0f;
@@ -83,22 +70,6 @@ cimg_library::CImg<bool> VoxMap::getMapObjects(){
 	}
 	return res;
 }
-
-void VoxMap::getMapOutline(cimg_library::CImg<bool>& dil, cimg_library::CImg<bool>& ero){
-	for( int z = 0; z < map.depth(); ++z ){
-		for( int y = 0; y < map.height(); ++y ){
-			for( int x = 0; x < map.width(); ++x ){
-				if( dil(x,y,z) && !ero(x,y,z) ){
-					if( map(x,y,z, MapChannels::BLOC) != CubeTypes::AIR ){
-						cubes[ map(x,y,z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2], 1.0f) );
-					}
-				}
-			}
-		}
-	}
-	fillSSBO();
-}
-
 
 void VoxMap::genereMap(MapGenerator* biome, std::string name) {
 	biome->fill(map);
@@ -148,17 +119,13 @@ void VoxMap::testMap(std::vector<std::string>& args){
 		genereMap(bioms[0], "maMap");
 	}
 	
-	fillVisibleCubes(map.width()-20, map.height()-20, map.depth()-20 );
+	fillVisibleCubes(map.width()-20, map.height()-10, map.depth()-20 );
 } 
 
 void VoxMap::render(){
 	for( size_t i = 1; i < CubeTypes::SIZE_CT; ++i ){
 		cubes[i].render();
 	}
-}
-
-glm::vec3 VoxMap::getCamPos(){
-	return glm::vec3( map.width(), map.height(), map.depth() );
 }
 
 void VoxMap::loadVoxel(std::string& path, std::string& name){
@@ -206,12 +173,11 @@ void VoxMap::getVisibleNeighbors(int x, int y, int z, std::vector<PixelCoord>& s
 			for( int k = -1; k < 2; ++k ){
 				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
 					if( seeThroughCubeType( map(x+i, y+j, z+k, MapChannels::BLOC) ) && tempMap(x+i, y+j, z+k) == false ){
-						//tempMap(x+i, y+j, z+k) = true;
 						stack.push_back( PixelCoord(x+i,y+j,z+k) );
 					}
 					if( map(x+i, y+j, z+k, MapChannels::BLOC) != CubeTypes::AIR && tempMap(x+i, y+j, z+k) == false ){
-						//tempMap(x+i, y+j, z+k) = true;
-						cubes[ map(x+i, y+j, z+k, MapChannels::BLOC) ].addInstance( glm::vec4((x+i)*voxelSize[0], (y+j)*voxelSize[1], (z+k)*voxelSize[2],1.0f) );
+						if( map(x+i, y+j, z+k, MapChannels::BLOC) == CubeTypes::AIR ){ std::cout << "BORDEL"<< std::endl; }
+						cubes[ map(x+i, y+j, z+k, MapChannels::BLOC) ].addInstance( glm::vec4((x+i)*voxelSize[0]+position.x, (y+j)*voxelSize[1]+position.y, (z+k)*voxelSize[2]+position.z, 1.0f) );
 					}
 					tempMap(x+i, y+j, z+k) = true;
 				}
@@ -231,7 +197,7 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 	std::cout << stack.size() << std::endl;
 	
 	if( map(x, y, z, MapChannels::BLOC) < CubeTypes::SIZE_CT && map(x, y, z, MapChannels::BLOC) != CubeTypes::AIR ){
-		cubes[ map(x, y, z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0], y*voxelSize[1], z*voxelSize[2],1.0f) );
+		cubes[ map(x, y, z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 	}
 	
 	//Parcours
@@ -278,4 +244,81 @@ void VoxMap::updateInstanceSSBO(){
 	data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(InstanceInfos)*instances.size(), GL_MAP_WRITE_BIT);
 	memcpy(data, instances.data(), sizeof(InstanceInfos)*instances.size());
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
+
+
+void VoxMap::addBlock(size_t x, size_t y, size_t z, CubeTypes type, glDeferredRenderer& renderer){
+	if( map(x,y,z) == CubeTypes::AIR ){
+		cubes[type].addInstance( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
+		if( type == CubeTypes::GLOWSTONE ){
+			renderer.addLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
+		}
+		fillSSBO();
+		//fillVisibleCubes(x,y,z);
+	}	
+}
+void VoxMap::removeBlock(size_t x, size_t y, size_t z, glDeferredRenderer& renderer){
+	if( map(x,y,z) != CubeTypes::AIR ){
+		cubes[ map(x,y,z) ].removeInstance( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
+		if( map(x,y,z) == CubeTypes::GLOWSTONE ){
+			renderer.removeLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
+		}
+		fillSSBO();
+		//fillVisibleCubes(map.width()-20, map.height()-10, map.depth()-20 );
+	}
+}
+
+
+bool VoxMap::isInMap(glm::vec3 pos){
+	glm::vec3 maxPos = glm::vec3(position.x + map.width()*voxelSize[0],
+	                             position.y + map.height()*voxelSize[1],
+	                             position.z + map.depth()*voxelSize[2]
+	                             );
+	if( (pos.x >= position.x && pos.x < maxPos.x) && (pos.y >= position.y && pos.y < maxPos.y) && (pos.z >= position.z && pos.z < maxPos.z) ){
+		return true;
+	}
+	return false;
+}
+PixelCoord VoxMap::mapCoord(glm::vec3 pos){
+	glm::vec3 newPos = glm::vec3(pos.x - position.x, pos.y - position.y, pos.z - position.z);
+	newPos.x /= (float)(map.width()*voxelSize[0]);
+	newPos.y /= (float)(map.height()*voxelSize[1]);
+	newPos.z /= (float)(map.depth()*voxelSize[2]);
+
+	return PixelCoord((size_t)newPos.x, (size_t)newPos.y, (size_t)newPos.z);
+}
+
+//######################## VoxMapManager ##########################################################
+VoxMapManager::VoxMapManager(){}
+VoxMapManager::~VoxMapManager(){
+	for( size_t i = 0; i < mapList.size(); ++i ){
+		//delete mapList[i];
+	}
+}
+void VoxMapManager::addBlock(glm::vec3 pos, CubeTypes type, glDeferredRenderer& renderer){
+	for( VoxMap* map : mapList ){
+		if( map->isInMap(pos) ){
+			PixelCoord coord = map->mapCoord(pos);
+			map->addBlock(coord.z,coord.y,coord.z,type,renderer);
+			break;
+		}
+	}
+}
+void VoxMapManager::removeBlock(glm::vec3 pos, glDeferredRenderer& renderer){
+	for( VoxMap* map : mapList ){
+		if( map->isInMap(pos) ){
+			PixelCoord coord = map->mapCoord(pos);
+			map->removeBlock(coord.z,coord.y,coord.z,renderer);
+			break;
+		}
+	}
+}
+CubeTypes VoxMapManager::cubeAt(glm::vec3 pos){
+	for( VoxMap* map : mapList ){
+		if( map->isInMap(pos) ){
+			PixelCoord coord = map->mapCoord(pos);
+			return (CubeTypes)map->map(coord.x, coord.y, coord.z); 
+		}
+	}
+	return (CubeTypes)0x0;
 }

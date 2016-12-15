@@ -22,6 +22,7 @@ struct PixelCoord{
 
 	PixelCoord():x(0),y(0),z(0){}
 	PixelCoord(size_t ix, size_t iy, size_t iz):x(ix),y(iy),z(iz){}
+	PixelCoord(const PixelCoord& ref):x(ref.x),y(ref.y),z(ref.z){}
 };
 
 
@@ -30,7 +31,7 @@ public:
 	cimg_library::CImg<unsigned char> map;
 	cimg_library::CImg<bool> tempMap;
 	float voxelSize[3];
-	unsigned char maxLightLevel;
+	glm::vec3 position;
 	glInstancedMesh cubes[CubeTypes::SIZE_CT];
 	std::vector< InstanceInfos > instances;
 	GLuint mapSSBO;
@@ -39,17 +40,15 @@ public:
 	std::vector<MapGenerator*> bioms;
 	std::vector<std::string> biomName;
 
-	VoxMap();
+	VoxMap(glm::vec3);
 	virtual ~VoxMap();
 	virtual void save(std::string&);
 	virtual void load(std::string&);
 	virtual void newMap(int,int,int);
 	virtual cimg_library::CImg<bool> getMapObjects();
-	virtual void getMapOutline(cimg_library::CImg<bool>&,cimg_library::CImg<bool>&);
 	virtual void testMap(std::vector<std::string>&);
 	virtual void genereMap(MapGenerator*, std::string);
 	virtual void render();
-	virtual glm::vec3 getCamPos();
 	virtual void loadVoxel(std::string&,std::string&);
 	virtual void resetVisibleCubes();
 	virtual bool seeThroughCubeType(size_t);
@@ -60,6 +59,24 @@ public:
 	virtual void createInstanceSSBO();
 	virtual void updateInstanceSSBO();
 
+	virtual void addBlock(size_t, size_t, size_t, CubeTypes, glDeferredRenderer&);
+	virtual void removeBlock(size_t, size_t, size_t, glDeferredRenderer&);
+	virtual bool isInMap(glm::vec3);
+	virtual PixelCoord mapCoord(glm::vec3);
 };
+
+class VoxMapManager{
+public:
+	std::vector< VoxMap* > mapList;
+
+	VoxMapManager();
+	~VoxMapManager();
+
+	virtual void addBlock(glm::vec3, CubeTypes, glDeferredRenderer&);
+	virtual void removeBlock(glm::vec3, glDeferredRenderer&);
+	virtual CubeTypes cubeAt(glm::vec3);
+};
+
+
 
 #endif

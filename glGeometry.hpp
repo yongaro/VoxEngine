@@ -149,7 +149,19 @@ public:
 	virtual void bindOffsetUBO();
 
 	virtual void addInstance(glm::vec4);
+	virtual void removeInstance(glm::vec4);
 	virtual void render();
+};
+
+/**
+ * Structure used to define the lights 
+ */
+struct DeferredLight{
+	glm::vec4 pos;
+	glm::vec4 diffuse;
+	glm::vec4 specular;
+	glm::vec4 attenuation; //constant - linear - quadratic - spotExponent
+	DeferredLight();
 };
 
 
@@ -168,6 +180,10 @@ public:
 
 	glMesh* fullScreenQuad; //mesh used to render framebuffers directly to screen
 	glMesh* lightVolume; //unused for now
+
+	size_t max_deferred_lights;
+	std::vector< DeferredLight > lights;
+	GLuint deferredLightsSSBO;
 	
 	glDeferredRenderer();
 	glDeferredRenderer(GLuint,GLuint);
@@ -178,6 +194,11 @@ public:
 	virtual void bindLightPipeline();
 	virtual void basicLightPass();
 	virtual void ssaoPass();
+
+	virtual void addLight(glm::vec4);
+	virtual void removeLight(glm::vec4);
+	virtual void update_Light_SSBO_Range(size_t, size_t);
+	virtual void bindLightSSBO();
 };
 
 

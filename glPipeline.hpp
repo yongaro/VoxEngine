@@ -14,7 +14,7 @@
 //##################### GLPIPELINE ##################################
 enum UniformsBindingPoints{ GLOBAL_UBP, LIGHTS_UBP, MATERIAL_UBP, FEATURES_UBP, MESH_TRANS_UBP,
                             SHADOW_TRANS_UBP, OFFSET_UBP, SSAO_KERNEL_UBP, SIZE_UBP };
-enum ShaderStorageBindingPoints{ INSTANCE_SSBP, SIZE_SSBP};
+enum ShaderStorageBindingPoints{ INSTANCE_SSBP, LIGHTS_SSBP, SIZE_SSBP};
 enum VertexAttributes{ POS, NRM, UV, TANGENT, BITANGENT, SIZE_VA };
 enum GlobalUniforms{ GLOBAL_GU, LIGHTS_GU, SIZE_GU };
 enum ShadersIndex{ VERTEX_SI, FRAG_SI, SIZE_SI };

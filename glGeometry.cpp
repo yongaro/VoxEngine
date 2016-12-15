@@ -444,12 +444,18 @@ void glInstancedMesh::bindOffsetUBO(){
 
 void glInstancedMesh::addInstance(glm::vec4 tr){
 	if( instances.size() < maxNbInstances ){
-		//InstanceInfos temp;
-		//temp.translate = glm::vec4(tr);
 		instances.push_back( InstanceInfos(tr) );
-		//++nbInstances;
 	}
 }
+void glInstancedMesh::removeInstance(glm::vec4 tr){
+	for( size_t i = 0; i < instances.size(); ++i ){
+		if( tr.x == instances[i].translate.x && tr.y == instances[i].translate.y && tr.z == instances[i].translate.z ){
+			instances.erase( instances.begin()+i );
+			break;
+		}
+	}
+}
+
 
 void glInstancedMesh::render(){
 	if( instances.size() > 0 ){
@@ -475,10 +481,18 @@ void glInstancedMesh::render(){
 
 
 //####################################### CLASS DEFERRED RENDERER ##################################
+DeferredLight::DeferredLight():pos( glm::vec4(0.0f, 0.0f, 0.0f, -1.0f) ),
+                               diffuse( glm::vec4(0.5f, 0.5f, 0.5f, 1.0f) ),
+                               specular( glm::vec4(0.5f, 0.5f, 0.5f, 1.0f) ),
+                               attenuation( glm::vec4(0.0f, 15.0f, 15.0f, 1.0f) ){}
+
+
 glDeferredRenderer::glDeferredRenderer():width(),height(),gbuffer(),geometryPipeline(NULL),lightPipeline(NULL),
-                                         fullScreenQuad(NULL),lightVolume(NULL){}
+                                         fullScreenQuad(NULL),lightVolume(NULL),
+                                         max_deferred_lights(100),lights(),deferredLightsSSBO(){}
 glDeferredRenderer::glDeferredRenderer(GLuint w, GLuint h):width(w),height(h),gbuffer(),geometryPipeline(NULL),lightPipeline(NULL),
-                                                           fullScreenQuad(NULL),lightVolume(NULL){}
+                                                           fullScreenQuad(NULL),lightVolume(NULL),
+                                                           max_deferred_lights(100),lights(),deferredLightsSSBO(){}
 glDeferredRenderer::~glDeferredRenderer(){}
 
 void glDeferredRenderer::init(glPipeline* geometryP, glPipeline* lightP, glPipeline* ssaoP, glPipeline* ssaoBP){
@@ -492,6 +506,15 @@ void glDeferredRenderer::init(glPipeline* geometryP, glPipeline* lightP, glPipel
 	std::string name = "fullscreenQuad.obj";
 	fullScreenQuad->loadMesh(path,name);
 	gbuffer.build_SSAO_Kernel();
+
+	//max_deferred_lights = 100;
+	lights.resize(max_deferred_lights);
+	std::cout << "Allocation of \e[1;33m" << (GLfloat)max_deferred_lights*sizeof(DeferredLight)/1000000.0f << "\e[0m MB of vram"<< std::endl;
+	glGenBuffers(1, &deferredLightsSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, deferredLightsSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DeferredLight)*max_deferred_lights, lights.data(), GL_DYNAMIC_COPY);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	lights.clear();
 }
 void glDeferredRenderer::bindGeometryPipeline(){
 	gbuffer.initForGeometryPass();
@@ -506,6 +529,7 @@ void glDeferredRenderer::bindLightPipeline(){
 }
 
 void glDeferredRenderer::basicLightPass(){
+	bindLightSSBO();
 	fullScreenQuad->bindUBO();
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
 		subm->mat->bindUBO();
@@ -554,3 +578,49 @@ void glDeferredRenderer::ssaoPass(){
 		glBindBuffer(GL_ARRAY_BUFFER,0);
 	}
 }
+
+
+void glDeferredRenderer::addLight(glm::vec4 pos){
+	bool added = false;
+	size_t index = 0;
+
+	for( DeferredLight& l : lights ){
+		if( l.pos.x == pos.x && l.pos.y == pos.y && l.pos.z == pos.z ){
+			l.pos.w = pos.w;
+			added = true;
+			break;
+		}
+		++index;
+	}
+	if( !added ){
+		DeferredLight light;
+		light.pos = glm::vec4( pos );
+		index = lights.size();
+		lights.push_back(light);
+	}
+	update_Light_SSBO_Range(index, 1);
+}
+void glDeferredRenderer::removeLight(glm::vec4 pos){
+	bool removed = false;
+	size_t index = 0;
+
+	for( DeferredLight& l : lights ){
+		if( l.pos.x == pos.x && l.pos.y == pos.y && l.pos.z == pos.z ){
+			l.pos.w = -1.0f;
+			removed = true;
+			break;
+		}
+		++index;
+	}
+	if( removed ){ update_Light_SSBO_Range(index, 1); }	
+}
+
+void glDeferredRenderer::update_Light_SSBO_Range(size_t first, size_t number){
+	void* data;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, deferredLightsSSBO);
+	data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, first, sizeof(DeferredLight)*number, GL_MAP_WRITE_BIT);
+	memcpy(data, lights.data()+first, sizeof(DeferredLight)*number);
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
+
+void glDeferredRenderer::bindLightSSBO(){ glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ShaderStorageBindingPoints::LIGHTS_SSBP, deferredLightsSSBO); }
