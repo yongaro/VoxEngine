@@ -403,13 +403,20 @@ void init(std::vector<string>& args){
 
 
 void addCube(){
-	glm::vec3 newPos = glm::normalize(cam.getForward());
+	glm::vec3 newPos = cam.getForward();
 	float dist = 2.0f;
 	newPos.x *= dist; newPos.y *= dist; newPos.z *= dist;
 	newPos.x += cam.getPosition().x; newPos.y += cam.getPosition().y; newPos.z += cam.getPosition().z;
 	mapManager.addBlock(newPos, CubeTypes::GLOWSTONE, deferredRenderer, context);
 }
 
+void removeCube(){
+	glm::vec3 newPos = cam.getForward();
+	float dist = 2.0f;
+	newPos.x *= dist; newPos.y *= dist; newPos.z *= dist;
+	newPos.x += cam.getPosition().x; newPos.y += cam.getPosition().y; newPos.z += cam.getPosition().z;
+	mapManager.removeBlock(newPos, deferredRenderer, context);
+}
 
 void render(){
 	SDL_GL_MakeCurrent(window, gl_context);
@@ -555,6 +562,9 @@ int main(int argc, char *argv[]) {
 					addCube();
 	            break;
 
+				case SDLK_v :
+					removeCube();
+	            break;
 				case SDLK_ESCAPE :
 					quitting = true;
 					break;
