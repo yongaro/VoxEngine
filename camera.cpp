@@ -266,8 +266,8 @@ void Camera::update(SDL_Event& event) {
 
         if (circleY > height) circleY = height;
         if (circleY < -height) circleY = -height;
-        if (circleX > width) circleX = width;
-        if (circleX < -width) circleX = -width;
+        //if (circleX > width) circleX = width;
+        //if (circleX < -width) circleX = -width;
 
         mouseMove(circleX,  circleY);
 	}
