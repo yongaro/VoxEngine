@@ -75,7 +75,6 @@ return (
 
 bool isFluidCube (glm::vec3& indicesVoxMap) {
 	int type = testVox->map(indicesVoxMap.x, indicesVoxMap.y, indicesVoxMap.z, MapChannels::BLOC);
-	//std::cout << "Prochain cube de type :" << type << std::endl; 
 	return ((type == CubeTypes::AIR) || (type == CubeTypes::WATER));
 }
 
@@ -90,13 +89,19 @@ bool isOverTextureHeight(glm::vec3 nextPosition) {
 	return isOkay;
 }
 
+bool collide(glm::vec3 nextPosition){
+	CubeTypes type = mapManager.cubeAt(nextPosition);
+	return type != CubeTypes::AIR;
+}
+
+
 //camera mouvements
-void forwardCam(){ if( isOverTextureHeight(cam.forwardPosition()) ){ cam.toForward(); } }
-void rearwardCam(){ if( isOverTextureHeight(cam.backwardPosition()) ){ cam.toBackward(); } }
-void towardRightCam(){ if( isOverTextureHeight(cam.rightPosition()) ){ cam.toRight(); } }
-void towardLeftCam(){ if( isOverTextureHeight(cam.leftPosition()) ){ cam.toLeft(); } }
-void upCam(){ if( isOverTextureHeight(cam.upPosition()) ){ cam.toUp(); } }
-void downCam(){ if (isOverTextureHeight(cam.downPosition()) ){ cam.toDown(); } }
+void forwardCam(){ if( !collide(cam.forwardPosition()) ){ cam.toForward(); } }
+void rearwardCam(){ if( !collide(cam.backwardPosition()) ){ cam.toBackward(); } }
+void towardRightCam(){ if( !collide(cam.rightPosition()) ){ cam.toRight(); } }
+void towardLeftCam(){ if( !collide(cam.leftPosition()) ){ cam.toLeft(); } }
+void upCam(){ if( !collide(cam.upPosition()) ){ cam.toUp(); } }
+void downCam(){ if( !collide(cam.downPosition()) ){ cam.toDown(); } }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void fpsinit() {
@@ -265,25 +270,6 @@ void init(std::vector<string>& args){
 			mapManager.mapList.push_back(tempMap);
 			++nbMap;
 		}
-		//tempArgs.push_back("new"); tempArgs.push_back("part1");
-		//testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-		//testVox->newMap(64, 128 ,64);
-		//testVox->testMap(tempArgs); // remplissage test
-		
-		/*
-		VoxMap* tempMap = NULL;
-		tempArgs.push_back("new"); tempArgs.push_back("part2");
-		tempMap->testMap(tempArgs); // remplissage test
-		mapManager.mapList.push_back(tempMap);
-
-		tempArgs.clear();
-		tempArgs.push_back("new"); tempArgs.push_back("part3");
-		tempMap = new VoxMap(glm::vec3(0.0f,0.0f,testVox->map.depth()*testVox->voxelSize[2]));
-		tempMap->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-		tempMap->newMap(64, 128 ,64);
-		tempMap->testMap(tempArgs); // remplissage test
-		mapManager.mapList.push_back(tempMap);
-		*/
 	} else {
 
 		std::string cubePath = "./assets/cubes/";
@@ -295,41 +281,6 @@ void init(std::vector<string>& args){
 
 		mapManager.mapList.push_back(testVox);
 	}
-/*
-	std::vector<std::string> tempArgs;
-	tempArgs.push_back("load"); tempArgs.push_back("archipel");
-	testVox = new VoxMap(glm::vec3(0.0f,0.0f,0.0f));
-	std::string mapFile = "./testMap.hdr";
-	std::string cubePath = "./assets/cubes/";
-	std::string cubeName = "cube.obj";
-	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-	testVox->newMap(64, 128 ,64);
-	testVox->testMap(tempArgs); // remplissage test
-	mapManager.mapList.push_back(testVox);
-	
-	VoxMap* tempMap = NULL;
-	tempArgs.clear();
-	tempArgs.push_back("load"); tempArgs.push_back("mangrove");
-	tempMap = new VoxMap(glm::vec3(testVox->map.width()*testVox->voxelSize[0],0.0f,0.0f));
-	tempMap->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-	tempMap->newMap(64, 128 ,64);
-	tempMap->testMap(tempArgs); // remplissage test
-	mapManager.mapList.push_back(tempMap);
-
-	tempArgs.clear();
-	tempArgs.push_back("load"); tempArgs.push_back("snowValley");
-	tempMap = new VoxMap(glm::vec3(0.0f,0.0f,testVox->map.depth()*testVox->voxelSize[2]));
-	tempMap->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-	tempMap->newMap(64, 128 ,64);
-	tempMap->testMap(tempArgs); // remplissage test
-	mapManager.mapList.push_back(tempMap);
-*/	
-
-	/*
-
-	*/
-
-	//testVox = tempMap;
 	std::cout << "DONE" << std::endl;
 	
 	// Remplissage des Pipe-line (ensemble de shaders)
@@ -494,8 +445,10 @@ int SDLCALL watch(void *userdata, SDL_Event* event) {
 void useGravity(int fps) {;
 	double gravity = 4.0; 
 	glm::vec3 position = cam.getPosition();
-	glm::vec3 indices = getVoxMapIndicesByOpenGlPosition(position);
-	if (testVox->map(indices.x, indices.y - 1, indices.z, MapChannels::BLOC) == CubeTypes::AIR) {
+	position.y -= 1.0f;
+	CubeTypes type = mapManager.cubeAt(position);
+	//glm::vec3 indices = getVoxMapIndicesByOpenGlPosition(position);
+	if (type == CubeTypes::AIR) {
 		cam.toDown(gravity / double(fps+1));
 
 		//cam.toDown(0.1);

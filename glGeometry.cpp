@@ -482,9 +482,9 @@ void glInstancedMesh::render(){
 
 //####################################### CLASS DEFERRED RENDERER ##################################
 DeferredLight::DeferredLight():pos( glm::vec4(0.0f, 0.0f, 0.0f, -1.0f) ),
-                               diffuse( glm::vec4(0.5f, 0.5f, 0.5f, 1.0f) ),
-                               specular( glm::vec4(0.5f, 0.5f, 0.5f, 1.0f) ),
-                               attenuation( glm::vec4(0.0f, 15.0f, 15.0f, 1.0f) ){}
+                               diffuse( glm::vec4(1.2f, 1.2f, 1.2f, 1.2f) ),
+                               specular( glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) ),
+                               attenuation( glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) ){}
 
 
 glDeferredRenderer::glDeferredRenderer():width(),height(),gbuffer(),geometryPipeline(NULL),lightPipeline(NULL),

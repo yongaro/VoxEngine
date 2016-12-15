@@ -116,12 +116,9 @@ public:
 
 struct InstanceInfos{
 	glm::vec4 translate; //Faster than cpu-calculated model matrix for each instance
-	//glm::vec4 lightColor;
-
 	
-	InstanceInfos():translate(){}//,lightColor(){}
-	InstanceInfos(glm::vec4 tr):translate(tr){}//,lightColor(){}
-	//InstanceInfos(glm::vec4 tr, glm::vec4 col):translate(tr),lightColor(col){}
+	InstanceInfos():translate(){}
+	InstanceInfos(glm::vec4 tr):translate(tr){}
 };
 
 struct InstanceOffset{

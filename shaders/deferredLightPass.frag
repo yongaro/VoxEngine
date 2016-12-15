@@ -94,6 +94,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias){
 
 
 vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec4 lightSpec) {
+	//return fragDiffuse.rgb * ambiantOcclusion.rgb;
 	vec3 L = normalize(currentLightPos.xyz - fragPos.xyz);
 	vec3 V = normalize(globalMat.camPos);
 	vec3 R = reflect(-L, fragNormal.xyz);
@@ -115,7 +116,7 @@ vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec
 	}
 
 	//ambient
-	vec3 ambient = fragDiffuse.rgb * ambiantOcclusion.rgb;
+	vec3 ambient = vec3(2.0)*fragDiffuse.rgb * ambiantOcclusion.rgb;
 	//diffuse
 	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * lightDiff.rgb * fragDiffuse.rgb;
 	//specular

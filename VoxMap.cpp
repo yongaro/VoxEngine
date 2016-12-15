@@ -286,10 +286,9 @@ bool VoxMap::isInMap(glm::vec3 pos){
 }
 PixelCoord VoxMap::mapCoord(glm::vec3 pos){
 	glm::vec3 newPos = glm::vec3(pos.x - position.x, pos.y - position.y, pos.z - position.z);
-	newPos.x /= (float)(map.width()*voxelSize[0]);
-	newPos.y /= (float)(map.height()*voxelSize[1]);
-	newPos.z /= (float)(map.depth()*voxelSize[2]);
-
+	newPos.x /= voxelSize[0];
+	newPos.y /= voxelSize[1];
+	newPos.z /= voxelSize[2];
 	return PixelCoord((size_t)newPos.x, (size_t)newPos.y, (size_t)newPos.z);
 }
 

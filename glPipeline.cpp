@@ -199,7 +199,6 @@ GLfloat lerp(GLfloat a, GLfloat b, GLfloat f){ return a + f * (b - a); }
 
 
 void GBuffer::build_SSAO_Kernel(){
-	//ssaoKernel.clear();
 	std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
 	std::default_random_engine generator;
 
@@ -248,9 +247,9 @@ void GBuffer::build_SSAO_Kernel(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
-	//std::vector<GLenum> DrawBuffers;
-	//DrawBuffers.push_back(GL_COLOR_ATTACHMENT0);
-	//glDrawBuffers(1, DrawBuffers.data());
+	std::vector<GLenum> DrawBuffers;
+	DrawBuffers.push_back(GL_COLOR_ATTACHMENT0);
+	glDrawBuffers(1, DrawBuffers.data());
 
 	
 	//Creation of the blurred ssao ressources
@@ -262,7 +261,7 @@ void GBuffer::build_SSAO_Kernel(){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
-	//glDrawBuffers(1, DrawBuffers.data());
+	glDrawBuffers(1, DrawBuffers.data());
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -288,7 +287,6 @@ void GBuffer::bind_Blurred_SSAO_Texture(){
 void GBuffer::initForSSAO(){
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	bindTextures();
@@ -297,7 +295,6 @@ void GBuffer::initForSSAO(){
 void GBuffer::initForSSAOBlur(){
 	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	//glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	bindTextures();
 	bind_SSAO_Texture();
