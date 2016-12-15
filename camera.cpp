@@ -52,7 +52,7 @@ void Camera::vectorsFromAngles() {
 
     // coordonnées sphériques -> cartésiennes
     double r_temp = cos(phi  * M_PI/180);
-    forward.y = -0.5f + sin(phi * M_PI/180) / 2;
+    forward.y = -0.5f + -1.8 * sin(phi * M_PI/180);
     forward.x = r_temp * cos(theta * M_PI/180);
     forward.z = r_temp * sin(theta * M_PI/180);
     left = glm::cross(up, forward);
@@ -66,6 +66,16 @@ void Camera::toForward() {
     double v = getRealSpeed();
     position.x += forward.x * v;
     position.z += forward.z * v;
+    
+
+    /*
+    double nextX = forward.x * v;
+    if ((nextX >= 0.01) && (nextX <= 0.5)) { nextX = 0.5; }
+    double nextZ = forward.z * v;
+    if ((nextZ >= 0.01) && (nextZ <= 0.5)) { nextZ = 0.5; } 
+    position.x += nextX;
+    position.z += nextZ;
+    */
 /*
         int xInt = position.x;
     if (position.x - xInt < 0.1) {
@@ -223,10 +233,10 @@ void Camera::setSensivity(GLfloat sensivity) {
 }
 
 void Camera::mouseMove(int x, int y) {
-    if ((x != 0) && (y != 0)) {
+    //if ((x != 0) && (y != 0)) {
         setTheta(x * sensivity);
         setPhi(y * sensivity);   
-    }
+    //}
 }
 
 // Gère les évenements SDL
@@ -250,8 +260,15 @@ void Camera::update(SDL_Event& event) {
 	} else if (event.type == SDL_MOUSEBUTTONDOWN) {
 		enabledMoves = true;
 	} else if (event.type == SDL_MOUSEMOTION) {
+       // std::cout << circleX << " " << circleY << std::endl;
         circleX += event.motion.xrel;
         circleY += event.motion.yrel;
+
+        if (circleY > height) circleY = height;
+        if (circleY < -height) circleY = -height;
+        if (circleX > width) circleX = width;
+        if (circleX < -width) circleX = -width;
+
         mouseMove(circleX,  circleY);
 	}
 }

@@ -49,7 +49,7 @@ void initCamera(glContext* context) {
 	cam.see(2.0f, 0.0f, 0.0f);
 	cam.setSpeed(step);
 	cam.setBoost(10.0f);
-	cam.setSensivity(0.1f);
+	cam.setSensivity(0.05f);
 	cam.setWidth(width);
 	cam.setHeight(height);
 }
