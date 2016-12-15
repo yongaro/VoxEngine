@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-#define max_lights 10
+#define max_lights 1000
 
 layout(binding = 0) uniform globalMatrices {
     mat4 view;
@@ -16,7 +16,7 @@ layout(binding = 1) uniform lightSources{
 	vec4 diffuse[max_lights];
 	vec4 specular[max_lights];
 	vec4 attenuation[max_lights]; //constant - linear - quadratic - spotExpoment
-	vec4 spots[max_lights]; // xyz - spotCutoff
+	//vec4 spots[max_lights]; // xyz - spotCutoff
 } lights;
 
 layout(binding = 2) uniform Material{

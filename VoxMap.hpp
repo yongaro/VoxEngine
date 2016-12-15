@@ -59,8 +59,8 @@ public:
 	virtual void createInstanceSSBO();
 	virtual void updateInstanceSSBO();
 
-	virtual void addBlock(size_t, size_t, size_t, CubeTypes, glDeferredRenderer&);
-	virtual void removeBlock(size_t, size_t, size_t, glDeferredRenderer&);
+	virtual void addBlock(size_t, size_t, size_t, CubeTypes, glDeferredRenderer&, glContext*);
+	virtual void removeBlock(size_t, size_t, size_t, glDeferredRenderer&, glContext*);
 	virtual bool isInMap(glm::vec3);
 	virtual PixelCoord mapCoord(glm::vec3);
 };
@@ -72,8 +72,8 @@ public:
 	VoxMapManager();
 	~VoxMapManager();
 
-	virtual void addBlock(glm::vec3, CubeTypes, glDeferredRenderer&);
-	virtual void removeBlock(glm::vec3, glDeferredRenderer&);
+	virtual void addBlock(glm::vec3, CubeTypes, glDeferredRenderer&, glContext*);
+	virtual void removeBlock(glm::vec3, glDeferredRenderer&,glContext*);
 	virtual CubeTypes cubeAt(glm::vec3);
 };
 

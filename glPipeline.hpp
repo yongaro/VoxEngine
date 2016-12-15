@@ -9,8 +9,6 @@
 #include <SDL2/SDL_opengl.h>
 
 
-#define max_lights 10
-
 //##################### GLPIPELINE ##################################
 enum UniformsBindingPoints{ GLOBAL_UBP, LIGHTS_UBP, MATERIAL_UBP, FEATURES_UBP, MESH_TRANS_UBP,
                             SHADOW_TRANS_UBP, OFFSET_UBP, SSAO_KERNEL_UBP, SIZE_UBP };
@@ -79,6 +77,36 @@ struct glContext{
 	void bindUBO(){
 		glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::GLOBAL_UBP, UBO[UniformsBindingPoints::GLOBAL_UBP]);
 		glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::LIGHTS_UBP, UBO[UniformsBindingPoints::LIGHTS_UBP]);
+	}
+
+	void addLight(glm::vec4 pos){
+		bool added = false;
+		for( size_t i = 0; i < max_lights; ++i ){
+			if( lights.pos[i].x == pos.x && lights.pos[i].y == pos.y && lights.pos[i].z == pos.z ){
+				lights.pos[i].w = 1.0f;
+				added = true;
+				break;
+			}
+			if( lights.pos[i].w < 0.0f ){
+				lights.pos[i].x = pos.x; lights.pos[i].y = pos.y; lights.pos[i].z = pos.z;
+				lights.pos[i].w = 1.0f;
+				added = true;
+				break;
+			}
+		}
+		if( added ){ updateLightsUniformBuffer(); }
+	}
+
+	void removeLight(glm::vec4 pos){
+		bool removed = false;
+		for( size_t i = 0; i < max_lights; ++i ){
+			if( lights.pos[i].x == pos.x && lights.pos[i].y == pos.y && lights.pos[i].z == pos.z ){
+				lights.pos[i].w = -1.0f;
+				removed = true;
+				//break;
+			}
+		}
+		if( removed ){ updateLightsUniformBuffer(); }
 	}
 };
 

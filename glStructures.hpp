@@ -17,7 +17,7 @@
 
 
 //Phong
-#define max_lights 10
+#define max_lights 1000
 static uint32_t width = 1024;
 static uint32_t height = 576;
 static std::string DEFAULT_TEXTURE = "./assets/default_texture.png";
@@ -77,14 +77,14 @@ struct LightSources{
 	glm::vec4 diffuse[max_lights];
 	glm::vec4 specular[max_lights];
 	glm::vec4 attenuation[max_lights]; //constant - linear - quadratic - spotExponent
-	glm::vec4 spots[max_lights]; // xyz - spotCutoff
+	//glm::vec4 spots[max_lights]; // xyz - spotCutoff
 	LightSources(){
 		for( size_t i = 0; i < max_lights; ++i ){
 			pos[i] = glm::vec4(0.0f, 0.0f, 0.0f, -1.0f);
 			diffuse[i] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 			specular[i] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-			attenuation[i] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			spots[i] = glm::vec4(0.0f,-1.0f,0.0f, 180.0f);
+			attenuation[i] = glm::vec4(10.0f, 0.0f, 0.0f, 1.0f);
+			//spots[i] = glm::vec4(0.0f,-1.0f,0.0f, 180.0f);
 		}
 	}
 };

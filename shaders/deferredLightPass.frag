@@ -15,7 +15,7 @@ layout(binding = 1) uniform lightSources{
 	vec4 diffuse[max_lights];
 	vec4 specular[max_lights];
 	vec4 attenuation[max_lights]; //constant - linear - quadratic - spotExpoment
-	vec4 spots[max_lights]; // xyz - spotCutoff
+	//vec4 spots[max_lights]; // xyz - spotCutoff
 } lights;
 
 
@@ -116,7 +116,7 @@ vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec
 	}
 
 	//ambient
-	vec3 ambient = vec3(2.0)*fragDiffuse.rgb * ambiantOcclusion.rgb;
+	vec3 ambient = fragDiffuse.rgb * ambiantOcclusion.rgb;
 	//diffuse
 	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * lightDiff.rgb * fragDiffuse.rgb;
 	//specular

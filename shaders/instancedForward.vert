@@ -16,13 +16,13 @@ layout(binding = GLOBAL_MATRIX_UBP) uniform globalMatrices {
 	 vec3 camPos;
 } globalMat;
 
-#define max_lights 10
+#define max_lights 500
 layout(binding = LIGHT_SOURCES_UBP) uniform lightSources{
 	vec4 pos[max_lights];
 	vec4 diffuse[max_lights];
 	vec4 specular[max_lights];
 	vec4 attenuation[max_lights]; //constant - linear - quadratic - spotExpoment
-	vec4 spots[max_lights]; // xyz - spotCutoff
+	//vec4 spots[max_lights]; // xyz - spotCutoff
 } lights;
 
 layout(binding = MATERIAL_UBP) uniform Material{

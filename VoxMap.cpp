@@ -252,21 +252,23 @@ void VoxMap::updateInstanceSSBO(){
 }
 
 
-void VoxMap::addBlock(size_t x, size_t y, size_t z, CubeTypes type, glDeferredRenderer& renderer){
+void VoxMap::addBlock(size_t x, size_t y, size_t z, CubeTypes type, glDeferredRenderer& renderer, glContext* context){
 	if( map(x,y,z) == CubeTypes::AIR ){
 		cubes[type].addInstance( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 		if( type == CubeTypes::GLOWSTONE ){
 			renderer.addLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
+			context->addLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 		}
 		fillSSBO();
 		//fillVisibleCubes(x,y,z);
 	}	
 }
-void VoxMap::removeBlock(size_t x, size_t y, size_t z, glDeferredRenderer& renderer){
+void VoxMap::removeBlock(size_t x, size_t y, size_t z, glDeferredRenderer& renderer, glContext* context){
 	if( map(x,y,z) != CubeTypes::AIR ){
 		cubes[ map(x,y,z) ].removeInstance( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 		if( map(x,y,z) == CubeTypes::GLOWSTONE ){
 			renderer.removeLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
+			context->removeLight( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 		}
 		fillSSBO();
 		//fillVisibleCubes(map.width()-20, map.height()-10, map.depth()-20 );
@@ -299,20 +301,20 @@ VoxMapManager::~VoxMapManager(){
 		//delete mapList[i];
 	}
 }
-void VoxMapManager::addBlock(glm::vec3 pos, CubeTypes type, glDeferredRenderer& renderer){
+void VoxMapManager::addBlock(glm::vec3 pos, CubeTypes type, glDeferredRenderer& renderer, glContext* context){
 	for( VoxMap* map : mapList ){
 		if( map->isInMap(pos) ){
 			PixelCoord coord = map->mapCoord(pos);
-			map->addBlock(coord.z,coord.y,coord.z,type,renderer);
+			map->addBlock(coord.z,coord.y,coord.z,type,renderer, context);
 			break;
 		}
 	}
 }
-void VoxMapManager::removeBlock(glm::vec3 pos, glDeferredRenderer& renderer){
+void VoxMapManager::removeBlock(glm::vec3 pos, glDeferredRenderer& renderer, glContext* context){
 	for( VoxMap* map : mapList ){
 		if( map->isInMap(pos) ){
 			PixelCoord coord = map->mapCoord(pos);
-			map->removeBlock(coord.z,coord.y,coord.z,renderer);
+			map->removeBlock(coord.z,coord.y,coord.z,renderer,context);
 			break;
 		}
 	}

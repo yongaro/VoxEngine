@@ -159,7 +159,7 @@ glPipeline SSAOBlur_Pipeline;
 
 glDeferredRenderer deferredRenderer(width,height);
 
-bool useDeferredRendering = true;
+bool useDeferredRendering = false;
 
 /**
 *	shadow map structs
@@ -276,7 +276,7 @@ void init(std::vector<string>& args){
 		std::string cubeName = "cube.obj";
 
 	 	testVox->loadVoxel(cubePath,cubeName); // charge la forme du voxel
-	 	testVox->newMap(64,128,64);
+	 	testVox->newMap(200,128,200);
 		testVox->testMap(args); // remplissage test
 
 		mapManager.mapList.push_back(testVox);
@@ -337,7 +337,7 @@ void init(std::vector<string>& args){
 	context->camera.backupPos = context->camera.pos;
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
-	context->lights.pos[0] = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
+	//context->lights.pos[0] = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
 	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
 	                                           width / (float)height,
 	                                           0.001f, 1500.0f);
@@ -402,10 +402,8 @@ void init(std::vector<string>& args){
 }
 
 
-void testAddCube(){
-	for( size_t i = 0; i < 32; ++i ){
-		testVox->addBlock(i, 130, i, CubeTypes::GLOWSTONE, deferredRenderer);
-	}
+void addCube(){
+	mapManager.addBlock(cam.getPosition()+cam.getForward(), CubeTypes::GLOWSTONE, deferredRenderer, context);
 }
 
 
@@ -549,8 +547,8 @@ int main(int argc, char *argv[]) {
 					downCam();
 	            break;
 
-				case SDLK_g :
-					testAddCube();
+				case SDLK_c :
+					addCube();
 	            break;
 
 				case SDLK_ESCAPE :
