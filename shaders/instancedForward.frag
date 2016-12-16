@@ -78,7 +78,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias){
     return shadow;
 }
 
-vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
+vec4 scene_ambient = vec4(0.1, 0.1, 0.1, 1.0);
 float height_scale = 0.01;
 
 

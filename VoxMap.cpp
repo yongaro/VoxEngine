@@ -62,12 +62,13 @@ cimg_library::CImg<bool> VoxMap::getMapObjects(){
 	for( int z = 0; z < map.depth(); ++z ){
 		for( int y = 0; y < map.height(); ++y ){
 			for( int x = 0; x < map.width(); ++x ){
-				if( map(x,y,z,MapChannels::BLOC) != CubeTypes::AIR ){
+				if( map(x,y,z) != CubeTypes::AIR && tempMap(x,y,z) == true){
 					res(x,y,z) = true;
 				}
 			}
 		}
 	}
+	res.save_analyze("visible");
 	return res;
 }
 
