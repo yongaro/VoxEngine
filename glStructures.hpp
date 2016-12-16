@@ -17,7 +17,7 @@
 
 
 //Phong
-#define max_lights 100
+#define max_lights 50
 static uint32_t width = 1024;
 static uint32_t height = 576;
 static std::string DEFAULT_TEXTURE = "./assets/default_texture.png";

@@ -293,6 +293,9 @@ PixelCoord VoxMap::mapCoord(glm::vec3 pos){
 	newPos.x /= voxelSize[0];
 	newPos.y /= voxelSize[1];
 	newPos.z /= voxelSize[2];
+	newPos.x = std::round(newPos.x);
+	newPos.y = std::round(newPos.y);
+	newPos.z = std::round(newPos.z);
 	return PixelCoord((size_t)newPos.x, (size_t)newPos.y, (size_t)newPos.z);
 }
 
@@ -307,6 +310,7 @@ void VoxMapManager::addBlock(glm::vec3 pos, CubeTypes type, glDeferredRenderer& 
 	for( VoxMap* map : mapList ){
 		if( map->isInMap(pos) ){
 			PixelCoord coord = map->mapCoord(pos);
+			std::cout << coord.x << " " << coord.y << " " << coord.z << std::endl;
 			map->addBlock(coord.x,coord.y,coord.z,type,renderer, context);
 			break;
 		}

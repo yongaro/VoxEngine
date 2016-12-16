@@ -39,6 +39,7 @@ Camera cam;
 */
 glContext* context;
 VoxMapManager mapManager;
+CubeTypes currentType = CubeTypes::GLOWSTONE;
 VoxMap* testVox;
 
 void initCamera(glContext* context) {
@@ -407,7 +408,7 @@ void addCube(){
 	float dist = 2.0f;
 	newPos.x *= dist; newPos.y *= dist; newPos.z *= dist;
 	newPos.x += cam.getPosition().x; newPos.y += cam.getPosition().y; newPos.z += cam.getPosition().z;
-	mapManager.addBlock(newPos, CubeTypes::GLOWSTONE, deferredRenderer, context);
+	mapManager.addBlock(newPos, currentType, deferredRenderer, context);
 }
 
 void removeCube(){
@@ -560,11 +561,35 @@ int main(int argc, char *argv[]) {
 
 				case SDLK_c :
 					addCube();
-	            break;
-
+	            break; 
 				case SDLK_v :
 					removeCube();
 	            break;
+
+				case SDLK_1:
+					currentType = CubeTypes::DIRT;
+					break;
+				case SDLK_2:
+					currentType = CubeTypes::STONE;
+					break;
+				case SDLK_3:
+					currentType = CubeTypes::WOOD;
+					break;
+				case SDLK_4:
+					currentType = CubeTypes::GLOWSTONE;
+					break;
+				case SDLK_5:
+					currentType = CubeTypes::GRASS;
+					break;
+				case SDLK_6:
+					currentType = CubeTypes::SAND;
+					break;
+				case SDLK_7:
+					currentType = CubeTypes::SNOW;
+					break;
+				case SDLK_8:
+					currentType = CubeTypes::WATER;
+					break;
 				case SDLK_ESCAPE :
 					quitting = true;
 					break;

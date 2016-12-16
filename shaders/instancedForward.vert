@@ -16,7 +16,7 @@ layout(binding = GLOBAL_MATRIX_UBP) uniform globalMatrices {
 	 vec3 camPos;
 } globalMat;
 
-#define max_lights 100
+#define max_lights 50
 layout(binding = LIGHT_SOURCES_UBP) uniform lightSources{
 	vec4 pos[max_lights];
 	vec4 diffuse[max_lights];
