@@ -133,5 +133,5 @@ void main() {
 	outDiff     = fragDiffuse;
 	outEmissive = fragEmissive;
 	outNrm      = vec4(normal, 1.0);//normal;
-	outSpecular = fragSpecular;
+	outSpecular = vec4(fragPos, 1.0);//fragSpecular;
 }

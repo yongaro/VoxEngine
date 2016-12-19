@@ -58,11 +58,11 @@ layout(location = 0) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
 
-vec4 fragPos      = texture(positionTexSampler, fragUV);
+vec4 fragPos      = texture(specularTexSampler, fragUV);//texture(positionTexSampler, fragUV);
 vec4 fragDiffuse  = texture(diffuseTexSampler, fragUV);
 vec4 fragEmissive = texture(emissiveTexSampler, fragUV);
 vec4 fragNormal   = texture(normalsTexSampler, fragUV);
-vec4 fragSpecular = texture(specularTexSampler, fragUV);// * vec4(0.5, 0.5, 0.5, 1.0);
+vec4 fragSpecular = vec4(1.0);//texture(specularTexSampler, fragUV);// * vec4(0.5, 0.5, 0.5, 1.0);
 vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
 vec4 ambiantOcclusion = texture(ssaoTexSampler, fragUV);
 vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
@@ -120,7 +120,7 @@ vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec
 	//diffuse
 	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * lightDiff.rgb * fragDiffuse.rgb;
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), fragSpecular.w*5.0)  * lightSpec.rgb * fragSpecular.rgb;
+	vec3 specular = pow(max(dot(R, V), 0.0), 25.0)  * lightSpec.rgb * fragSpecular.rgb;
 
 	//linear color (color before gamma correction)
 	return ambient + attenuation*(diffuse + specular);
@@ -138,14 +138,8 @@ void main(){
 	vec3 linearColor = vec3(0.0);
 	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
 	else{
-		for( int i = 0; i < max_lights; ++i ){
-			//float distanceToLight = length(ssboLights.lights[i].pos.xyz - fragPos.xyz);
-			//if( lights.pos[i].w < 0.0 ){ continue; } //if light is used
-			if( lights.pos[i].w != 0.0 ){ continue; }
-			//if(  lights.pos[i].w > 0.0 && distanceToLight > 25.0 ){ continue; } //light is too far
-			linearColor += ApplyLight(lights.pos[i], lights.attenuation[i], lights.diffuse[i], lights.specular[i]);
-		}
-		/*
+		linearColor += ApplyLight(lights.pos[0], lights.attenuation[0], lights.diffuse[0], lights.specular[0]);
+		
 		for( int i = 0; i < max_ssbo_lights; ++i ){
 			float distanceToLight = length(ssboLights.lights[i].pos.xyz - fragPos.xyz);
 			if( ssboLights.lights[i].pos.w < 0.0){ continue; } //light is not used
@@ -155,7 +149,7 @@ void main(){
 			                          ssboLights.lights[i].diffuse,
 			                          ssboLights.lights[i].specular);
 		}
-		*/
+		
 	}	
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
