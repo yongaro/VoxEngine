@@ -33,7 +33,8 @@ layout(location = 0) in vec2 fragUV;
 layout(location = 0) out vec4 fragColor;
 
 
-const vec2 noiseScale = vec2( 1024.0f/4.0f, 576.0f/4.0f );
+const vec2 noiseScale = vec2( ssao_kernel.screenDim.x/4.0f, ssao_kernel.screenDim.y/4.0f );//vec2( 1024.0f/4.0f, 576.0f/4.0f );
+//const vec2 noiseScale = vec2( 1024.0f/4.0f, 576.0f/4.0f );
 const float radius = 1.0;
 
 void main(){

@@ -182,7 +182,6 @@ void VoxMap::getVisibleNeighbors(int x, int y, int z, std::vector<PixelCoord>& s
 						stack.push_back( PixelCoord(x+i,y+j,z+k) );
 					}
 					if( map(x+i, y+j, z+k, MapChannels::BLOC) != CubeTypes::AIR && tempMap(x+i, y+j, z+k) == false ){
-						if( map(x+i, y+j, z+k, MapChannels::BLOC) == CubeTypes::AIR ){ std::cout << "BORDEL"<< std::endl; }
 						cubes[ map(x+i, y+j, z+k, MapChannels::BLOC) ].addInstance( glm::vec4((x+i)*voxelSize[0]+position.x, (y+j)*voxelSize[1]+position.y, (z+k)*voxelSize[2]+position.z, 1.0f) );
 					}
 					tempMap(x+i, y+j, z+k) = true;
@@ -310,7 +309,6 @@ void VoxMapManager::addBlock(glm::vec3 pos, CubeTypes type, glDeferredRenderer& 
 	for( VoxMap* map : mapList ){
 		if( map->isInMap(pos) ){
 			PixelCoord coord = map->mapCoord(pos);
-			std::cout << coord.x << " " << coord.y << " " << coord.z << std::endl;
 			map->addBlock(coord.x,coord.y,coord.z,type,renderer, context);
 			break;
 		}

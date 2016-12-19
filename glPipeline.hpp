@@ -135,6 +135,7 @@ struct SSAO_Kernel{
  * Structure used to regroup the framebuffer and textures for deferred shading
  */
 enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_EMISSIVE, GB_NRM, GB_SPECULAR, SIZE_GBT };
+//enum PostEffect_Textures{ PE_SSAO, ,SIZE_PET };
 struct GBuffer{
 public:
 	GLuint fboID;

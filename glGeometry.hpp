@@ -194,7 +194,7 @@ public:
 
 	virtual void addLight(glm::vec4);
 	virtual void removeLight(glm::vec4);
-	virtual void update_Light_SSBO_Range(size_t, size_t);
+	virtual void update_Light_SSBO();
 	virtual void bindLightSSBO();
 };
 

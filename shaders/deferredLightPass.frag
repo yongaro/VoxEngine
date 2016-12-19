@@ -15,7 +15,6 @@ layout(binding = 1) uniform lightSources{
 	vec4 diffuse[max_lights];
 	vec4 specular[max_lights];
 	vec4 attenuation[max_lights]; //constant - linear - quadratic - spotExpoment
-	//vec4 spots[max_lights]; // xyz - spotCutoff
 } lights;
 
 
@@ -23,7 +22,7 @@ layout(binding = 5) uniform Dummy{
 	mat4 lightSpaceMatrix;
 }dummy;
 
-#define max_ssbo_lights 100
+#define max_ssbo_lights 500
 #define LIGHTS_SSBP 1
 struct DeferredLight{
 	vec4 pos;
@@ -138,7 +137,7 @@ void main(){
 	vec3 linearColor = vec3(0.0);
 	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
 	else{
-		linearColor += ApplyLight(lights.pos[0], lights.attenuation[0], lights.diffuse[0], lights.specular[0]);
+		//linearColor += ApplyLight(lights.pos[0], lights.attenuation[0], lights.diffuse[0], lights.specular[0]);
 		
 		for( int i = 0; i < max_ssbo_lights; ++i ){
 			float distanceToLight = length(ssboLights.lights[i].pos.xyz - fragPos.xyz);

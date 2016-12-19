@@ -18,8 +18,8 @@
 
 //Phong
 #define max_lights 50
-static uint32_t width = 1024;
-static uint32_t height = 576;
+static uint32_t width = 800;
+static uint32_t height = 600;
 static std::string DEFAULT_TEXTURE = "./assets/default_texture.png";
 
 enum ModificationStates{ NONE, ROTATION, ORIENT_CAMERA, NORMAL, SPRINT, WALK };

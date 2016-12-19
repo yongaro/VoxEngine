@@ -214,7 +214,7 @@ void init(std::vector<string>& args){
 	glGetIntegerv(GL_MAX_DRAW_BUFFERS, &infoValue);
 	cout << "GL_MAX_DRAW_BUFFERS -- " << infoValue << endl;
 	
-
+	
 	testVox = new VoxMap(glm::vec3(0.0f,0.0f,0.0f));
 	std::vector<std::string> tempArgs;
 	std::string mapFile = "./testMap.hdr";
