@@ -27,7 +27,7 @@ float framespersecond;
 // This function gets called once on startup.
 
 // On régule le nombre de frame par seconde
-const int FRAMES_PER_SECOND = 60;
+const int FRAMES_PER_SECOND = 30;
 double step = 0.2f;
 
 
@@ -153,10 +153,6 @@ vector<glMesh*> meshes;
 glPipeline forwardPipeline;
 glPipeline simpleShadowPipeline;
 glPipeline instancedForwardPipeline;
-glPipeline instancedDeferredGeoPassPipeline;
-glPipeline deferredLightPassPipeline;
-glPipeline deferred_SSAO_Pipeline;
-glPipeline SSAOBlur_Pipeline;
 
 glDeferredRenderer deferredRenderer(width,height);
 
@@ -287,22 +283,17 @@ void init(std::vector<string>& args){
 	// Remplissage des Pipe-line (ensemble de shaders)
 	string forward_vertex = "./shaders/forward.vert";
 	string forward_fragment = "./shaders/forward.frag";
+
 	string shadowPT_vertex = "./shaders/instancedShadow.vert";
 	string shadowPT_fragment = "./shaders/instancedShadow.frag";
+
 	string instancedForward_vertex = "./shaders/instancedForward.vert";
 	string instancedForward_fragment = "./shaders/instancedForward.frag";
 
-	string instancedDeferredGeoPass_vertex = "./shaders/instancedDeferredGeoPass.vert";
-	string instancedDeferredGeoPass_fragment = "./shaders/instancedDeferredGeoPass.frag";
+	string deferredLight_vertex = "./shaders/instancedDeferredLight.vert";
+	string deferredLight_fragment = "./shaders/instancedDeferredLight.frag";
 
-	string deferredLightPass_vertex = "./shaders/deferredLightPass.vert";
-	string deferredLightPass_fragment = "./shaders/deferredLightPass.frag";
 
-	string deferredSSAO_vertex = "./shaders/deferredSSAO.vert";
-	string deferredSSAO_fragment = "./shaders/deferredSSAO.frag";
-
-	string SSAOBlur_vertex = "./shaders/SSAOBlur.vert";
-	string SSAOBlur_fragment = "./shaders/SSAOBlur.frag";
 
 	std::cout << "\e[1;33mCompilation \e[1;36mforward rendering pipeline\e[0m" << std::endl;
 	forwardPipeline.generateShaders(forward_vertex.c_str(), forward_fragment.c_str(), NULL);
@@ -313,21 +304,6 @@ void init(std::vector<string>& args){
 	std::cout << "\e[1;33mCompilation \e[1;36minstanced forward rendering pipeline\e[0m" << std::endl;
 	instancedForwardPipeline.generateShaders(instancedForward_vertex.c_str(),instancedForward_fragment.c_str(), NULL);
 	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
-	std::cout << "\e[1;33mCompilation \e[1;36minstanced deferred rendering(Geometry pass) pipeline\e[0m" << std::endl;
-	instancedDeferredGeoPassPipeline.generateShaders(instancedDeferredGeoPass_vertex.c_str(),
-	                                                 instancedDeferredGeoPass_fragment.c_str(), NULL);
-	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
-	std::cout << "\e[1;33mCompilation \e[1;36mdeferred rendering(Light pass) pipeline\e[0m" << std::endl;
-	deferredLightPassPipeline.generateShaders(deferredLightPass_vertex.c_str(), deferredLightPass_fragment.c_str(), NULL);
-	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
-	std::cout << "\e[1;33mCompilation \e[1;36mdeferred SSAO pipeline\e[0m" << std::endl;
-	deferred_SSAO_Pipeline.generateShaders(deferredSSAO_vertex.c_str(), deferredSSAO_fragment.c_str(), NULL);
-	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
-	std::cout << "\e[1;33mCompilation \e[1;36mdeferred SSAO Blur pipeline\e[0m" << std::endl;
-	SSAOBlur_Pipeline.generateShaders(SSAOBlur_vertex.c_str(), SSAOBlur_fragment.c_str(), NULL);
-	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
-	 
-	deferredRenderer.init(&instancedDeferredGeoPassPipeline, &deferredLightPassPipeline, &deferred_SSAO_Pipeline, &SSAOBlur_Pipeline);
 	
 	context = new glContext();
 
@@ -400,6 +376,7 @@ void init(std::vector<string>& args){
 	glEnable( GL_BLEND );
 
 	initCamera(context);
+	deferredRenderer.init(context);
 }
 
 
@@ -497,7 +474,7 @@ int main(int argc, char *argv[]) {
 	init(args);
 	
 
-	SDL_GL_SetSwapInterval(0); //disable vSync for 60 fps cap on desktop monitors
+	SDL_GL_SetSwapInterval(1); //disable vSync for 60 fps cap on desktop monitors
 	//SDL_SetWindowGrab(window, SDL_TRUE);
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 

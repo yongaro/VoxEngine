@@ -2,136 +2,125 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-#define max_lights 10
-
 layout(binding = 0) uniform globalMatrices {
     mat4 view;
     mat4 proj;
 	 vec3 camPos;
 } globalMat;
 
-layout(binding = 2) uniform Material{
-	vec4 Ka;
-	vec4 Kd;
-	vec4 Ks;
-	float shininess; 
-} mat;
+layout(binding = 5) uniform Dummy{
+	mat4 lightSpaceMatrix;
+}dummy;
 
-layout(binding = 3) uniform Features{ mat4 list; } features;
-
-layout(binding = 4) uniform MeshTranforms{
-	mat4 model;
-	mat4 mvp;
-} meshTransforms;
-
-
-//I NEED MOAR SYNTAXIK SUGAR
-#define DIFFUSE 0
-#define DISPLACEMENT 1
+#define POSITION 0
+#define DIFFUSE 1
 #define EMISSIVE 2
-#define HEIGHT 3
-#define NORMALS 4
-#define SPECULAR 5
+#define NORMALS 3
+#define SPECULAR 4
+#define SSAO 5
+layout(binding = POSITION) uniform sampler2D positionTexSampler;
 layout(binding = DIFFUSE) uniform sampler2D diffuseTexSampler;
-layout(binding = DISPLACEMENT) uniform sampler2D displacementTexSampler;
 layout(binding = EMISSIVE) uniform sampler2D emissiveTexSampler;
-layout(binding = HEIGHT) uniform sampler2D heightTexSampler;
 layout(binding = NORMALS) uniform sampler2D normalsTexSampler;
 layout(binding = SPECULAR) uniform sampler2D specularTexSampler;
+layout(binding = SSAO) uniform sampler2D ssaoTexSampler;
+
+#define SHADOW 6
+layout(binding = SHADOW) uniform sampler2D shadowTexSampler;
 
 
-layout(location = 0) in vec3 fragPos;
-layout(location = 1) in vec3 fragNormal;
-layout(location = 2) in vec2 fragUV;
-layout(location = 3) in mat3 fragTBN; //takes slots 3,4,5
+layout(location = 0) in vec2 fragUV;
+layout(location = 1) in vec4 lightPos;
+layout(location = 2) in vec4 lightDiffuse;
+layout(location = 3) in vec4 lightSpecular;
+layout(location = 4) in vec4 lightAttenuation;
 
-layout(location = 0) out vec4 outPos;
-layout(location = 1) out vec4 outDiff;
-layout(location = 2) out vec4 outEmissive;
-layout(location = 3) out vec4 outNrm;
-layout(location = 4) out vec4 outSpecular;
+layout(location = 0) out vec4 outColor;
+
+vec4 fragPos      = texture(specularTexSampler, fragUV);//texture(positionTexSampler, fragUV);
+vec4 fragDiffuse  = texture(diffuseTexSampler, fragUV);
+vec4 fragEmissive = texture(emissiveTexSampler, fragUV);
+vec4 fragNormal   = texture(normalsTexSampler, fragUV);
+vec4 fragSpecular = vec4(1.0);//texture(specularTexSampler, fragUV);// * vec4(0.5, 0.5, 0.5, 1.0);
+vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
+vec4 ambiantOcclusion = texture(ssaoTexSampler, fragUV);
+vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
+
+//vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
+//vec4 scene_ambient = vec4(0.3, 0.3, 0.3, 1.0) * fragDiffuse;
 
 
 
-vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
-float height_scale = 0.01;
 
+float ShadowCalculation(vec4 fragPosLightSpace, float bias){
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // Transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    if(projCoords.z > 1.0){
+	    return 0.0;
+    }
+    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadowTexSampler, projCoords.xy).r; 
+    // Get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // Check whether current frag pos is in shadow
+	 float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0; 
 
-vec2 fragTexCoord = vec2(fragUV);
-vec3 normal = fragNormal;
-vec4 fragDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
-vec4 fragEmissive = vec4(0.0, 0.0, 0.0, 0.0);
-vec4 fragSpecular = vec4(1.0, 1.0, 1.0, 1.0);
-
-//steep parallax mapping
-vec2 parallaxMapping(){
-	vec3 tangentViewPos = fragTBN * globalMat.camPos;
-	vec3 tangentFragPos = fragTBN * fragPos;
-	vec3 viewDir = normalize(tangentViewPos - tangentFragPos);
-	
-	
-	// number of depth layers
-	const float minLayers = 64;
-	const float maxLayers = 256;
-	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
-	//float numLayers = mix(maxLayers, minLayers, abs(dot(normalize(fragNormal), viewDir)));;
-	// calculate the size of each layer
-	float layerDepth = 1.0 / numLayers;
-	// depth of current layer
-	float currentLayerDepth = 0.0;
-	// the amount to shift the texture coordinates per layer (from vector P)
-	vec2 P = viewDir.xy * height_scale; 
-	vec2 deltaTexCoords = P / numLayers;
-
-	// get initial values
-	vec2  currentTexCoords     = fragUV;
-	float currentDepthMapValue = texture(heightTexSampler, currentTexCoords).r;
-  
-	while( currentLayerDepth < currentDepthMapValue ){
-		// shift texture coordinates along direction of P
-		currentTexCoords -= deltaTexCoords;
-		// get depthmap value at current texture coordinates
-		currentDepthMapValue = texture(heightTexSampler, currentTexCoords).r;
-		// get depth of next layer
-		currentLayerDepth += layerDepth;  
-	}
-	return currentTexCoords;
-}   
-
-const float NEAR = 0.001;
-const float FAR = 1500.0;
-
-float linearizeDepth(float depth){
-	float z = depth * 2.0 - 1.0; //back to NDC
-	return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));
+    return shadow;
 }
 
-void main() {
-	//parallax mapping
-	height_scale = 0.06;
-	if( features.list[0][3] > 0.0 ){ fragTexCoord = parallaxMapping(); }
+
+
+vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec4 lightSpec) {
+	//return fragDiffuse.rgb * ambiantOcclusion.rgb;
+	vec3 L = normalize(currentLightPos.xyz - fragPos.xyz);
+	vec3 V = normalize(globalMat.camPos);
+	vec3 R = reflect(-L, fragNormal.xyz);
+	float attenuation = 1.0;
+
 	
-	//normal map
-	vec3 normal = normalize(fragNormal);
-	if( features.list[1][0] > 0.0 ){
-		vec3 tangentNormal = normalize( texture(normalsTexSampler, fragTexCoord).rgb * 2.0 - 1.0);
-		normal =  normalize(fragTBN * tangentNormal);
+	if( currentLightPos.w == 0.0 ){
+		//directional light
+		L = normalize( currentLightPos.xyz );
+		attenuation = 1.0; //no attenuation for directional lights
 	}
+	else{
+		//point light
+		float distanceToLight = length(currentLightPos.xyz - fragPos.xyz);
+		attenuation = 1.0 / (1.0
+		                     + lightAttenuation.x //constant
+		                     + lightAttenuation.y * distanceToLight //linear
+		                     + lightAttenuation.z * distanceToLight * distanceToLight); //quadratic
+	}
+
+	//ambient
+	vec3 ambient = fragDiffuse.rgb * ambiantOcclusion.rgb;
+	//diffuse
+	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * lightDiff.rgb * fragDiffuse.rgb;
+	//specular
+	vec3 specular = pow(max(dot(R, V), 0.0), 25.0)  * lightSpec.rgb * fragSpecular.rgb;
+
+	//linear color (color before gamma correction)
+	return ambient + attenuation*(diffuse + specular);
+	//return attenuation*(diffuse + specular);
 	
-	//texture for diffuse lighting
-	if( features.list[0][0] > 0.0 ){ fragDiffuse = texture(diffuseTexSampler, fragTexCoord); }
-	fragDiffuse *= mat.Kd;
-	//texture for emissive lighting
-	if( features.list[0][2] > 0.0 ){ fragEmissive = texture(emissiveTexSampler, fragTexCoord); }
-	//texture for specular lighting
-	if( features.list[1][1] > 0.0 ){ fragSpecular = texture(specularTexSampler, fragTexCoord); }
-	fragSpecular *= mat.Ks;
-	fragSpecular.w = mat.shininess; //real bad idea
-	
-	//writing data to framebuffer attachments
-	outPos      = vec4(fragPos, 1.0); outPos.w = linearizeDepth(fragPos.z);
-	outDiff     = fragDiffuse;
-	outEmissive = fragEmissive;
-	outNrm      = vec4(normal, 1.0);//normal;
-	outSpecular = vec4(fragPos, 1.0);//fragSpecular;
+	//float bias = max(0.05 * (1.0 - dot(fragNormal.rgb, L)), 0.005);
+	//float shadow = ShadowCalculation(lightSpaceFragPos,bias);
+	//return (ambient + (1.0 - shadow) * (diffuse + specular));
+}
+
+
+void main(){
+	if( fragPos.x == 0.0 && fragPos.y == 0.0 && fragPos.z == 0.0 ){ discard; }
+	vec3 linearColor = vec3(0.0);
+	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
+	else{
+		linearColor = ApplyLight(lightPos, lightAttenuation, lightDiffuse, lightSpecular);
+	}	
+	//final color with gamma correction
+	//vec3 gamma = vec3(1.0/2.2);
+	//outColor = vec4(pow(linearColor, gamma), 1.0);
+	outColor = vec4(linearColor, 1.0);
+	//outColor = vec4(1.0, 0.0, 0.0, 1.0);
 }

@@ -423,7 +423,6 @@ void glInstancedMesh::bindSSBO(){
 
 
 void glInstancedMesh::createOffsetUBO(){
-	//std::cout << sizeof(GLuint) << " " << sizeof(glm::vec2) << " " << sizeof(glm::vec4) << std::endl;
 	glGenBuffers(1, &offsetUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, offsetUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(GLuint), &ssboOffset, GL_DYNAMIC_COPY);
@@ -466,7 +465,7 @@ void glInstancedMesh::render(){
 			smesh->mat->bindUBO();
 			smesh->mat->bindTextures();
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			
+		
 			smesh->bindVAO();
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, smesh->vbo[VBO::INDEX]);
 			glDrawElementsInstanced(GL_TRIANGLES, smesh->indices.size(), GL_UNSIGNED_INT, 0, instances.size());
@@ -487,48 +486,113 @@ DeferredLight::DeferredLight():pos( glm::vec4(0.0f, 0.0f, 0.0f, -1.0f) ),
                                attenuation( glm::vec4(0.0f, 0.0f, 10.0f, 1.0f) ){}
 
 
-glDeferredRenderer::glDeferredRenderer():width(),height(),gbuffer(),geometryPipeline(NULL),lightPipeline(NULL),
-                                         fullScreenQuad(NULL),lightVolume(NULL),
+glDeferredRenderer::glDeferredRenderer():width(),height(),gbuffer(),context(NULL),
+                                         geometryPipeline(),lightPipeline(),lightVolumePipeline(),
+                                         fullScreenQuad(),lightVolume(),
                                          max_deferred_lights(500),lights(),deferredLightsSSBO(){}
-glDeferredRenderer::glDeferredRenderer(GLuint w, GLuint h):width(w),height(h),gbuffer(),geometryPipeline(NULL),lightPipeline(NULL),
-                                                           fullScreenQuad(NULL),lightVolume(NULL),
+glDeferredRenderer::glDeferredRenderer(GLuint w, GLuint h):width(w),height(h),gbuffer(),context(NULL),
+                                                           geometryPipeline(),lightPipeline(),lightVolumePipeline(),
+                                                           fullScreenQuad(),lightVolume(),
                                                            max_deferred_lights(500),lights(),deferredLightsSSBO(){}
 glDeferredRenderer::~glDeferredRenderer(){}
 
-void glDeferredRenderer::init(glPipeline* geometryP, glPipeline* lightP, glPipeline* ssaoP, glPipeline* ssaoBP){
-	geometryPipeline = geometryP;
-	lightPipeline = lightP;
-	ssaoPipeline = ssaoP;
-	ssaoBlurPipeline = ssaoBP;
+void glDeferredRenderer::init(glContext* ctx){
+	//Geometry Pass
+	std::string instancedDeferredGeoPass_vertex = "./shaders/instancedDeferredGeoPass.vert";
+	std::string instancedDeferredGeoPass_fragment = "./shaders/instancedDeferredGeoPass.frag";
+	std::cout << "\e[1;33mCompilation \e[1;36minstanced deferred rendering(Geometry pass) pipeline\e[0m" << std::endl;
+	geometryPipeline.generateShaders(instancedDeferredGeoPass_vertex.c_str(), instancedDeferredGeoPass_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+
+	//Generic naive light pass pipeline
+	std::string deferredLightPass_vertex = "./shaders/deferredLightPass.vert";
+	std::string deferredLightPass_fragment = "./shaders/deferredLightPass.frag";
+	std::cout << "\e[1;33mCompilation \e[1;36mdeferred rendering(Light pass) pipeline\e[0m" << std::endl;
+	lightPipeline.generateShaders(deferredLightPass_vertex.c_str(), deferredLightPass_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+
+	//Light volume pipeline
+	std::string deferredLight_vertex = "./shaders/instancedDeferredLight.vert";
+	std::string deferredLight_fragment = "./shaders/instancedDeferredLight.frag";
+	std::cout << "\e[1;33mCompilation \e[1;36mdeferred rendering(Light Volume) pipeline\e[0m" << std::endl;
+	lightVolumePipeline.generateShaders(deferredLight_vertex.c_str(), deferredLight_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+
+	
+	std::string deferredSSAO_vertex = "./shaders/deferredSSAO.vert";
+	std::string deferredSSAO_fragment = "./shaders/deferredSSAO.frag";
+	std::string SSAOBlur_vertex = "./shaders/SSAOBlur.vert";
+	std::string SSAOBlur_fragment = "./shaders/SSAOBlur.frag";
+	std::cout << "\e[1;33mCompilation \e[1;36mdeferred SSAO pipeline\e[0m" << std::endl;
+	ssaoPipeline.generateShaders(deferredSSAO_vertex.c_str(), deferredSSAO_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	std::cout << "\e[1;33mCompilation \e[1;36mdeferred SSAO Blur pipeline\e[0m" << std::endl;
+	ssaoBlurPipeline.generateShaders(SSAOBlur_vertex.c_str(), SSAOBlur_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+	
 	gbuffer.init(width,height);
+	context = ctx;
+
+	max_deferred_lights = 500;
 	fullScreenQuad = new glMesh();
 	std::string path = "./assets/";
 	std::string name = "fullscreenQuad.obj";
 	fullScreenQuad->loadMesh(path,name);
-	gbuffer.build_SSAO_Kernel();
 
-	max_deferred_lights = 500;
+	lightVolume = new glInstancedMesh();
+	path = "./assets/lightVolumes/";
+	name = "uvSphere.obj";
+	lightVolume->loadMesh(path,name);
+	lightVolume->matrices.model = glm::scale(lightVolume->matrices.model, glm::vec3(25.0f, 25.0f, 25.0f));
+	lightVolume->updateUniformBuffer();
+	lightVolume->ssboOffset = 0;
+	lightVolume->createOffsetUBO();
+	lightVolume->createInstanceSSBO(max_deferred_lights);
+	
+	
+	gbuffer.build_SSAO_Kernel();
+	
 	lights.resize(max_deferred_lights);
 	std::cout << "Allocation of \e[1;33m" << (GLfloat)max_deferred_lights*sizeof(DeferredLight)/1000000.0f << "\e[0m MB of vram"<< std::endl;
 	glGenBuffers(1, &deferredLightsSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, deferredLightsSSBO);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DeferredLight)*max_deferred_lights, lights.data(), GL_DYNAMIC_COPY);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	//lights.clear();
 }
 void glDeferredRenderer::bindGeometryPipeline(){
 	gbuffer.initForGeometryPass();
-	if( geometryPipeline != NULL ){ geometryPipeline->bind(); }
-	else{ std::cout << "\e[1;36mglDeferredRenderer\e[0m::\e[1;32mbindLightPipeline \e[1;31m geometryPipeline == NULL \e[0m" << std::endl; }
-	
+	geometryPipeline.bind();
 }
 void glDeferredRenderer::bindLightPipeline(){
 	gbuffer.initForLightPass();
-	if( lightPipeline != NULL ){ lightPipeline->bind(); }
-	else{ std::cout << "\e[1;36mglDeferredRenderer\e[0m::\e[1;32mbindLightPipeline \e[1;31m lightPipeline == NULL \e[0m" << std::endl; }
+	lightPipeline.bind();
 }
 
 void glDeferredRenderer::basicLightPass(){
+	/*
+	//glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	lightVolumePipeline.bind();
+	context->bindUBO();
+	bindLightSSBO();
+	lightVolume->bindUBO();
+	
+	for(glSubMesh* subm : lightVolume->subMeshes){
+		lightVolume->bindOffsetUBO();
+		lightVolume->bindSSBO();
+		subm->mat->bindUBO();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		
+		subm->bindVAO();
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
+		glDrawElementsInstanced(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0, lightVolume->instances.size());
+		
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
+	}
+	*/
+	
+	lightPipeline.bind();
 	bindLightSSBO();
 	fullScreenQuad->bindUBO();
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
@@ -542,12 +606,15 @@ void glDeferredRenderer::basicLightPass(){
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER,0);
 	}
+	
+	glEnable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void glDeferredRenderer::ssaoPass(){
 	gbuffer.initForSSAO();
 	gbuffer.bind_SSAO_Kernel_UBO();
-	ssaoPipeline->bind();
+	ssaoPipeline.bind();
 	
 	fullScreenQuad->bindUBO();
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
@@ -563,7 +630,7 @@ void glDeferredRenderer::ssaoPass(){
 	}
 	
 	gbuffer.initForSSAOBlur();
-	ssaoBlurPipeline->bind();
+	ssaoBlurPipeline.bind();
 
 	fullScreenQuad->bindUBO();
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
@@ -596,7 +663,11 @@ void glDeferredRenderer::addLight(glm::vec4 pos){
 			break;
 		}
 	}
-	update_Light_SSBO();
+	if( added ){
+		update_Light_SSBO();
+		lightVolume->addInstance(pos);
+		lightVolume->updateInstanceSSBO();
+	}
 }
 void glDeferredRenderer::removeLight(glm::vec4 pos){
 	bool removed = false;

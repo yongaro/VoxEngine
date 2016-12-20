@@ -170,13 +170,15 @@ public:
 	GLuint width;
 	GLuint height;
 	GBuffer gbuffer;
-	glPipeline* geometryPipeline;
-	glPipeline* lightPipeline;
-	glPipeline* ssaoPipeline;
-	glPipeline* ssaoBlurPipeline;
+	glContext* context;
+	glPipeline geometryPipeline;
+	glPipeline lightPipeline;
+	glPipeline lightVolumePipeline;
+	glPipeline ssaoPipeline;
+	glPipeline ssaoBlurPipeline;
 
 	glMesh* fullScreenQuad; //mesh used to render framebuffers directly to screen
-	glMesh* lightVolume; //unused for now
+	glInstancedMesh* lightVolume; //unused for now
 
 	size_t max_deferred_lights;
 	std::vector< DeferredLight > lights;
@@ -186,7 +188,7 @@ public:
 	glDeferredRenderer(GLuint,GLuint);
 	virtual ~glDeferredRenderer();
 
-	virtual void init(glPipeline*, glPipeline*, glPipeline*, glPipeline*);
+	virtual void init(glContext*);
 	virtual void bindGeometryPipeline();
 	virtual void bindLightPipeline();
 	virtual void basicLightPass();

@@ -137,7 +137,7 @@ void main(){
 	vec3 linearColor = vec3(0.0);
 	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
 	else{
-		//linearColor += ApplyLight(lights.pos[0], lights.attenuation[0], lights.diffuse[0], lights.specular[0]);
+		linearColor += ApplyLight(lights.pos[0], lights.attenuation[0], lights.diffuse[0], lights.specular[0]);
 		
 		for( int i = 0; i < max_ssbo_lights; ++i ){
 			float distanceToLight = length(ssboLights.lights[i].pos.xyz - fragPos.xyz);
@@ -153,5 +153,4 @@ void main(){
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), 1.0);
-	//outColor = vec4(fragPos.rgb, 1.0);
 }
