@@ -24,6 +24,10 @@ layout(binding = 4) uniform MeshTranforms{
 	mat4 mvp;
 } meshTransforms;
 
+layout(binding = 5) uniform LightSpace{
+	mat4 lightView;
+}lightSpace;
+
 
 //I NEED MOAR SYNTAXIK SUGAR
 #define DIFFUSE 0
@@ -50,7 +54,8 @@ layout(location = 1) out vec4 outDiff;
 layout(location = 2) out vec4 outEmissive;
 layout(location = 3) out vec4 outNrm;
 layout(location = 4) out vec4 outSpecular;
-
+layout(location = 5) out vec4 outRealPos;
+layout(location = 6) out vec4 outShadow;
 
 
 vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
@@ -132,6 +137,9 @@ void main() {
 	outPos      = vec4(fragPos, 1.0); outPos.w = linearizeDepth(fragPos.z);
 	outDiff     = fragDiffuse;
 	outEmissive = fragEmissive;
-	outNrm      = vec4(normal, 1.0);//normal;
-	outSpecular = vec4(fragPos, 1.0);//fragSpecular;
+	outNrm      = vec4(normal, 1.0);
+	outSpecular = fragSpecular;
+	outRealPos = vec4(fragPos, 1.0);
+	outShadow = lightSpace.lightView * vec4(fragPos, 1.0);
+	//outShadow.x = outShadow.z; outShadow.y = outShadow.z;
 }

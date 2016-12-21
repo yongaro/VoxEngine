@@ -5,7 +5,7 @@
 layout(location = 0) in vec2 fragUV;
 layout(location = 0) out vec4 fragColor;
 
-#define SSAO 5
+#define SSAO 7
 layout(binding = SSAO) uniform sampler2D ssaoTexSampler;
 
 

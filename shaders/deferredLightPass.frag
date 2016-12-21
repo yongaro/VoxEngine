@@ -22,7 +22,7 @@ layout(binding = 5) uniform Dummy{
 	mat4 lightSpaceMatrix;
 }dummy;
 
-#define max_ssbo_lights 500
+#define max_ssbo_lights 250
 #define LIGHTS_SSBP 1
 struct DeferredLight{
 	vec4 pos;
@@ -41,33 +41,36 @@ layout (binding = LIGHTS_SSBP) buffer InstanceSSBO{
 #define EMISSIVE 2
 #define NORMALS 3
 #define SPECULAR 4
-#define SSAO 5
+#define REAL_POS 5
+#define SHADOW_MAP 6
+#define SSAO 7
 layout(binding = POSITION) uniform sampler2D positionTexSampler;
 layout(binding = DIFFUSE) uniform sampler2D diffuseTexSampler;
 layout(binding = EMISSIVE) uniform sampler2D emissiveTexSampler;
 layout(binding = NORMALS) uniform sampler2D normalsTexSampler;
 layout(binding = SPECULAR) uniform sampler2D specularTexSampler;
+layout(binding = REAL_POS) uniform sampler2D realPosTexSampler;
+layout(binding = SHADOW_MAP) uniform sampler2D shadowTexSampler;
+
 layout(binding = SSAO) uniform sampler2D ssaoTexSampler;
 
-#define SHADOW 6
-layout(binding = SHADOW) uniform sampler2D shadowTexSampler;
+
 
 
 layout(location = 0) in vec2 fragUV;
 
 layout(location = 0) out vec4 outColor;
 
-vec4 fragPos      = texture(specularTexSampler, fragUV);//texture(positionTexSampler, fragUV);
+vec4 fragPos      = texture(realPosTexSampler, fragUV);
 vec4 fragDiffuse  = texture(diffuseTexSampler, fragUV);
 vec4 fragEmissive = texture(emissiveTexSampler, fragUV);
 vec4 fragNormal   = texture(normalsTexSampler, fragUV);
-vec4 fragSpecular = vec4(1.0);//texture(specularTexSampler, fragUV);// * vec4(0.5, 0.5, 0.5, 1.0);
-vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
+vec4 fragSpecular = texture(specularTexSampler, fragUV);
 vec4 ambiantOcclusion = texture(ssaoTexSampler, fragUV);
-vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
 
-//vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
-//vec4 scene_ambient = vec4(0.3, 0.3, 0.3, 1.0) * fragDiffuse;
+
+vec3 fragToCamera = normalize(globalMat.camPos - fragPos.xyz);
+vec4 lightSpaceFragPos = dummy.lightSpaceMatrix * fragPos;
 
 
 
@@ -119,7 +122,7 @@ vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec
 	//diffuse
 	vec3 diffuse = max(dot(fragNormal.xyz, L), 0.0) * lightDiff.rgb * fragDiffuse.rgb;
 	//specular
-	vec3 specular = pow(max(dot(R, V), 0.0), 25.0)  * lightSpec.rgb * fragSpecular.rgb;
+	vec3 specular = pow(max(dot(R, V), 0.0), 64.0)  * lightSpec.rgb * fragSpecular.rgb;
 
 	//linear color (color before gamma correction)
 	return ambient + attenuation*(diffuse + specular);
@@ -132,7 +135,6 @@ vec3 ApplyLight(vec4 currentLightPos, vec4 lightAttenuation, vec4 lightDiff, vec
 
 
 void main(){
-	//fragPos.xyz *= 1000000;
 	if( fragPos.x == 0.0 && fragPos.y == 0.0 && fragPos.z == 0.0 ){ discard; }
 	vec3 linearColor = vec3(0.0);
 	if( fragEmissive.x != 0 && fragEmissive.y != 0 && fragEmissive.z != 0){ linearColor = fragEmissive.rgb; }
@@ -153,4 +155,5 @@ void main(){
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), 1.0);
+	outColor = vec4(texture(shadowTexSampler, fragUV).rgb, 1.0);
 }

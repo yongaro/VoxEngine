@@ -489,11 +489,11 @@ DeferredLight::DeferredLight():pos( glm::vec4(0.0f, 0.0f, 0.0f, -1.0f) ),
 glDeferredRenderer::glDeferredRenderer():width(),height(),gbuffer(),context(NULL),
                                          geometryPipeline(),lightPipeline(),lightVolumePipeline(),
                                          fullScreenQuad(),lightVolume(),
-                                         max_deferred_lights(500),lights(),deferredLightsSSBO(){}
+                                         max_deferred_lights(),lights(),deferredLightsSSBO(){}
 glDeferredRenderer::glDeferredRenderer(GLuint w, GLuint h):width(w),height(h),gbuffer(),context(NULL),
                                                            geometryPipeline(),lightPipeline(),lightVolumePipeline(),
                                                            fullScreenQuad(),lightVolume(),
-                                                           max_deferred_lights(500),lights(),deferredLightsSSBO(){}
+                                                           max_deferred_lights(),lights(),deferredLightsSSBO(){}
 glDeferredRenderer::~glDeferredRenderer(){}
 
 void glDeferredRenderer::init(glContext* ctx){
@@ -533,7 +533,7 @@ void glDeferredRenderer::init(glContext* ctx){
 	gbuffer.init(width,height);
 	context = ctx;
 
-	max_deferred_lights = 500;
+	max_deferred_lights = 250;
 	fullScreenQuad = new glMesh();
 	std::string path = "./assets/";
 	std::string name = "fullscreenQuad.obj";

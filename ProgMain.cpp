@@ -27,7 +27,7 @@ float framespersecond;
 // This function gets called once on startup.
 
 // On régule le nombre de frame par seconde
-const int FRAMES_PER_SECOND = 30;
+const int FRAMES_PER_SECOND = 60;
 double step = 0.2f;
 
 
@@ -351,10 +351,10 @@ void init(std::vector<string>& args){
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//building light space infos
-	GLfloat near_plane = 1.0f, far_plane = 100.0f;
+	GLfloat near_plane = 1.0f, far_plane = 1000.0f;
 	glm::mat4 lightProjection = glm::ortho(0.0f, (float)width, 0.0f, (float)height, near_plane, far_plane);
 	glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 300.0f, 10.0f), 
-	                                  glm::vec3(context->camera.target), 
+	                                  glm::vec3(0.0f, 0.0f, 10.0f), 
 	                                  glm::vec3( 0.0f, 1.0f,  0.0f));
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
@@ -398,7 +398,8 @@ void removeCube(){
 
 void render(){
 	SDL_GL_MakeCurrent(window, gl_context);
-	
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::SHADOW_TRANS_UBP, lightMatUBO);
 	if( useDeferredRendering ){	
 		deferredRenderer.bindGeometryPipeline();
 		context->bindUBO();

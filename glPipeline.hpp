@@ -126,7 +126,7 @@ struct SSAO_Kernel{
 		for( GLuint i = 0; i < SSAO_KERNEL_SIZE; ++i ){
 			kernel[i] = glm::vec4(0.0f);
 		}
-		screenDim = glm::vec4(1024.0f, 576.0f, 1.0f, 1.0f);
+		screenDim = glm::vec4(800.0f, 600.0f, 1.0f, 1.0f);
 	}
 };
 
@@ -134,8 +134,7 @@ struct SSAO_Kernel{
 /**
  * Structure used to regroup the framebuffer and textures for deferred shading
  */
-enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_EMISSIVE, GB_NRM, GB_SPECULAR, SIZE_GBT };
-//enum PostEffect_Textures{ PE_SSAO, ,SIZE_PET };
+enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_EMISSIVE, GB_NRM, GB_SPECULAR, GB_REAL_POS, GB_SHADOW_MAP, SIZE_GBT };
 struct GBuffer{
 public:
 	GLuint fboID;
