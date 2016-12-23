@@ -55,7 +55,6 @@ layout(location = 2) out vec4 outEmissive;
 layout(location = 3) out vec4 outNrm;
 layout(location = 4) out vec4 outSpecular;
 layout(location = 5) out vec4 outRealPos;
-layout(location = 6) out vec4 outShadow;
 
 
 vec4 scene_ambient = vec4(0.01, 0.01, 0.01, 1.0);
@@ -140,6 +139,6 @@ void main() {
 	outNrm      = vec4(normal, 1.0);
 	outSpecular = fragSpecular;
 	outRealPos = vec4(fragPos, 1.0);
-	outShadow = lightSpace.lightView * vec4(fragPos, 1.0);
+	//outShadow = lightSpace.lightView * vec4(fragPos, 1.0);
 	//outShadow.x = outShadow.z; outShadow.y = outShadow.z;
 }

@@ -21,9 +21,9 @@ layout(binding = 7) uniform SSAO_Kernel{
 #define NORMALS 3
 #define SPECULAR 4
 #define REAL_POS 5
-#define SHADOW_MAP 6
 
-#define NOISE 7
+#define NOISE 6
+#define SHADOW_MAP 7
 layout(binding = POSITION) uniform sampler2D positionTexSampler;
 layout(binding = DIFFUSE) uniform sampler2D diffuseTexSampler;
 layout(binding = EMISSIVE) uniform sampler2D emissiveTexSampler;

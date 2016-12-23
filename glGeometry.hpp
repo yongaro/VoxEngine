@@ -161,7 +161,6 @@ struct DeferredLight{
 	DeferredLight();
 };
 
-
 /**
  * Class defining a complete deferred shading pipeline
  */
@@ -171,15 +170,17 @@ public:
 	GLuint height;
 	GBuffer gbuffer;
 	glContext* context;
+	//All the pipelines for all the possible renderer passes 
 	glPipeline geometryPipeline;
 	glPipeline lightPipeline;
 	glPipeline lightVolumePipeline;
 	glPipeline ssaoPipeline;
 	glPipeline ssaoBlurPipeline;
+	glPipeline shadowPipeline;
 
 	glMesh* fullScreenQuad; //mesh used to render framebuffers directly to screen
-	glInstancedMesh* lightVolume; //unused for now
-
+	glInstancedMesh* lightVolume; //sphere rendered by instanciation which define each of the scene's point light
+	
 	size_t max_deferred_lights;
 	std::vector< DeferredLight > lights;
 	GLuint deferredLightsSSBO;
@@ -198,6 +199,8 @@ public:
 	virtual void removeLight(glm::vec4);
 	virtual void update_Light_SSBO();
 	virtual void bindLightSSBO();
+
+	virtual void bindShadowPipeline();
 };
 
 

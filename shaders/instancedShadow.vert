@@ -36,7 +36,7 @@ layout(location = 2) in vec2 vertUV;
 layout(location = 3) in vec3 vertTangent;
 layout(location = 4) in vec3 vertBiTangent;
 
-
+layout(location = 0) out vec4 fragPos;
 
 
 void main(){
@@ -44,6 +44,7 @@ void main(){
 	instanceModel[3][0] += instanceSSBO.infos[gl_InstanceID+offset.value].translate.x;
 	instanceModel[3][1] += instanceSSBO.infos[gl_InstanceID+offset.value].translate.y;
 	instanceModel[3][2] += instanceSSBO.infos[gl_InstanceID+offset.value].translate.z;
-	
-	gl_Position = lightSpace.matrix * instanceModel * vec4(vertPos, 1.0f);
+
+	fragPos = lightSpace.matrix * instanceModel * vec4(vertPos, 1.0f);
+	gl_Position = fragPos;
 }  

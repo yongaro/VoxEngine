@@ -529,6 +529,13 @@ void glDeferredRenderer::init(glContext* ctx){
 	std::cout << "\e[1;33mCompilation \e[1;36mdeferred SSAO Blur pipeline\e[0m" << std::endl;
 	ssaoBlurPipeline.generateShaders(SSAOBlur_vertex.c_str(), SSAOBlur_fragment.c_str(), NULL);
 	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+
+	std::string instancedDeferredShadowPass_vertex = "./shaders/instancedShadow.vert";
+	std::string instancedDeferredShadowPass_fragment = "./shaders/instancedShadow.frag";
+	std::cout << "\e[1;33mCompilation \e[1;36minstanced deferred rendering(Shadow pass) pipeline\e[0m" << std::endl;
+	shadowPipeline.generateShaders(instancedDeferredGeoPass_vertex.c_str(), instancedDeferredGeoPass_fragment.c_str(), NULL);
+	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
+
 	
 	gbuffer.init(width,height);
 	context = ctx;
@@ -693,3 +700,8 @@ void glDeferredRenderer::update_Light_SSBO(){
 }
 
 void glDeferredRenderer::bindLightSSBO(){ glBindBufferBase(GL_SHADER_STORAGE_BUFFER, ShaderStorageBindingPoints::LIGHTS_SSBP, deferredLightsSSBO); }
+
+void glDeferredRenderer::bindShadowPipeline(){
+	gbuffer.initForShadowPass();
+	shadowPipeline.bind();
+}

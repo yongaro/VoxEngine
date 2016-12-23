@@ -315,54 +315,13 @@ void init(std::vector<string>& args){
 	context->camera.target = glm::vec3(32.0f,32.0f,64.0f);
 	context->globalUBO.update( context->camera );
 	context->lights.pos[0] = glm::vec4( 0.0f, 1.0f, 0.0f, 0.0f );
-	context->globalUBO.proj = glm::perspective(glm::radians(80.0f),
-	                                           width / (float)height,
-	                                           0.001f, 1500.0f);
+	//context->globalUBO.proj = glm::ortho(-10.0f, 10, -10.0f, 10.0f, -10.0f, 10.0f);
+	context->globalUBO.proj = glm::perspective(glm::radians(80.0f), width / (float)height, 0.001f, 1500.0f);
 	
 
 	updateMVP();
 	context->updateGlobalUniformBuffer();
 	context->updateLightsUniformBuffer();
-
-
-
-	//shadow map WIP
-	//shadow map framebuffer
-	
-	glGenFramebuffers(1, &depthMapFBO);
-
-	//shadow map texture
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width/2, height/2, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
-
-	
-	//binding texture to framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//building light space infos
-	GLfloat near_plane = 1.0f, far_plane = 1000.0f;
-	glm::mat4 lightProjection = glm::ortho(0.0f, (float)width, 0.0f, (float)height, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 300.0f, 10.0f), 
-	                                  glm::vec3(0.0f, 0.0f, 10.0f), 
-	                                  glm::vec3( 0.0f, 1.0f,  0.0f));
-	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-	//copying light space infos to uniform buffer object
-	glGenBuffers(1, &lightMatUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, lightMatUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), &lightSpaceMatrix, GL_DYNAMIC_COPY);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	
 	glEnable(GL_DEPTH_TEST);
@@ -373,7 +332,7 @@ void init(std::vector<string>& args){
 	glEnable(GL_CULL_FACE);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable( GL_BLEND );
+	glEnable(GL_BLEND);
 
 	initCamera(context);
 	deferredRenderer.init(context);
@@ -399,12 +358,14 @@ void removeCube(){
 void render(){
 	SDL_GL_MakeCurrent(window, gl_context);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::SHADOW_TRANS_UBP, lightMatUBO);
 	if( useDeferredRendering ){	
 		deferredRenderer.bindGeometryPipeline();
 		context->bindUBO();
 		for( VoxMap* map : mapManager.mapList ){ map->render(); }
 
+		deferredRenderer.bindShadowPipeline();
+		for( VoxMap* map : mapManager.mapList ){ map->render(); }
+		
 		deferredRenderer.ssaoPass();
 		
 		deferredRenderer.bindLightPipeline();

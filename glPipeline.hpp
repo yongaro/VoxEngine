@@ -134,13 +134,16 @@ struct SSAO_Kernel{
 /**
  * Structure used to regroup the framebuffer and textures for deferred shading
  */
-enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_EMISSIVE, GB_NRM, GB_SPECULAR, GB_REAL_POS, GB_SHADOW_MAP, SIZE_GBT };
+enum GBuffer_Textures{ GB_POS, GB_DIFF, GB_EMISSIVE, GB_NRM, GB_SPECULAR, GB_REAL_POS, SIZE_GBT };
+enum DeferredRenderer_Textures{ DR_SSAO, DR_SHADOW, DR_SIZE };
 struct GBuffer{
 public:
+	//classic GBuffer
 	GLuint fboID;
 	GLuint textures[GBuffer_Textures::SIZE_GBT];
 	GLuint depthTexture;
 	
+	//SSAO structures
 	SSAO_Kernel ssaoKernel;
 	GLuint SSAO_UBO;
 	
@@ -152,26 +155,33 @@ public:
 	GLuint ssaoBlurFBO;
 	GLuint ssaoColorBufferBlur;
 	
+	//Shadow map structures
+	GLuint shadowMapFBO;
+	GLuint shadowMap;
+	GLuint lightSpaceUBO;
 	
 	
 	GBuffer();
 	~GBuffer();
-
+	
 	bool init(GLuint, GLuint);
 	void bindTextures();
-
+	
 	void initForGeometryPass();
 	void initForLightPass();
-
+	
 	void build_SSAO_Kernel();
 	void bind_SSAO_Kernel_UBO();
 	void bind_SSAO_Noise();
 	void bind_SSAO_Texture();
 	void bind_Blurred_SSAO_Texture();
-
+	
 	void initForSSAO();
 	void initForSSAOBlur();
-	
+
+	void initShadowMap(GLuint, GLuint);
+	void initForShadowPass();
+	void bindShadowMap();
 };
 
 

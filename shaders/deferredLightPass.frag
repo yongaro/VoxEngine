@@ -42,17 +42,19 @@ layout (binding = LIGHTS_SSBP) buffer InstanceSSBO{
 #define NORMALS 3
 #define SPECULAR 4
 #define REAL_POS 5
-#define SHADOW_MAP 6
-#define SSAO 7
+#define SSAO 6
+#define SHADOW_MAP 7
 layout(binding = POSITION) uniform sampler2D positionTexSampler;
 layout(binding = DIFFUSE) uniform sampler2D diffuseTexSampler;
 layout(binding = EMISSIVE) uniform sampler2D emissiveTexSampler;
 layout(binding = NORMALS) uniform sampler2D normalsTexSampler;
 layout(binding = SPECULAR) uniform sampler2D specularTexSampler;
 layout(binding = REAL_POS) uniform sampler2D realPosTexSampler;
-layout(binding = SHADOW_MAP) uniform sampler2D shadowTexSampler;
 
 layout(binding = SSAO) uniform sampler2D ssaoTexSampler;
+layout(binding = SHADOW_MAP) uniform sampler2D shadowTexSampler;
+
+
 
 
 
@@ -155,5 +157,5 @@ void main(){
 	//final color with gamma correction
 	vec3 gamma = vec3(1.0/2.2);
 	outColor = vec4(pow(linearColor, gamma), 1.0);
-	outColor = vec4(texture(shadowTexSampler, fragUV).rgb, 1.0);
+	//outColor = vec4(texture(shadowTexSampler, fragUV).rgb, 1.0);
 }

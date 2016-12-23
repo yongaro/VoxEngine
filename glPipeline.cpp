@@ -138,12 +138,12 @@ bool GBuffer::init(GLuint windowWidth, GLuint windowHeight){
 
 	for( GLuint i = 0; i < GBuffer_Textures::SIZE_GBT; ++i ){
 		glBindTexture(GL_TEXTURE_2D, textures[i]);
-		if( i == GB_POS || i == GB_NRM || i == GB_REAL_POS || i == GB_SHADOW_MAP){ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL); }
+		if( i == GB_POS || i == GB_NRM || i == GB_REAL_POS){ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL); }
 		else{ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, windowWidth, windowHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); }
-
+		
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+		
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		
@@ -167,9 +167,11 @@ bool GBuffer::init(GLuint windowWidth, GLuint windowHeight){
 		std::cout << "\e[1;31mGBUFFER erreur creation FBO\e[0m" << std::endl;
 		return false;
 	}
-		
+	
 	//restore default FBO
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	initShadowMap(windowWidth, windowHeight);
 	return true;
 }
 
@@ -191,6 +193,7 @@ void GBuffer::initForLightPass(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	bindTextures();
 	bind_Blurred_SSAO_Texture();
+	bindShadowMap();
 }
 
 
@@ -271,16 +274,16 @@ void GBuffer::bind_SSAO_Kernel_UBO(){
 }
 
 void GBuffer::bind_SSAO_Noise(){
-	glActiveTexture(GL_TEXTURE0+SIZE_GBT);
+	glActiveTexture(GL_TEXTURE0+SIZE_GBT+DR_SSAO);
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 }
 
 void GBuffer::bind_SSAO_Texture(){
-	glActiveTexture(GL_TEXTURE0+SIZE_GBT);
+	glActiveTexture(GL_TEXTURE0+SIZE_GBT+DR_SSAO);
 	glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
 }
 void GBuffer::bind_Blurred_SSAO_Texture(){
-	glActiveTexture(GL_TEXTURE0+SIZE_GBT);
+	glActiveTexture(GL_TEXTURE0+SIZE_GBT+DR_SSAO);
 	glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
 }
 
@@ -298,4 +301,62 @@ void GBuffer::initForSSAOBlur(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	bindTextures();
 	bind_SSAO_Texture();
+}
+
+void GBuffer::initShadowMap(GLuint windowWidth, GLuint windowHeight){
+	//generate depth buffer
+	glGenFramebuffers(1, &shadowMapFBO);
+
+	//generate texture attachment
+	/*
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	//attach texture to framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	*/
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, shadowMapFBO, 0);
+	std::vector<GLenum> DrawBuffers;
+	DrawBuffers.push_back(GL_COLOR_ATTACHMENT0);
+	glDrawBuffers(1, DrawBuffers.data());
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//build light space matrix
+	glm::mat4 lightProjection = glm::perspective(glm::radians(80.0f), width / (float)height, 0.001f, 1500.0f);//glm::ortho(0.0f, float(width), 0.0f, float(height), 0.001f, 1500.0f);//glm::perspective(glm::radians(80.0f), width / (float)height, 0.001f, 1500.0f);
+	glm::mat4 lightView = glm::lookAt(glm::vec3( 250.0f, 1500.0f, 250.0f ), 
+	                                  glm::vec3( 250.0f,   0.0f, 250.0f ), 
+	                                  glm::vec3( 0.0f,   1.0f,   0.0f )
+	                                  );
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+	//copying light space infos to uniform buffer object
+	glGenBuffers(1, &lightSpaceUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, lightSpaceUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), &lightSpaceMatrix, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+void GBuffer::initForShadowPass(){
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glBindBufferBase(GL_UNIFORM_BUFFER, UniformsBindingPoints::SHADOW_TRANS_UBP, lightSpaceUBO);
+}
+void GBuffer::bindShadowMap(){
+	glActiveTexture(GL_TEXTURE0+SIZE_GBT+DR_SHADOW);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
 }
