@@ -37,6 +37,10 @@ Un makefile est inclus dans le projet, il suffit d'utiliser la commande `make al
 
 Vu le nombre important de fichiers à compiler, une commande du type `make all -j4` pour répartir la compilation sur 4 threads est préférable.
 
+### Autres
+Les fichiers sources sont organisés selon un schéma simple.
+
+Une simple copie des sources dans la racine d'un projet (Eclipse plugin CDT, CodeBlocks, ...) semble donc suffisante pour compiler le moteur depuis un IDE.
 ## Lancement
 ### Pour créer une nouvelle Map
 `./VoxEngine new <mapMame> <biomeName>`
