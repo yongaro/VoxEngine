@@ -12,7 +12,7 @@ Un compilateur C++11 est également requis, ainsi qu'une partie graphique(GPU ou
 ### CImg / stb
 CImg et stb sont des bibliothèques contenues dans un seul header.
 
-Elles sont déja inclus dans le projet et nécessitent aucune autre configuration.
+Elles sont distribuées avec le projet et ne nécessitent aucune autre configuration.
 
 ### SDL / Assimp
 Il n'y a donc que Assimp et SDL à installer pour pouvoir compiler le moteur.
