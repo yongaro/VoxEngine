@@ -71,3 +71,11 @@ Une fois le jeu lancé, les commandes suivantes sont disponibles
 - Par défaut le jeu se lance en rendu direct qui gère 50 lumières, le rendu différé en gère actuellement 250 
 - De possibles optimisations permettraient de considérblement augmenter ce nombre
 
+
+## Lien vers l'étude bibliographique :
+[https://docs.google.com/presentation/d/1cfbddsps-8mRLpAKf8Bp2wP-CRA9d0MPAZ0FhgjB3E8/edit?usp=sharing](https://docs.google.com/presentation/d/1cfbddsps-8mRLpAKf8Bp2wP-CRA9d0MPAZ0FhgjB3E8/edit?usp=sharing)
+
+## Lien vers la présentation du projet :
+[https://drive.google.com/open?id=1QN82RJVtlLTZykGtKLsOQzO_qnXBlAVzbdjbhIz7ms4](https://drive.google.com/open?id=1QN82RJVtlLTZykGtKLsOQzO_qnXBlAVzbdjbhIz7ms4)
+
+### Si l'un des liens précédents ne fonctionne pas, contactez cette adresse : [quentin.philippot@gmail.com](quentin.philippot@gmail.com)
