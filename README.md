@@ -48,12 +48,12 @@ Une simple copie des sources dans la racine d'un projet (Eclipse plugin CDT, Cod
 ### Pour charger une Map
 `./VoxEngine load <mapName>`
 
-### Nom des biomes actuels : 
+### Nom des biomes actuels
 `standard, prairie, valley, snowPrairie, snowValley, desert, archipel, mangrove`
 
 ### Visualisation de plusieurs map
 L'option multi permet de visualiser jusqu'à 4 map de biomes différents en même temps.
-#### Exemple :
+#### Exemple
 `./VoxEngine multi new part1 desert new part2 desert new part3 archipel new part4 archipel`
 
 ## Gameplay
