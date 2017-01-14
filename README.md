@@ -7,9 +7,11 @@ Le moteur nécessite plusieurs bibliothèques pour fonctionner
 - [stb](https://github.com/nothings/stb) pour le chargement de textures aux formats JPG, PNG, TGA, BMP, PSD, GIF, HDR, PIC (déja inclus)
 - [GLEW](https://github.com/nigels-com/glew) pour l'initialisation du contexte openGL
 - [GLM](https://github.com/g-truc/glm) pour unifier types utilisés pour les calculs coté CPU et GPU 
+
 Un compilateur C++11 est également requis, ainsi qu'une partie graphique(GPU ou IGP) compatible openGL 4.3
 
 ## Installation
+Une refonte de la toolchain de compilation est en cours et bientôt ces étapes ne seront plus à la charge de l'utilisateur.
 ### CImg / stb
 CImg et stb sont des bibliothèques contenues dans un seul header.
 
@@ -17,7 +19,8 @@ Elles sont distribuées avec le projet et ne nécessitent aucune autre configura
 
 ### SDL / Assimp / GLEW / GLM
 Il faut donc installer Assimp, SDL 1 et 2, GLEW et GLM pour pouvoir compiler le moteur.
-Ces deux bibliothèques étant totalement portables le moteur est à priori compatible avec tous les principaux OS.
+
+Ces bibliothèques étant totalement portables le moteur est à priori compatible avec tous les principaux OS.
 
 #### Unix (Mac et Linux)
 La compilation manuelle pour système Unix est possible pour toutes les bibliothèques
