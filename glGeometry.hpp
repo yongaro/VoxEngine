@@ -27,7 +27,7 @@ struct glVertex{
 
 
 
-enum Textures{ DIFF, DISPLACEMENT, EMISSIVE, HEIGHT, NORMALS, SPECULAR, SIZE_T };
+enum Textures{ DIFF, DISPLACEMENT, EMISSIVE, HEIGHT, NORMALS, SPECULAR, SIZE_TEX };
 struct Features{
 	glm::mat4 list;
 	// Kd - disp - Ke - bump
@@ -43,9 +43,9 @@ enum MaterialUniforms{ MATERIAL, FEATURES, SIZE_MU };
 struct MaterialGroup{
 	Material mat;
 	Features features;
-	GLuint textures[Textures::SIZE_T];
+	GLuint textures[Textures::SIZE_TEX];
 	GLuint UBO[MaterialUniforms::SIZE_MU];
-	
+
 	MaterialGroup();
 	virtual ~MaterialGroup();
 
@@ -65,7 +65,7 @@ struct glSubMesh{
 	MaterialGroup* mat;
 	GLuint VAO;
 	GLuint vbo[VBO::SIZE_V];
-	
+
 	glSubMesh();
 	~glSubMesh();
 
@@ -96,11 +96,11 @@ public:
 
 	MeshTransforms matrices;
 	GLuint UBO;
-	
-	
+
+
 	glMesh();
 	virtual ~glMesh();
-	
+
 	virtual void loadMesh(const std::string&, const std::string&);
 	virtual void loadScene(const aiScene*, const std::string&);
 	virtual void render();
@@ -116,7 +116,7 @@ public:
 
 struct InstanceInfos{
 	glm::vec4 translate; //Faster than cpu-calculated model matrix for each instance
-	
+
 	InstanceInfos():translate(){}
 	InstanceInfos(glm::vec4 tr):translate(tr){}
 };
@@ -134,7 +134,7 @@ public:
 	GLuint ssboOffset;
 	GLuint offsetUBO;
 	bool commonSSBO;
-	
+
 	glInstancedMesh();
 	virtual ~glInstancedMesh();
 	virtual void createInstanceSSBO(GLuint);
@@ -151,7 +151,7 @@ public:
 };
 
 /**
- * Structure used to define the lights 
+ * Structure used to define the lights
  */
 struct DeferredLight{
 	glm::vec4 pos;
@@ -170,7 +170,7 @@ public:
 	GLuint height;
 	GBuffer gbuffer;
 	glContext* context;
-	//All the pipelines for all the possible renderer passes 
+	//All the pipelines for all the possible renderer passes
 	glPipeline geometryPipeline;
 	glPipeline lightPipeline;
 	glPipeline lightVolumePipeline;
@@ -180,11 +180,11 @@ public:
 
 	glMesh* fullScreenQuad; //mesh used to render framebuffers directly to screen
 	glInstancedMesh* lightVolume; //sphere rendered by instanciation which define each of the scene's point light
-	
+
 	size_t max_deferred_lights;
 	std::vector< DeferredLight > lights;
 	GLuint deferredLightsSSBO;
-	
+
 	glDeferredRenderer();
 	glDeferredRenderer(GLuint,GLuint);
 	virtual ~glDeferredRenderer();

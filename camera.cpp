@@ -2,6 +2,7 @@
 #include <iostream>
 #include <glm/vec3.hpp>
 #include <glm/glm.hpp>
+#include <math.h>
 
 using namespace std;
 
@@ -54,10 +55,10 @@ void Camera::vectorsFromAngles() {
         phi = -89;
 
     // coordonnées sphériques -> cartésiennes
-    double r_temp = cos(phi  * M_PI/180);
-    forward.y = -0.5f + -1.8 * sin(phi * M_PI/180);
-    forward.x = r_temp * cos(theta * M_PI/180);
-    forward.z = r_temp * sin(theta * M_PI/180);
+    double r_temp = cos(phi  * PI/180);
+    forward.y = -0.5f + -1.8 * sin(phi * PI/180);
+    forward.x = r_temp * cos(theta * PI/180);
+    forward.z = r_temp * sin(theta * PI/180);
     left = glm::cross(up, forward);
     glm::normalize(left);
 
@@ -69,13 +70,13 @@ void Camera::toForward() {
     double v = getRealSpeed();
     position.x += forward.x * v;
     position.z += forward.z * v;
-    
+
 
     /*
     double nextX = forward.x * v;
     if ((nextX >= 0.01) && (nextX <= 0.5)) { nextX = 0.5; }
     double nextZ = forward.z * v;
-    if ((nextZ >= 0.01) && (nextZ <= 0.5)) { nextZ = 0.5; } 
+    if ((nextZ >= 0.01) && (nextZ <= 0.5)) { nextZ = 0.5; }
     position.x += nextX;
     position.z += nextZ;
     */
@@ -86,7 +87,7 @@ void Camera::toForward() {
     } else if (position.x - xInt > 0.9) {
         position.x = xInt + 0.9;
     }
-    
+
     int yInt = position.z;
     if (position.z - yInt < 0.1) {
         position.z = yInt + 0.1;
@@ -98,22 +99,22 @@ void Camera::toForward() {
 
 glm::vec3 Camera::forwardPosition() const {
     double v = getRealSpeed();
-    glm::vec3 nextPos = glm::vec3(position.x +  forward.x * v, position.y, position.z +  forward.z * v); 
-  /*  
+    glm::vec3 nextPos = glm::vec3(position.x +  forward.x * v, position.y, position.z +  forward.z * v);
+  /*
     int xInt = nextPos.x;
     if (nextPos.x - xInt < 0.1) {
         nextPos.x = xInt + 0.1;
     } else if (nextPos.x - xInt > 0.9) {
         nextPos.x = xInt + 0.9;
     }
-    
+
     int yInt = nextPos.z;
     if (nextPos.z - yInt < 0.1) {
         nextPos.z = yInt + 0.1;
     } else if (nextPos.z - yInt > 0.9) {
         nextPos.z = yInt + 0.9;
     }
-    
+
 */
     return nextPos;
 }
@@ -238,7 +239,7 @@ void Camera::setSensivity(GLfloat sensivity) {
 void Camera::mouseMove(int x, int y) {
     //if ((x != 0) && (y != 0)) {
         setTheta(x * sensivity);
-        setPhi(y * sensivity);   
+        setPhi(y * sensivity);
     //}
 }
 
@@ -248,7 +249,7 @@ void Camera::update(SDL_Event& event) {
 		switch (event.key.keysym.sym) {
 		    case SDLK_LSHIFT:
 		        if (this->endurance >= 100) {
-		    		setBooster(true);	
+		    		setBooster(true);
 		        }
 		    break;
 		}
@@ -282,11 +283,11 @@ void Camera::use() {
 		if (this->endurance <= 5) {
 			setBooster(false);
 		} else {
-			this->endurance -= 5;	
-		} 
+			this->endurance -= 5;
+		}
 	} else {
 		if (this->endurance < 300) {
-			this->endurance += 1;	
+			this->endurance += 1;
 	    }
 	}
     // Recalcul des coordonées position - vue
@@ -299,7 +300,7 @@ void Camera::use() {
     } else if (position.x - xInt > 0.95) {
         position.x = xInt + 1.2;
     }
-    
+
     int yInt = position.z;
     if (position.z - yInt < 0.05) {
         position.z = yInt + 0.15;

@@ -7,7 +7,7 @@
 #include <vector>
 #include <cstring>
 #include <array>
-
+#include <cmath>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -21,6 +21,8 @@
 static uint32_t width = 800;
 static uint32_t height = 600;
 static std::string DEFAULT_TEXTURE = "./assets/default_texture.png";
+static float PI = 4.0f * std::atan(1.0f);
+
 
 enum ModificationStates{ NONE, ROTATION, ORIENT_CAMERA, NORMAL, SPRINT, WALK };
 
@@ -36,7 +38,7 @@ struct CamInfos{
 	glm::vec3 target;
 	glm::mat4 rotateYaw;
 	glm::mat4 rotatePitch;
-	glm::vec3 targetToCam;	
+	glm::vec3 targetToCam;
 	uint32_t speed;
 
 	CamInfos():modifMode(ModificationStates::NONE),
@@ -53,8 +55,8 @@ struct UniformBufferObject {
 	glm::mat4 view;
 	glm::mat4 proj;
 	glm::vec3 camPos;
-	
-	
+
+
 	UniformBufferObject():view( glm::lookAt(glm::vec3(2.5f, 2.5f, 2.5f),
 	                                        glm::vec3(0.0f, 1.25f, 0.0f),
 	                                        glm::vec3(0.0f, 1.0f, 0.0f))

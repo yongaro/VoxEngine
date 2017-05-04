@@ -3,11 +3,12 @@
 
 #define cimg_display 0
 #include "CImg.h"
+#include <vector>
 
 class MapGenerator {
 public:
 	 virtual void fill (cimg_library::CImg<unsigned char>& map);
-	
+
 	virtual  int getNbBloc (int nb) const;
 	virtual  double getProbaAir (int height, int maxHeight) const;
 	virtual  double getProbaAdminium (int height, int maxHeight) const;

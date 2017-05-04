@@ -40,7 +40,7 @@ void MaterialGroup::createUniformBuffers(){
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO[MaterialUniforms::FEATURES]);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(Features), &features, GL_DYNAMIC_COPY);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	
+
 	updateUniformBuffers();
 }
 
@@ -50,7 +50,7 @@ void MaterialGroup::updateUniformBuffers(){
 	materialData = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	memcpy(materialData, &mat, sizeof(MaterialGroup));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
-	
+
 	void* featuresData;
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO[MaterialUniforms::FEATURES]);
 	featuresData = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
@@ -65,7 +65,7 @@ void MaterialGroup::bindUBO(){
 }
 
 void MaterialGroup::bindTextures(){
-	for( unsigned int i = 0; i < Textures::SIZE_T; ++i ){
+	for( unsigned int i = 0; i < Textures::SIZE_TEX; ++i ){
 		glActiveTexture(GL_TEXTURE0 + i);
 		glBindTexture(GL_TEXTURE_2D, textures[i]);
 	}
@@ -81,7 +81,7 @@ void glSubMesh::createVertexBuffer(){
 	glGenBuffers(1, &vbo[VBO::VERTEX]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[VBO::VERTEX]);
 	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glVertex), vertices.data(), GL_STATIC_DRAW);
-	
+
 	createIndexBuffer();
 }
 
@@ -97,9 +97,9 @@ void glSubMesh::createIndexBuffer(){
 
 void glSubMesh::createVAO(){
 	glGenVertexArrays(1,&VAO);
-	
+
 	bindVAO();
-	
+
 	//Bind back to the default state
 	glBindBuffer(GL_ARRAY_BUFFER,0);
 	glBindVertexArray(0);
@@ -108,12 +108,12 @@ void glSubMesh::createVAO(){
 void glSubMesh::bindVAO(){
 	glBindVertexArray(VAO);
 
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[VBO::VERTEX]);
 	//position
 	glVertexAttribPointer(VertexAttributes::POS, 3, GL_FLOAT, GL_FALSE, sizeof(glVertex), (void*)offsetof(glVertex,pos));
 	glEnableVertexAttribArray(VertexAttributes::POS);
-	
+
 	//normal
 	glVertexAttribPointer(VertexAttributes::NRM, 3, GL_FLOAT, GL_FALSE, sizeof(glVertex), (void*)offsetof(glVertex,normal));
 	glEnableVertexAttribArray(VertexAttributes::NRM);
@@ -121,7 +121,7 @@ void glSubMesh::bindVAO(){
 	//uv
 	glVertexAttribPointer(VertexAttributes::UV, 2, GL_FLOAT, GL_FALSE, sizeof(glVertex), (void*)offsetof(glVertex,texCoord));
 	glEnableVertexAttribArray(VertexAttributes::UV);
-	
+
 	//tangent
 	glVertexAttribPointer(VertexAttributes::TANGENT, 3, GL_FLOAT, GL_FALSE, sizeof(glVertex), (void*)offsetof(glVertex,tangent));
 	glEnableVertexAttribArray(VertexAttributes::TANGENT);
@@ -139,7 +139,7 @@ void glSubMesh::render(){
 	bindVAO();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[VBO::INDEX]);
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-	
+
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER,0);
 }
@@ -149,7 +149,7 @@ void glSubMesh::testDraw(){
 		glVertex& p1 = vertices.at( indices.at(i) );
 		glVertex& p2 = vertices.at( indices.at(i+1) );
 		glVertex& p3 = vertices.at( indices.at(i+2) );
-		
+
 		glBegin(GL_TRIANGLES);
 		glNormal3f(p1.normal.x, p1.normal.y, p1.normal.z);
 		glVertex3f(p1.pos.x, p1.pos.y, p1.pos.z);
@@ -159,7 +159,7 @@ void glSubMesh::testDraw(){
 
 		glNormal3f(p3.normal.x, p3.normal.y, p3.normal.z);
 		glVertex3f(p3.pos.x, p3.pos.y, p3.pos.z);
-		
+
 		glEnd();
 	}
 }
@@ -181,10 +181,10 @@ void glMesh::loadMesh(const std::string& assetPath, const std::string& fileName)
   Assimp::Importer importer;
   const aiScene* scene = importer.ReadFile( pFile, aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_GenNormals
                                             | aiProcess_RemoveRedundantMaterials  | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType );
-  
+
   // If the import failed, report it
   if( !scene ){ throw std::runtime_error("failed to load Mesh with assimp!"); }
-  // Now we can access the file's contents. 
+  // Now we can access the file's contents.
   loadScene( scene, assetPath );
 }
 
@@ -201,11 +201,11 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			const aiMaterial* material = sc->mMaterials[i];
 			aiString texturePath;
 			std::string path;
-			
+
 			aiString name;
 			material->Get(AI_MATKEY_NAME,name);
 			std::cout << "\e[1;33m New Material -- \e[0m"<< name.C_Str() << std::endl;
-			
+
 			if( material->GetTextureCount(aiTextureType_DIFFUSE) > 0 && material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS ){
 				path = assetPath + std::string( texturePath.C_Str() );
 				std::replace( path.begin(), path.end(), '\\', '/');
@@ -276,13 +276,13 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			material->Get(AI_MATKEY_SHININESS,color);
 			matg->mat.shininess = color.r / 4.0f; //divided by 4 because of an obj spec misunderstood in assimp
 			std::cout << "\t shininess -- \e[1;38m" << matg->mat.shininess << "\e[0m" << std::endl;
-			
+
 			std::cout << std::endl;
 			matg->createUniformBuffers();
 			materials.push_back(matg);
 		}
 	}
-	
+
 	for( unsigned int i = 0; i < sc->mNumMeshes; ++i ){
 		glSubMesh* subM_temp = new glSubMesh();
 		//Recovering vertices data
@@ -293,13 +293,13 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 			aiVector3D* pTangent = (sc->mMeshes[i]->HasTangentsAndBitangents()) ? &(sc->mMeshes[i]->mTangents[j]) : &Zero3D;
 			aiVector3D* pBiTangent = (sc->mMeshes[i]->HasTangentsAndBitangents()) ? &(sc->mMeshes[i]->mBitangents[j]) : &Zero3D;
 
-			glVertex vertex_temp( glm::vec3(pPos->x, pPos->y, pPos->z), 
+			glVertex vertex_temp( glm::vec3(pPos->x, pPos->y, pPos->z),
 			                      glm::vec3(pNormal->x, pNormal->y, pNormal->z),
 			                      glm::vec2(pTexCoord->x , 1.0f - pTexCoord->y),
 			                      glm::vec3(pTangent->x, pTangent->y, pTangent->z),
 			                      glm::vec3(pBiTangent->x, pBiTangent->y, pBiTangent->z)
 			                      );
-			
+
 			subM_temp->vertices.push_back(vertex_temp);
 		}
 
@@ -307,7 +307,7 @@ void glMesh::loadScene( const aiScene* sc, const std::string& assetPath ){
 		for( unsigned int j = 0; j < sc->mMeshes[i]->mNumFaces; ++j ){
 			const aiFace& face = sc->mMeshes[i]->mFaces[j];
 			if( face.mNumIndices != 3 ){ continue; }
-			
+
 			subM_temp->indices.push_back(face.mIndices[0]);
 			subM_temp->indices.push_back(face.mIndices[1]);
 			subM_temp->indices.push_back(face.mIndices[2]);
@@ -347,7 +347,7 @@ glm::vec3 glMesh::getCamPos(){
 			if( v.pos.z > axis[5] ){ axis[5] = v.pos.z; }
 		}
 	}
-	
+
 	float distx = axis[1] - axis[0];
 	float disty = axis[3] - axis[2];
 	float distz = axis[5] - axis[4];
@@ -414,7 +414,7 @@ void glInstancedMesh::updateInstanceSSBO(){
 		data = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, ssboOffset, sizeof(InstanceInfos)*instances.size(), GL_MAP_WRITE_BIT);
 		memcpy(data, instances.data(), sizeof(InstanceInfos)*instances.size());
 		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-		
+
 	}
 }
 void glInstancedMesh::bindSSBO(){
@@ -465,11 +465,11 @@ void glInstancedMesh::render(){
 			smesh->mat->bindUBO();
 			smesh->mat->bindTextures();
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		
+
 			smesh->bindVAO();
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, smesh->vbo[VBO::INDEX]);
 			glDrawElementsInstanced(GL_TRIANGLES, smesh->indices.size(), GL_UNSIGNED_INT, 0, instances.size());
-	
+
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER,0);
 		}
@@ -518,7 +518,7 @@ void glDeferredRenderer::init(glContext* ctx){
 	lightVolumePipeline.generateShaders(deferredLight_vertex.c_str(), deferredLight_fragment.c_str(), NULL);
 	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
 
-	
+
 	std::string deferredSSAO_vertex = "./shaders/deferredSSAO.vert";
 	std::string deferredSSAO_fragment = "./shaders/deferredSSAO.frag";
 	std::string SSAOBlur_vertex = "./shaders/SSAOBlur.vert";
@@ -536,7 +536,7 @@ void glDeferredRenderer::init(glContext* ctx){
 	shadowPipeline.generateShaders(instancedDeferredGeoPass_vertex.c_str(), instancedDeferredGeoPass_fragment.c_str(), NULL);
 	std::cout << "\e[1;32mDONE\e[0m" << std::endl;
 
-	
+
 	gbuffer.init(width,height);
 	context = ctx;
 
@@ -555,10 +555,10 @@ void glDeferredRenderer::init(glContext* ctx){
 	lightVolume->ssboOffset = 0;
 	lightVolume->createOffsetUBO();
 	lightVolume->createInstanceSSBO(max_deferred_lights);
-	
-	
+
+
 	gbuffer.build_SSAO_Kernel();
-	
+
 	lights.resize(max_deferred_lights);
 	std::cout << "Allocation of \e[1;33m" << (GLfloat)max_deferred_lights*sizeof(DeferredLight)/1000000.0f << "\e[0m MB of vram"<< std::endl;
 	glGenBuffers(1, &deferredLightsSSBO);
@@ -583,37 +583,37 @@ void glDeferredRenderer::basicLightPass(){
 	context->bindUBO();
 	bindLightSSBO();
 	lightVolume->bindUBO();
-	
+
 	for(glSubMesh* subm : lightVolume->subMeshes){
 		lightVolume->bindOffsetUBO();
 		lightVolume->bindSSBO();
 		subm->mat->bindUBO();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		
+
 		subm->bindVAO();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
 		glDrawElementsInstanced(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0, lightVolume->instances.size());
-		
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER,0);
 	}
 	*/
-	
+
 	lightPipeline.bind();
 	bindLightSSBO();
 	fullScreenQuad->bindUBO();
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
 		subm->mat->bindUBO();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		
+
 		subm->bindVAO();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
 		glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
-		
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER,0);
 	}
-	
+
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -622,20 +622,20 @@ void glDeferredRenderer::ssaoPass(){
 	gbuffer.initForSSAO();
 	gbuffer.bind_SSAO_Kernel_UBO();
 	ssaoPipeline.bind();
-	
+
 	fullScreenQuad->bindUBO();
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
 		subm->mat->bindUBO();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		
+
 		subm->bindVAO();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
 		glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
-		
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER,0);
 	}
-	
+
 	gbuffer.initForSSAOBlur();
 	ssaoBlurPipeline.bind();
 
@@ -643,11 +643,11 @@ void glDeferredRenderer::ssaoPass(){
 	for(glSubMesh* subm : fullScreenQuad->subMeshes){
 		subm->mat->bindUBO();
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		
+
 		subm->bindVAO();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, subm->vbo[VBO::INDEX]);
 		glDrawElements(GL_TRIANGLES, subm->indices.size(), GL_UNSIGNED_INT, 0);
-		
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER,0);
 	}
@@ -688,7 +688,7 @@ void glDeferredRenderer::removeLight(glm::vec4 pos){
 		}
 		++index;
 	}
-	if( removed ){ update_Light_SSBO(); }	
+	if( removed ){ update_Light_SSBO(); }
 }
 
 void glDeferredRenderer::update_Light_SSBO(){

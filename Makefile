@@ -4,8 +4,9 @@ progName = VoxEngine
 
 dialectFlag = -std=c++11
 optionsFlags = -Wall -O3
-linkFlags = -lGLEW -lGL -lSDL2 -lassimp -lm -lpthread -fopenmp
+#linkFlags = -lGLEW -lGL -lSDL2 -lassimp -lm -lpthread -fopenmp
 
+linkFlags = -lglew32 -lopengl32 -lassimp -lm -lmingw32 -lSDLmain -lSDL2 -lSDL
 
 OBJDIR = obj
 SRC = $(wildcard  $(addprefix ./,*.$(fileExtension)))
@@ -45,8 +46,8 @@ mkShadersDir:
 	@mkdir ./$(shadersDir)/SPIR-V -p
 
 $(OBJDIR)/%.o: %.$(fileExtension)
-	@/bin/echo -e "$(stepColor)Compiling: $@$(reset)" 
-	$(compiler) $(dialectFlag) $(subst .o,.$(fileExtension),$(subst $(OBJDIR)/, ./, $@)) -c -o ./$@ $(optionsFlags) 
+	@/bin/echo -e "$(stepColor)Compiling: $@$(reset)"
+	$(compiler) $(dialectFlag) $(subst .o,.$(fileExtension),$(subst $(OBJDIR)/, ./, $@)) -c -o ./$@ $(optionsFlags)
 	@/bin/echo -e "$(successColor)[OK]$(reset)\n"
 
 ./$(shadersDir)/SPIR-V/%.$(compiledShaderExt): ./$(shadersDir)/%.*
@@ -77,7 +78,7 @@ clean:
 
 #0=none, 1=bold, 4=underscore, 5=blink, 7=reverse, 8=concealed
 #30=black, 31=red, 32=green, 33=yellow, 34=blue, 35=magenta, 36=cyan, 37=light gray, 39 default
-#90=dark gray, 91=light red, 92=light green, 93=light yellow, 94=light blue, 95=light magenta, 96=light cyan, 97=white, 
+#90=dark gray, 91=light red, 92=light green, 93=light yellow, 94=light blue, 95=light magenta, 96=light cyan, 97=white,
 
 #echo -e "\E[1;32mHello World"
 
