@@ -26,6 +26,56 @@ struct PixelCoord{
 };
 
 
+template<class T>
+class VoxImage{
+private:
+  T* data;
+  uint32_t width;
+  uint32_t height;
+  uint32_t depth;
+public:
+  VoxImage():data(), width(), height(), depth(){}
+  VoxImage(uint32_t w, uint32_t h, uint32_t d, T defaultValue):data(new T[w * h * d]), width(w), height(h), depth(d){}
+  ~VoxImage(){ delete[] data; }
+
+  void save(std::string filePath){
+    FILE* file = fopen(filePath.c_str(), "wb");
+    //writing image dimensions.
+    fwrite( &width, sizeof(uint32_t), 1, file );
+    fwrite( &height, sizeof(uint32_t), 1, file );
+    fwrite( &depth, sizeof(uint32_t), 1, file );
+
+    //saving image content.
+    fwrite( data, sizeof(T), width * height * depth, file );
+
+    //closing file.
+    fclose(file);
+  }
+  void load(std::string filePath){
+    FILE* file = fopen(filePath.c_str(), "rb");
+    //reading image dimensions.
+    fread( &width, sizeof(uint32_t), 1, file );
+    fread( &height, sizeof(uint32_t), 1, file );
+    fread( &depth, sizeof(uint32_t), 1, file );
+
+    //space allocation.
+    if( data != NULL){ delete[] data; }
+    data = new T[width * height * depth];
+
+    //recovering image content.
+    fread( data, sizeof(T), width * height * depth, file );
+
+    //closing file.
+    fclose(file);
+  }
+  T& operator()(uint32_t x, uint32_t y, uint32_t z){ return data[ (z*depth) + (y*width) + x]; }
+  uint32_t getWidth(){ return width; }
+  uint32_t getHeight(){ return height; }
+  uint32_t getDepth(){ return depth; }
+};
+
+
+
 class VoxMap{
 public:
 	cimg_library::CImg<unsigned char> map;
@@ -35,7 +85,7 @@ public:
 	glInstancedMesh cubes[CubeTypes::SIZE_CT];
 	std::vector< InstanceInfos > instances;
 	GLuint mapSSBO;
-	
+
 
 	std::vector<MapGenerator*> bioms;
 	std::vector<std::string> biomName;
