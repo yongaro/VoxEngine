@@ -1,6 +1,6 @@
 #include "DesertGenerator.hpp"
 #include "VoxMap.hpp"
-#include <time.h>      
+#include <time.h>
 
 #include <iostream>
 
@@ -83,7 +83,7 @@ DesertGenerator::~DesertGenerator() {}
 
   double DesertGenerator::getProbaGrass(int height, int maxHeight) const {
 		return 0.0;
-	
+
 }
 
   double DesertGenerator::getProbaIron(int height, int maxHeight) const {
@@ -120,7 +120,7 @@ DesertGenerator::~DesertGenerator() {}
 
   double DesertGenerator::getProbaWater(int height, int maxHeight, int superMaxHeight) const {
 	double u = double(height) / maxHeight;
-	double v = double(height) / superMaxHeight;
+	//double v = double(height) / superMaxHeight;
 	if ((u < 8)) {
 		return 0.00;
 	} else {
@@ -157,7 +157,7 @@ DesertGenerator::~DesertGenerator() {}
 	return proba;
 }
 
-  void DesertGenerator::growRiver(cimg_library::CImg<unsigned char>& map) const {
+  void DesertGenerator::growRiver(VoxImage<unsigned char>& map) const {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -172,7 +172,7 @@ DesertGenerator::~DesertGenerator() {}
 	    				}
 	    				if ((map(x - 1 + (w / 3), y,  z - 1 + (w %3)) == CubeTypes::AIR) && ((rand() % 100 < 20))) {
 	    					map(x - 1 + (w / 3), y,  z - 1 + (w %3)) = CubeTypes::WATER;
-	    				}	
+	    				}
     				}
 	    		}
 			}
@@ -181,7 +181,7 @@ DesertGenerator::~DesertGenerator() {}
 }
 
 
-   void DesertGenerator::growTree (cimg_library::CImg<unsigned char>& map) const {
+   void DesertGenerator::growTree (VoxImage<unsigned char>& map) const {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -191,13 +191,13 @@ DesertGenerator::~DesertGenerator() {}
 	    	for (int x = 0; x < wSize; ++x ) {
 	    		if (map(x, y, z) == CubeTypes::CACTUS && map(x, y + 1, z) == CubeTypes::AIR) {
 	    			int random = rand() % 100;
-	    			if (map(x, y - 4, z) == CubeTypes::CACTUS) {	
+	    			if (map(x, y - 4, z) == CubeTypes::CACTUS) {
 	    				if (random < 15) {
 	    					map(x, y + 1, z) = CubeTypes::CACTUS;
-	    				}	
+	    				}
 	    			} else {
     					map(x, y + 1, z) = CubeTypes::CACTUS;
-	    			} 
+	    			}
    	    		}
 
 	    	}
@@ -206,7 +206,7 @@ DesertGenerator::~DesertGenerator() {}
 }
 
 
- void DesertGenerator::fill(cimg_library::CImg<unsigned char>& map) {
+ void DesertGenerator::fill(VoxImage<unsigned char>& map) {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -240,7 +240,7 @@ DesertGenerator::~DesertGenerator() {}
         //hauteur[i][j] = (Get2DPerlinNoiseValue((float)i/wSize, (float)j/dSize, (float)0.2) +1) * 0.5 * hSize;
     }
   }
-  
+
   int **copie = new int* [wSize];
   for (int i = 0; i < wSize; ++i) {
     copie[i] = new int [dSize];
@@ -252,7 +252,7 @@ DesertGenerator::~DesertGenerator() {}
 
    for (int i = 2; i < (wSize-2); i++) {
      for (int j = 2; j < (dSize-2); j++) {
-      
+
    int p1 = copie[i-1][j-1];
    int p2 = copie[i-1][j];
    int p3 = copie[i-1][j+1];
@@ -263,29 +263,29 @@ DesertGenerator::~DesertGenerator() {}
    int p8 = copie[i+1][j+1];
 
    		hauteur[i][j] = (1.0/8) * (p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8);//(couleur[i*3][j*3 + k] + pixel) / 2;
-   
-     }
-   }  
 
-	
+     }
+   }
+
+
 
 
 for( int y = 0; y < hSize; ++y ){
   for( int z = 0; z < dSize; ++z ){
     for( int x = 0; x < wSize; ++x ){
       	if (y == 0) {
-      		map(x, y, z) = CubeTypes::ADMINIUM; 
+      		map(x, y, z) = CubeTypes::ADMINIUM;
       	} else if (y <= hauteur[x][z]) {
 
       		// On déclare la variable qui déterminera le type de bloc
 		    int numeroBlocSuppose = 8;
-			
+
 			double sum = 0;
 		    // On demande un chiffre entre 0 et 100, on s'en servira pour fixer le type de cube une fois qu'on a calculé les probas.
 		    int random = rand() % 100;
-			      
-		  
-			    
+
+
+
 	        double proba [CubeTypes::SIZE_CT];
 	        std::vector<double> probaByHeight = getProbaBloc(y, hauteur[x][z], hSize);
 
@@ -299,7 +299,7 @@ for( int y = 0; y < hSize; ++y ){
 	        for (int k = 0; (k < CubeTypes::SIZE_CT); ++k) {
 				proba[k] = probaByHeight[k];
 		    }
-		
+
 		    sum = 0;
 
 		    // On donne un type de bloc probable
@@ -314,21 +314,21 @@ for( int y = 0; y < hSize; ++y ){
 		            trouve = true;
 			        break;
 			    }
-		    }  
-		
+		    }
+
 
 		    map(x, y, z) = numeroBlocSuppose;
-        } else { 
+        } else {
 
           map(x, y, z) = CubeTypes::AIR;
-        } 
+        }
       }
     }
   }
 
 
   // grow three
-  
+
   growTree(map);
 
   growRiver(map);

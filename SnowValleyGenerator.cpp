@@ -170,7 +170,7 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
 	return proba;
 }
 
-  void SnowValleyGenerator::growRiver(cimg_library::CImg<unsigned char>& SnowValley) const {
+  void SnowValleyGenerator::growRiver(VoxImage<unsigned char>& SnowValley) const {
 	int hSize = SnowValley.height();
 	int wSize = SnowValley.width();
 	int dSize = SnowValley.depth();
@@ -190,11 +190,11 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
 	}
 }
 
-   void SnowValleyGenerator::diffuseFolliage(cimg_library::CImg<unsigned char>& SnowValley) const {
+   void SnowValleyGenerator::diffuseFolliage(VoxImage<unsigned char>& SnowValley) const {
 	int hSize = SnowValley.height();
 	int wSize = SnowValley.width();
 	int dSize = SnowValley.depth();
-	cimg_library::CImg<bool> maskFolliage = cimg_library::CImg<bool>(wSize, hSize, dSize, 1, false);
+	VoxImage<bool> maskFolliage = VoxImage<bool>(wSize, hSize, dSize, 1, false);
 
    	for (int i = 0; i < wSize; ++i) {
    		for (int j = 0; j < hSize; ++j) {
@@ -225,7 +225,7 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
 	}
 }
 
-   void SnowValleyGenerator::growTree (cimg_library::CImg<unsigned char>& SnowValley) const {
+   void SnowValleyGenerator::growTree (VoxImage<unsigned char>& SnowValley) const {
 	int hSize = SnowValley.height();
 	int wSize = SnowValley.width();
 	int dSize = SnowValley.depth();
@@ -290,7 +290,7 @@ SnowValleyGenerator::~SnowValleyGenerator() {}
 }
 
 
- void SnowValleyGenerator::fill(cimg_library::CImg<unsigned char>& SnowValley) {
+ void SnowValleyGenerator::fill(VoxImage<unsigned char>& SnowValley) {
 	int hSize = SnowValley.height();
 	int wSize = SnowValley.width();
 	int dSize = SnowValley.depth();

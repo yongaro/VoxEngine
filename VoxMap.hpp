@@ -3,9 +3,8 @@
 
 #include "glGeometry.hpp"
 
-#define cimg_display 0
-#include "CImg.h"
-#include "MapGenerator.hpp"
+//#define cimg_display 0
+//#include "CImg.h"
 
 #include <vector>
 #include <string>
@@ -30,23 +29,26 @@ template<class T>
 class VoxImage{
 private:
   T* data;
-  uint32_t width;
-  uint32_t height;
-  uint32_t depth;
+  uint32_t _width;
+  uint32_t _height;
+  uint32_t _depth;
 public:
-  VoxImage():data(), width(), height(), depth(){}
-  VoxImage(uint32_t w, uint32_t h, uint32_t d, T defaultValue):data(new T[w * h * d]), width(w), height(h), depth(d){}
+  VoxImage():data(), _width(), _height(), _depth(){}
+  VoxImage(uint32_t w, uint32_t h, uint32_t d, T defaultValue):data(new T[w * h * d]), _width(w), _height(h), _depth(d){}
+  VoxImage(uint32_t w, uint32_t h, uint32_t d, uint32_t canal, T defaultValue):data(new T[w * h * d]), _width(w), _height(h), _depth(d){
+    std::cout << "CONSTRUCTEUR TEMPORAIRE QUI DOIT ETRE REMPLACE" << std::endl;
+  }
   ~VoxImage(){ delete[] data; }
 
   void save(std::string filePath){
     FILE* file = fopen(filePath.c_str(), "wb");
     //writing image dimensions.
-    fwrite( &width, sizeof(uint32_t), 1, file );
-    fwrite( &height, sizeof(uint32_t), 1, file );
-    fwrite( &depth, sizeof(uint32_t), 1, file );
+    fwrite( &_width, sizeof(uint32_t), 1, file );
+    fwrite( &_height, sizeof(uint32_t), 1, file );
+    fwrite( &_depth, sizeof(uint32_t), 1, file );
 
     //saving image content.
-    fwrite( data, sizeof(T), width * height * depth, file );
+    fwrite( data, sizeof(T), _width * _height * _depth, file );
 
     //closing file.
     fclose(file);
@@ -54,32 +56,46 @@ public:
   void load(std::string filePath){
     FILE* file = fopen(filePath.c_str(), "rb");
     //reading image dimensions.
-    fread( &width, sizeof(uint32_t), 1, file );
-    fread( &height, sizeof(uint32_t), 1, file );
-    fread( &depth, sizeof(uint32_t), 1, file );
+    fread( &_width, sizeof(uint32_t), 1, file );
+    fread( &_height, sizeof(uint32_t), 1, file );
+    fread( &_depth, sizeof(uint32_t), 1, file );
 
     //space allocation.
     if( data != NULL){ delete[] data; }
-    data = new T[width * height * depth];
+    data = new T[_width * _height * _depth];
 
     //recovering image content.
-    fread( data, sizeof(T), width * height * depth, file );
+    fread( data, sizeof(T), _width * _height * _depth, file );
 
     //closing file.
     fclose(file);
   }
-  T& operator()(uint32_t x, uint32_t y, uint32_t z){ return data[ (z*depth) + (y*width) + x]; }
-  uint32_t getWidth(){ return width; }
-  uint32_t getHeight(){ return height; }
-  uint32_t getDepth(){ return depth; }
+  T& operator()(uint32_t x, uint32_t y = 0, uint32_t z = 0, uint32_t can = 0){ return data[ (z*_height*_width) + (y*_width) + x ]; }
+  VoxImage<T>& operator=(const VoxImage<T>& other){
+    if( this != &other ){
+      if( this->data != NULL ){ delete this->data; }
+      this->_width = other._width;
+      this->_height = other._height;
+      this->_depth = other._depth;
+      data = new T[_width * _height * _depth];
+      //deep copy of the data
+      size_t dataSize = _width * _height * _depth;
+      for( size_t i = 0; i < dataSize; ++i ){ this->data[i] = other.data[i]; }
+    }
+    return *this;
+  }
+
+  uint32_t width(){ return _width; }
+  uint32_t height(){ return _height; }
+  uint32_t depth(){ return _depth; }
 };
 
-
+class MapGenerator;
 
 class VoxMap{
 public:
-	cimg_library::CImg<unsigned char> map;
-	cimg_library::CImg<bool> tempMap;
+	VoxImage<unsigned char> map;
+	VoxImage<bool> tempMap;
 	float voxelSize[3];
 	glm::vec3 position;
 	glInstancedMesh cubes[CubeTypes::SIZE_CT];
@@ -95,7 +111,7 @@ public:
 	virtual void save(std::string&);
 	virtual void load(std::string&);
 	virtual void newMap(int,int,int);
-	virtual cimg_library::CImg<bool> getMapObjects();
+	virtual VoxImage<bool> getMapObjects();
 	virtual void testMap(std::vector<std::string>&);
 	virtual void genereMap(MapGenerator*, std::string);
 	virtual void render();

@@ -4,12 +4,12 @@
 #include "MapGenerator.hpp"
 #include <vector>
 
-#define cimg_display 0
-#include "CImg.h"
+//#define cimg_display 0
+//#include "CImg.h"
 
 class SnowValleyGenerator : public MapGenerator {
 public:
-	 virtual void fill (cimg_library::CImg<unsigned char>& SnowValley);
+	 virtual void fill (VoxImage<unsigned char>& SnowValley);
 	
 	virtual  int getNbBloc (int nb) const;
 	virtual  double getProbaAir (int height, int maxHeight) const;
@@ -33,9 +33,9 @@ public:
 
 	virtual std::vector<double> getProbaBloc (int depth, int maxHeight, int superMaxHeight) const;
 
-	virtual  void growRiver(cimg_library::CImg<unsigned char>& SnowValley) const;
-	virtual void diffuseFolliage (cimg_library::CImg<unsigned char>& SnowValley) const;
-	virtual  void growTree (cimg_library::CImg<unsigned char>& SnowValley) const;
+	virtual  void growRiver(VoxImage<unsigned char>& SnowValley) const;
+	virtual void diffuseFolliage (VoxImage<unsigned char>& SnowValley) const;
+	virtual  void growTree (VoxImage<unsigned char>& SnowValley) const;
 
 	virtual ~SnowValleyGenerator();
 };

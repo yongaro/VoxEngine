@@ -6,13 +6,12 @@
 
 using namespace std;
 
-Camera::Camera() :
-    speed(.05f),
-    theta(.0f),
-    phi(.0f),
-    circleX(0),
-    circleY (0)
-{}
+Camera::Camera() : position(), target(), forward(), left(),
+context(NULL), width(), height(),
+circleX(0), circleY (0),
+speed(.05f), sensivity(),
+theta(.0f), phi(.0f),
+booster(), enabledMoves(), boost(), endurance(){}
 
 Camera::Camera(GLfloat x, GLfloat y, GLfloat z) {
     position = glm::vec3(x, y, z);
@@ -55,10 +54,10 @@ void Camera::vectorsFromAngles() {
         phi = -89;
 
     // coordonnées sphériques -> cartésiennes
-    double r_temp = cos(phi  * PI/180);
-    forward.y = -0.5f + -1.8 * sin(phi * PI/180);
-    forward.x = r_temp * cos(theta * PI/180);
-    forward.z = r_temp * sin(theta * PI/180);
+    double r_temp = cos(phi  * M_PI/180);
+    forward.y = -0.5f + -1.8 * sin(phi * M_PI/180);
+    forward.x = r_temp * cos(theta * M_PI/180);
+    forward.z = r_temp * sin(theta * M_PI/180);
     left = glm::cross(up, forward);
     glm::normalize(left);
 

@@ -3,15 +3,15 @@
 
 #include "MapGenerator.hpp"
 
-#define cimg_display 0
-#include "CImg.h"
+//#define cimg_display 0
+//#include "CImg.h"
 
 class MangroveGenerator : public MapGenerator {
 public:
 	virtual  int getNbBloc (int nb) const;
 	virtual ~MangroveGenerator();
 
-		 virtual void fill (cimg_library::CImg<unsigned char>& map);
+		 virtual void fill (VoxImage<unsigned char>& map);
 	
 	virtual  double getProbaAir (int height, int maxHeight) const;
 	virtual  double getProbaAdminium (int height, int maxHeight) const;
@@ -34,9 +34,9 @@ public:
 
 	virtual std::vector<double> getProbaBloc (int depth, int maxHeight, int superMaxHeight) const;
 
-	virtual  void growRiver(cimg_library::CImg<unsigned char>& map) const;
-	virtual void diffuseFolliage (cimg_library::CImg<unsigned char>& map) const;
-	virtual  void growTree (cimg_library::CImg<unsigned char>& map) const;
+	virtual  void growRiver(VoxImage<unsigned char>& map) const;
+	virtual void diffuseFolliage (VoxImage<unsigned char>& map) const;
+	virtual  void growTree (VoxImage<unsigned char>& map) const;
 
 };
 #endif

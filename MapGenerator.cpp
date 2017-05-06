@@ -163,7 +163,7 @@ MapGenerator::~MapGenerator() {}
 	return proba;
 }
 
-  void MapGenerator::growRiver(cimg_library::CImg<unsigned char>& map) const {
+  void MapGenerator::growRiver(VoxImage<unsigned char>& map) const {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -183,11 +183,11 @@ MapGenerator::~MapGenerator() {}
 	}
 }
 
-   void MapGenerator::diffuseFolliage(cimg_library::CImg<unsigned char>& map) const {
+   void MapGenerator::diffuseFolliage(VoxImage<unsigned char>& map) const {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
-	cimg_library::CImg<bool> maskFolliage = cimg_library::CImg<bool>(wSize, hSize, dSize, 1, false);
+	VoxImage<bool> maskFolliage = VoxImage<bool>(wSize, hSize, dSize, 1, false);
 
    	for (int i = 0; i < wSize; ++i) {
    		for (int j = 0; j < hSize; ++j) {
@@ -218,7 +218,7 @@ MapGenerator::~MapGenerator() {}
 	}
 }
 
-   void MapGenerator::growTree (cimg_library::CImg<unsigned char>& map) const {
+   void MapGenerator::growTree (VoxImage<unsigned char>& map) const {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -283,7 +283,7 @@ MapGenerator::~MapGenerator() {}
 }
 
 
- void MapGenerator::fill(cimg_library::CImg<unsigned char>& map) {
+ void MapGenerator::fill(VoxImage<unsigned char>& map) {
  	std::cout << "begin fill 2" << std::endl;
 	int hSize = map.height();
 	int wSize = map.width();

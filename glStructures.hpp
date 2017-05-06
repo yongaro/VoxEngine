@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstring>
 #include <array>
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #define GLM_FORCE_RADIANS
@@ -21,7 +22,7 @@
 static uint32_t width = 800;
 static uint32_t height = 600;
 static std::string DEFAULT_TEXTURE = "./assets/default_texture.png";
-static float PI = 4.0f * std::atan(1.0f);
+//static float PI = 4.0f * std::atan(1.0f);
 
 
 enum ModificationStates{ NONE, ROTATION, ORIENT_CAMERA, NORMAL, SPRINT, WALK };

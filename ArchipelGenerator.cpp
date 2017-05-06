@@ -154,7 +154,7 @@ ArchipelGenerator::~ArchipelGenerator() {}
 	return proba;
 }
 
-  void ArchipelGenerator::growRiver(cimg_library::CImg<unsigned char>& map) const {
+  void ArchipelGenerator::growRiver(VoxImage<unsigned char>& map) const {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -178,7 +178,7 @@ ArchipelGenerator::~ArchipelGenerator() {}
 }
 
 
-   void ArchipelGenerator::growTree (cimg_library::CImg<unsigned char>& map) const {
+   void ArchipelGenerator::growTree (VoxImage<unsigned char>& map) const {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();
@@ -203,7 +203,7 @@ ArchipelGenerator::~ArchipelGenerator() {}
 }
 
 
- void ArchipelGenerator::fill(cimg_library::CImg<unsigned char>& map) {
+ void ArchipelGenerator::fill(VoxImage<unsigned char>& map) {
 	int hSize = map.height();
 	int wSize = map.width();
 	int dSize = map.depth();

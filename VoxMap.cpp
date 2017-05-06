@@ -12,7 +12,7 @@ VoxMap::VoxMap(glm::vec3 pos){
 	voxelSize[1] = 2.0f;
 	voxelSize[2] = 2.0f;
 	position = glm::vec3(pos);
-	
+
 
 	biomName.push_back("default");
 	bioms.push_back(new MapGenerator());
@@ -39,36 +39,39 @@ VoxMap::~VoxMap(){
 	}
 }
 
-void VoxMap::save(std::string& path) { 
+void VoxMap::save(std::string& path) {
 	std::string repositoryPath = "Map/" + path;
 	std::cout << repositoryPath << std::endl;
-	map.save_analyze(repositoryPath.c_str(),voxelSize);
+	map.save(repositoryPath.c_str());
 }
 
 void VoxMap::load(std::string& path) {
-	map.load_analyze(path.c_str(), voxelSize);
-}
-
-void VoxMap::newMap(int width, int height, int depth){
-	map = cimg_library::CImg<unsigned char>(width,height,depth,1,0x0);
+	map.load(path.c_str());
 	voxelSize[0] = 2.0f;
 	voxelSize[1] = 2.0f;
 	voxelSize[2] = 2.0f;
 }
 
-cimg_library::CImg<bool> VoxMap::getMapObjects(){
-	cimg_library::CImg<bool> res = cimg_library::CImg<bool>(map.width(), map.height(), map.depth(), 1, false);
+void VoxMap::newMap(int width, int height, int depth){
+	map = VoxImage<unsigned char>(width,height,depth,1,0x0);
+	voxelSize[0] = 2.0f;
+	voxelSize[1] = 2.0f;
+	voxelSize[2] = 2.0f;
+}
 
-	for( int z = 0; z < map.depth(); ++z ){
-		for( int y = 0; y < map.height(); ++y ){
-			for( int x = 0; x < map.width(); ++x ){
+VoxImage<bool> VoxMap::getMapObjects(){
+	VoxImage<bool> res = VoxImage<bool>(map.width(), map.height(), map.depth(), 1, false);
+
+	for( size_t z = 0; z < map.depth(); ++z ){
+		for( size_t y = 0; y < map.height(); ++y ){
+			for( size_t x = 0; x < map.width(); ++x ){
 				if( map(x,y,z) != CubeTypes::AIR && tempMap(x,y,z) == true){
 					res(x,y,z) = true;
 				}
 			}
 		}
 	}
-	res.save_analyze("visible");
+	//res.save_analyze("visible");
 	return res;
 }
 
@@ -84,18 +87,18 @@ void VoxMap::testMap(std::vector<std::string>& args) {
 		cubes[i].instanceSSBO = mapSSBO;
 		cubes[i].createOffsetUBO();
 	}
-	
-	
-	if ((args.size() >= 2)) { 
+
+
+	if ((args.size() >= 2)) {
 		if (args[0] == "load") {
-			try {
-				args[1] += ".hdr";
+			//try {
+				//args[1] += ".hdr";
 				args[1].insert(0, "Map/");
 				map.load(args[1].c_str());
-			} catch (cimg_library::CImgIOException e) {
-				genereMap(bioms[0], "maMap");
-			}
-		} else if (args[0] == "new") {
+			//}
+			//catch (VoxImageIOException e) { genereMap(bioms[0], "maMap"); }
+		}
+		else if (args[0] == "new") {
 			if (args.size() >= 3) {
 				// Get the standard biom
 				MapGenerator* biom = bioms[0];
@@ -124,9 +127,11 @@ void VoxMap::testMap(std::vector<std::string>& args) {
 		int indexBiom = rand() % bioms.size();
 		genereMap(bioms[indexBiom], "maMap");
 	}
-	
+
+	std::cout << "BEGIN" << std::endl;
 	fillVisibleCubes(map.width()-20, map.height()-10, map.depth()-20 );
-} 
+	std::cout << "DONE" << std::endl;
+}
 
 void VoxMap::render(){
 	for( size_t i = 1; i < CubeTypes::SIZE_CT; ++i ){
@@ -170,14 +175,14 @@ void VoxMap::resetVisibleCubes(){
 
 
 bool VoxMap::seeThroughCubeType(size_t cubeType){
-	return cubeType == CubeTypes::AIR || cubeType == CubeTypes::WATER; 
+	return cubeType == CubeTypes::AIR || cubeType == CubeTypes::WATER;
 }
 
 void VoxMap::getVisibleNeighbors(int x, int y, int z, std::vector<PixelCoord>& stack){
 	for( int i = -1; i < 2; ++i ){
 		for( int j = -1; j < 2; ++j ){
 			for( int k = -1; k < 2; ++k ){
-				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != map.width() && y+j != map.height()) && z+k != map.depth()) ){
+				if( ((x+i >= 0 && y+j >= 0) && z+k >= 0) && ((x+i != (int)map.width() && y+j != (int)map.height()) && z+k != (int)map.depth()) ){
 					if( seeThroughCubeType( map(x+i, y+j, z+k, MapChannels::BLOC) ) && tempMap(x+i, y+j, z+k) == false ){
 						stack.push_back( PixelCoord(x+i,y+j,z+k) );
 					}
@@ -191,7 +196,7 @@ void VoxMap::getVisibleNeighbors(int x, int y, int z, std::vector<PixelCoord>& s
 	}
 }
 void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
-	tempMap = cimg_library::CImg<bool>(map.width(), map.height(), map.depth(), 1, false);
+	tempMap = VoxImage<bool>(map.width(), map.height(), map.depth(), 1, false);
 	std::vector<PixelCoord> stack;
 	std::vector<PixelCoord> stackBuffer;
 
@@ -199,11 +204,11 @@ void VoxMap::fillVisibleCubes(size_t x, size_t y, size_t z){
 	resetVisibleCubes();
 	tempMap(x,y,z) = true;
 	getVisibleNeighbors((int)x, (int)y, (int)z, stack);
-	
+
 	if( map(x, y, z, MapChannels::BLOC) < CubeTypes::SIZE_CT && map(x, y, z, MapChannels::BLOC) != CubeTypes::AIR ){
 		cubes[ map(x, y, z, MapChannels::BLOC) ].addInstance( glm::vec4(x*voxelSize[0]+position.x, y*voxelSize[1]+position.y, z*voxelSize[2]+position.z, 1.0f) );
 	}
-	
+
 	//Parcours
 	while( !stack.empty() ){
 		for( PixelCoord& pix : stack ){
@@ -233,7 +238,7 @@ void VoxMap::fillSSBO(){
 void VoxMap::createInstanceSSBO(){
 	GLuint size = map.width()*map.height()*map.depth();
 	std::cout << "Allocation of \e[1;33m" << (GLfloat)size*sizeof(InstanceInfos)/1000000.0f << "\e[0m MB of vram"<< std::endl;
-	
+
 	instances.resize(size);
 	glGenBuffers(1, &mapSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, mapSSBO);
@@ -261,7 +266,7 @@ void VoxMap::addBlock(size_t x, size_t y, size_t z, CubeTypes type, glDeferredRe
 		map(x,y,z) = type;
 		fillSSBO();
 		//fillVisibleCubes(x,y,z);
-	}	
+	}
 }
 void VoxMap::removeBlock(size_t x, size_t y, size_t z, glDeferredRenderer& renderer, glContext* context){
 	if( map(x,y,z) != CubeTypes::AIR ){
@@ -327,7 +332,7 @@ CubeTypes VoxMapManager::cubeAt(glm::vec3 pos){
 	for( VoxMap* map : mapList ){
 		if( map->isInMap(pos) ){
 			PixelCoord coord = map->mapCoord(pos);
-			return (CubeTypes)map->map(coord.x, coord.y, coord.z); 
+			return (CubeTypes)map->map(coord.x, coord.y, coord.z);
 		}
 	}
 	return (CubeTypes)0x0;

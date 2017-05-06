@@ -1,13 +1,15 @@
 #ifndef MAPGENERATOR_HPP
 #define MAPGENERATOR_HPP
 
-#define cimg_display 0
-#include "CImg.h"
+//#define cimg_display 0
+//#include "CImg.h"
+#include "VoxMap.hpp"
 #include <vector>
+#include <time.h>
 
 class MapGenerator {
 public:
-	 virtual void fill (cimg_library::CImg<unsigned char>& map);
+	 virtual void fill (VoxImage<unsigned char>& map);
 
 	virtual  int getNbBloc (int nb) const;
 	virtual  double getProbaAir (int height, int maxHeight) const;
@@ -31,9 +33,9 @@ public:
 
 	virtual std::vector<double> getProbaBloc (int depth, int maxHeight, int superMaxHeight) const;
 
-	virtual  void growRiver(cimg_library::CImg<unsigned char>& map) const;
-	virtual void diffuseFolliage (cimg_library::CImg<unsigned char>& map) const;
-	virtual  void growTree (cimg_library::CImg<unsigned char>& map) const;
+	virtual  void growRiver(VoxImage<unsigned char>& map) const;
+	virtual void diffuseFolliage (VoxImage<unsigned char>& map) const;
+	virtual  void growTree (VoxImage<unsigned char>& map) const;
 
 	virtual ~MapGenerator();
 };
