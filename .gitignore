@@ -26,3 +26,7 @@
 *.exe
 *.out
 *.app
+
+# MSYS2 output
+stdout.txt
+stderr.txt
