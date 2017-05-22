@@ -40,16 +40,24 @@ SDL et Assimp proposent des versions déjà compilées ainsi que des options de 
 - [SDL Installation Windows](https://wiki.libsdl.org/Installation#Windows_XP.2FVista.2F7)
 - [Assimp Compilation Windows](https://github.com/assimp/assimp#building)
 
+L'utilisation de MSYS2 est cependant fortement conseillée (en particulier MingW32) avec les paquets Arch suivants :
+- `mingw-w64-i686-SDL` et `mingw-w64-i686-SDL2` pour la SDL
+- `mingw-w64-i686-assimp` pour Assimp
+- `mingw-w64-i686-glm` pour GLM
+- `mingw-w64-i686-glew` pour GLEW
+
+Ces paquets s'installent simplement avec la commande `pacman -S <nom du paquet>` depuis une console MSYS2 et il suffit de remplacer
+`i686` par `x86_64` dans le nom des paquets pour obtenir leur version 64 bits.
+
 ## Compilation
-### Ubuntu (Linux base Debian)
-Un makefile est inclus dans le projet, il suffit d'utiliser la commande `make all` pour compiler le moteur.
+### Linux et utilisateurs de MSYS2 (Windows)
+Un script CMake permet de compiler simplement le projet en suivant ces même commandes pour Linux et MSYS2 :
+- `mkdir build && cd build`
+- `cmake -G "Unix Makefiles" ..`
+- `make`
+- `cd ..`
+- `Lancement du moteur`
 
-Vu le nombre important de fichiers à compiler, une commande du type `make all -j4` pour répartir la compilation sur 4 threads est préférable.
-
-### Autres
-Les fichiers sources sont organisés selon un schéma simple.
-
-Une simple copie des sources dans la racine d'un projet (Eclipse plugin CDT, CodeBlocks, ...) semble donc suffisante pour compiler le moteur depuis un IDE.
 ## Lancement
 ### Pour créer une nouvelle Map
 `./VoxEngine new <mapMame> <biomeName>`
